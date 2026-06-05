@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Tag, Button, Chip } from "@sarunyu/system-one";
 import {
   SparkleIcon,
@@ -248,25 +248,23 @@ function PlaybookCard({ strategy }: { strategy: (typeof mockHouseViewStrategies)
 
 function StrategyPlaybooks() {
   const [filter, setFilter] = useState<AssetClassFilter>("All");
+  const [chipsScrolled, setChipsScrolled] = useState(false);
   const filtered = mockHouseViewStrategies.filter((s) => filter === "All" || s.assetClass === filter);
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <p className="type-subtitle-1 text-foreground">Strategy Playbooks</p>
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 sm:shrink-0">
           <span className="text-[12px] text-muted-foreground shrink-0">Filter by:</span>
-          <div className="relative flex-1 min-w-0 sm:max-w-xs">
+          <div className="relative flex-1 min-w-0 sm:flex-none">
             <div
-              className="scrollable-tabs flex gap-1.5"
-              onScroll={(e) => {
-                const el = e.currentTarget;
-                const mask = el.scrollLeft > 0
-                  ? "linear-gradient(to right, transparent 0px, black 36px)"
-                  : undefined;
-                el.style.webkitMaskImage = mask ?? "";
-                el.style.maskImage = mask ?? "";
-              }}
+              className="scrollable-tabs flex items-center gap-2 sm:overflow-visible"
+              onScroll={(e) => setChipsScrolled(e.currentTarget.scrollLeft > 0)}
+              style={chipsScrolled ? {
+                maskImage: "linear-gradient(to right, transparent 0px, black 40px)",
+                WebkitMaskImage: "linear-gradient(to right, transparent 0px, black 40px)",
+              } : undefined}
             >
               {ASSET_FILTERS.map((f) => (
                 <Chip key={f} label={f} type="single" size="small" selected={filter === f} onClick={() => setFilter(f)} />
