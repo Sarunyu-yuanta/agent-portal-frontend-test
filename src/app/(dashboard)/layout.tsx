@@ -133,9 +133,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Avatar type="text" initials="RM" size="m" status />
             </NavHeaderAvatarSlot>
 
-            <NavHeaderIconButton aria-label="Open navigation" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
-              <ListIcon weight="regular" size={24} />
-            </NavHeaderIconButton>
+            <div className="lg:hidden">
+              <NavHeaderIconButton aria-label="Open navigation" onClick={() => setSidebarOpen(true)}>
+                <ListIcon weight="regular" size={24} />
+              </NavHeaderIconButton>
+            </div>
           </div>
         </header>
 
