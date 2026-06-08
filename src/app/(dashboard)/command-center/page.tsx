@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Tag, Button, Avatar } from "@sarunyu/system-one";
+import { Card, Tag, Button, Avatar, Checkbox } from "@sarunyu/system-one";
 import {
   SparkleIcon,
   ArrowsClockwiseIcon,
@@ -16,10 +16,7 @@ import {
   UserIcon,
 } from "@phosphor-icons/react";
 import { mockNBAActions, mockMiniKanban } from "@/lib/mock-data";
-import {
-  Sheet,
-  SheetContent,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -150,19 +147,54 @@ function KpiBar() {
 }
 
 function getInitials(name: string) {
-  return name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
 }
 
 // ─── NBA Row ──────────────────────────────────────────────────────────────────
 
 const ACTION_CATEGORY: Record<
   string,
-  { label: string; variant: "green" | "red" | "blue" | "yellow" | "gray"; color: string; bg: string; Icon: React.ElementType }
+  {
+    label: string;
+    variant: "green" | "red" | "blue" | "yellow" | "gray";
+    color: string;
+    bg: string;
+    Icon: React.ElementType;
+  }
 > = {
-  "Review & Send":  { label: "Revenue Opportunity", variant: "green",  color: "#22c55e", bg: "rgba(34,197,94,0.12)",   Icon: CurrencyCircleDollarIcon },
-  "Schedule Review":{ label: "Compliance Risk",     variant: "red",    color: "#ef4444", bg: "rgba(239,68,68,0.12)",   Icon: WarningCircleIcon },
-  "Pitch Product":  { label: "Product Match",       variant: "blue",   color: "#6366f1", bg: "rgba(99,102,241,0.12)",  Icon: SparkleIcon },
-  "Re-engage":      { label: "Re-Engage",           variant: "yellow", color: "#f59e0b", bg: "rgba(245,158,11,0.12)",  Icon: UsersIcon },
+  "Review & Send": {
+    label: "Revenue Opportunity",
+    variant: "green",
+    color: "var(--text-success-primary)",
+    bg: "var(--bg-success-light)",
+    Icon: CurrencyCircleDollarIcon,
+  },
+  "Schedule Review": {
+    label: "Compliance Risk",
+    variant: "red",
+    color: "var(--text-danger-primary)",
+    bg: "var(--bg-danger-light)",
+    Icon: WarningCircleIcon,
+  },
+  "Pitch Product": {
+    label: "Product Match",
+    variant: "blue",
+    color: "var(--text-brand-primary)",
+    bg: "var(--bg-brand-light)",
+    Icon: SparkleIcon,
+  },
+  "Re-engage": {
+    label: "Re-Engage",
+    variant: "yellow",
+    color: "var(--text-warning-primary)",
+    bg: "var(--bg-warning-light)",
+    Icon: UsersIcon,
+  },
 };
 
 interface NbaCardProps {
@@ -173,17 +205,38 @@ interface NbaCardProps {
   isLast?: boolean;
 }
 
-function NbaCard({ action, onDismiss, isSelected, onSelect, isLast }: NbaCardProps) {
+function NbaCard({
+  action,
+  onDismiss,
+  isSelected,
+  onSelect,
+  isLast,
+}: NbaCardProps) {
   const isRevenue = action.revenueImpact.startsWith("฿");
   const category = ACTION_CATEGORY[action.action] ?? {
-    label: action.action, variant: "gray" as const,
-    color: "#94a3b8", bg: "rgba(148,163,184,0.12)", Icon: SparkleIcon,
+    label: action.action,
+    variant: "gray" as const,
+    color: "var(--text-default-secondary)",
+    bg: "var(--bg-default-secondary)",
+    Icon: SparkleIcon,
   };
-  const { color, bg, Icon, label: categoryLabel, variant: categoryVariant } = category;
+  const {
+    color,
+    bg,
+    Icon,
+    label: categoryLabel,
+    variant: categoryVariant,
+  } = category;
 
-  const revenueLabel = isRevenue
-    ? <span className="text-[11px] font-medium text-success">{action.revenueImpact.replace(" est. revenue", "")} potential</span>
-    : <span className="text-[11px] font-medium text-warning">{action.revenueImpact}</span>;
+  const revenueLabel = isRevenue ? (
+    <span className="text-[11px] font-medium text-success">
+      {action.revenueImpact.replace(" est. revenue", "")} potential
+    </span>
+  ) : (
+    <span className="text-[11px] font-medium text-warning">
+      {action.revenueImpact}
+    </span>
+  );
 
   return (
     <div
@@ -193,54 +246,118 @@ function NbaCard({ action, onDismiss, isSelected, onSelect, isLast }: NbaCardPro
       {/* ── Mobile layout ── */}
       <div className="flex flex-col gap-2 px-4 py-4 lg:hidden">
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: bg }}>
+          <div
+            className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+            style={{ backgroundColor: bg }}
+          >
             <Icon size={13} weight="duotone" style={{ color }} />
           </div>
           <Tag text={categoryLabel} variant={categoryVariant} size="small" />
-          <Tag text={action.tier} variant={action.tier === "UHNW" ? "blue" : "gray"} size="small" />
+          <Tag
+            text={action.tier}
+            variant={action.tier === "UHNW" ? "blue" : "gray"}
+            size="small"
+          />
         </div>
-        <p className="text-[14px] font-semibold text-foreground leading-snug">{action.clientName}</p>
-        <p className="type-body-2 text-muted-foreground leading-snug">{action.insight}</p>
+        <p className="text-[14px] font-semibold text-foreground leading-snug">
+          {action.clientName}
+        </p>
+        <p className="type-body-2 text-muted-foreground leading-snug">
+          {action.insight}
+        </p>
         <div className="flex gap-2 bg-primary-action-light rounded-lg px-3 py-2.5">
-          <SparkleIcon size={13} className="text-primary-action shrink-0 mt-0.5" weight="fill" />
-          <p className="text-[12px] text-foreground leading-relaxed">{action.aiDraft}</p>
+          <SparkleIcon
+            size={13}
+            className="text-primary-action shrink-0 mt-0.5"
+            weight="fill"
+          />
+          <p className="text-[12px] text-foreground leading-relaxed">
+            {action.aiDraft}
+          </p>
         </div>
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Tag text={action.priority} variant={action.priorityVariant} size="small" />
+            <Tag
+              text={action.priority}
+              variant={action.priorityVariant}
+              size="small"
+            />
             {revenueLabel}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="plain" size="sm" onClick={(e) => { e.stopPropagation(); onDismiss(action.id); }}>Dismiss</Button>
-            <Button variant="outline" size="sm">{action.action}</Button>
+            <Button
+              variant="plain"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDismiss(action.id);
+              }}
+            >
+              Dismiss
+            </Button>
+            <Button variant="outline" size="sm">
+              {action.action}
+            </Button>
           </div>
         </div>
       </div>
 
       {/* ── Desktop layout (original) ── */}
       <div className="hidden lg:flex items-start gap-4 px-5 py-4">
-        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: bg }}>
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+          style={{ backgroundColor: bg }}
+        >
           <Icon size={18} weight="duotone" style={{ color }} />
         </div>
         <div className="flex-1 min-w-0 flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <Tag text={categoryLabel} variant={categoryVariant} size="small" />
-            <Tag text={action.tier} variant={action.tier === "UHNW" ? "blue" : "gray"} size="small" />
+            <Tag
+              text={action.tier}
+              variant={action.tier === "UHNW" ? "blue" : "gray"}
+              size="small"
+            />
           </div>
-          <p className="text-[14px] font-semibold text-foreground leading-snug">{action.clientName}</p>
-          <p className="type-body-2 text-muted-foreground leading-snug">{action.insight}</p>
+          <p className="text-[14px] font-semibold text-foreground leading-snug">
+            {action.clientName}
+          </p>
+          <p className="type-body-2 text-muted-foreground leading-snug">
+            {action.insight}
+          </p>
           <div className="flex gap-2 bg-primary-action-light rounded-lg px-3 py-2.5 mt-0.5">
-            <SparkleIcon size={14} className="text-primary-action shrink-0 mt-0.5" weight="fill" />
-            <p className="text-[13px] text-foreground leading-relaxed">{action.aiDraft}</p>
+            <SparkleIcon
+              size={14}
+              className="text-primary-action shrink-0 mt-0.5"
+              weight="fill"
+            />
+            <p className="text-[13px] text-foreground leading-relaxed">
+              {action.aiDraft}
+            </p>
           </div>
           <div className="flex items-center justify-between gap-3 mt-0.5">
             <div className="flex items-center gap-3">
-              <Tag text={action.priority} variant={action.priorityVariant} size="small" />
+              <Tag
+                text={action.priority}
+                variant={action.priorityVariant}
+                size="small"
+              />
               {revenueLabel}
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Button variant="plain" size="sm" onClick={(e) => { e.stopPropagation(); onDismiss(action.id); }}>Dismiss</Button>
-              <Button variant="outline" size="sm">{action.action}</Button>
+              <Button
+                variant="plain"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDismiss(action.id);
+                }}
+              >
+                Dismiss
+              </Button>
+              <Button variant="outline" size="sm">
+                {action.action}
+              </Button>
             </div>
           </div>
         </div>
@@ -285,7 +402,7 @@ function NbaActionQueue({
     }, 0);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-0.5">
         {/* Title row */}
         <p className="type-subtitle-1 text-foreground">Next Best Actions</p>
@@ -338,62 +455,124 @@ function NbaActionQueue({
 
 // ─── Client Intelligence Panel ───────────────────────────────────────────────
 
-const clientIntelligenceMap: Record<string, {
-  totalAssets: string;
-  cashDrag: string;
-  cashDragPct: number;
-  ytdReturn: string;
-  ytdPositive: boolean;
-  riskProfile: string;
-  aiInsight: string;
-  talkingPoints: { text: string; category: string }[];
-}> = {
+const clientIntelligenceMap: Record<
+  string,
+  {
+    totalAssets: string;
+    cashDrag: string;
+    cashDragPct: number;
+    ytdReturn: string;
+    ytdPositive: boolean;
+    riskProfile: string;
+    aiInsight: string;
+    talkingPoints: { text: string; category: string }[];
+  }
+> = {
   "1": {
-    totalAssets: "฿ 450M", cashDrag: "฿ 81M", cashDragPct: 18,
-    ytdReturn: "+4.2%", ytdPositive: true, riskProfile: "Aggressive",
-    aiInsight: "คุณสมชายมีแนวโน้มตัดสินใจลงทุนช่วงเช้า และเปิดรับข้อเสนอหลัง market update ประวัติชี้ว่าให้น้ำหนักกับผลตอบแทนระยะสั้นมากกว่าการกระจายความเสี่ยง",
+    totalAssets: "฿ 450M",
+    cashDrag: "฿ 81M",
+    cashDragPct: 18,
+    ytdReturn: "+4.2%",
+    ytdPositive: true,
+    riskProfile: "Aggressive",
+    aiInsight:
+      "คุณสมชายมีแนวโน้มตัดสินใจลงทุนช่วงเช้า และเปิดรับข้อเสนอหลัง market update ประวัติชี้ว่าให้น้ำหนักกับผลตอบแทนระยะสั้นมากกว่าการกระจายความเสี่ยง",
     talkingPoints: [
-      { text: "ทบทวนสัดส่วนเงินสด 18% — สูงกว่า target allocation 8pp", category: "Portfolio Review" },
-      { text: "เสนอ Structured Note Series 12 อัตราดอก 8.5% p.a., tenor 6 เดือน", category: "Product Match" },
-      { text: "เริ่มด้วย market outlook Q3 ก่อนเข้าเรื่อง product", category: "Portfolio Review" },
+      {
+        text: "ทบทวนสัดส่วนเงินสด 18% — สูงกว่า target allocation 8pp",
+        category: "Portfolio Review",
+      },
+      {
+        text: "เสนอ Structured Note Series 12 อัตราดอก 8.5% p.a., tenor 6 เดือน",
+        category: "Product Match",
+      },
+      {
+        text: "เริ่มด้วย market outlook Q3 ก่อนเข้าเรื่อง product",
+        category: "Portfolio Review",
+      },
     ],
   },
   "2": {
-    totalAssets: "฿ 120M", cashDrag: "฿ 8M", cashDragPct: 7,
-    ytdReturn: "-3.1%", ytdPositive: false, riskProfile: "Moderate",
-    aiInsight: "คุณมาลีแสดงความกังวลเรื่อง downside risk ช่วง 2 เดือนที่ผ่านมา และมักถามเรื่อง capital protection KYC หมดอายุใน 14 วัน — โอกาสดีในการนัดพบและ rebalance",
+    totalAssets: "฿ 120M",
+    cashDrag: "฿ 8M",
+    cashDragPct: 7,
+    ytdReturn: "-3.1%",
+    ytdPositive: false,
+    riskProfile: "Moderate",
+    aiInsight:
+      "คุณมาลีแสดงความกังวลเรื่อง downside risk ช่วง 2 เดือนที่ผ่านมา และมักถามเรื่อง capital protection KYC หมดอายุใน 14 วัน — โอกาสดีในการนัดพบและ rebalance",
     talkingPoints: [
-      { text: "ต่ออายุ KYC — หมดอายุวันที่ 11 มิ.ย. 2026", category: "Compliance" },
-      { text: "ทบทวน YTD P&L -3.1% และแผน rebalance", category: "Portfolio Review" },
-      { text: "เสนอ Capital Protection product เพื่อลด downside anxiety", category: "Product Match" },
+      {
+        text: "ต่ออายุ KYC — หมดอายุวันที่ 11 มิ.ย. 2026",
+        category: "Compliance",
+      },
+      {
+        text: "ทบทวน YTD P&L -3.1% และแผน rebalance",
+        category: "Portfolio Review",
+      },
+      {
+        text: "เสนอ Capital Protection product เพื่อลด downside anxiety",
+        category: "Product Match",
+      },
     ],
   },
   "3": {
-    totalAssets: "฿ 85M", cashDrag: "฿ 4M", cashDragPct: 5,
-    ytdReturn: "+6.8%", ytdPositive: true, riskProfile: "Moderate-Aggressive",
-    aiInsight: "คุณนัตถพรเคยลงทุนใน Structured Note ปี 2024 และได้รับผลตอบแทนดี มีแนวโน้ม respond ดีต่อ product ที่มี track record ชัดเจน เหมาะ pitch ผ่าน LINE ช่วง 10:00–11:00",
+    totalAssets: "฿ 85M",
+    cashDrag: "฿ 4M",
+    cashDragPct: 5,
+    ytdReturn: "+6.8%",
+    ytdPositive: true,
+    riskProfile: "Moderate-Aggressive",
+    aiInsight:
+      "คุณนัตถพรเคยลงทุนใน Structured Note ปี 2024 และได้รับผลตอบแทนดี มีแนวโน้ม respond ดีต่อ product ที่มี track record ชัดเจน เหมาะ pitch ผ่าน LINE ช่วง 10:00–11:00",
     talkingPoints: [
-      { text: "อ้างอิง Structured Note ปี 2024 — return 7.2% p.a.", category: "Product Match" },
-      { text: "เสนอ Series 12 พร้อม historical performance", category: "Product Match" },
-      { text: "ติดต่อผ่าน LINE ช่วง 10:00–11:00 ตามพฤติกรรมที่ผ่านมา", category: "Portfolio Review" },
+      {
+        text: "อ้างอิง Structured Note ปี 2024 — return 7.2% p.a.",
+        category: "Product Match",
+      },
+      {
+        text: "เสนอ Series 12 พร้อม historical performance",
+        category: "Product Match",
+      },
+      {
+        text: "ติดต่อผ่าน LINE ช่วง 10:00–11:00 ตามพฤติกรรมที่ผ่านมา",
+        category: "Portfolio Review",
+      },
     ],
   },
   "4": {
-    totalAssets: "฿ 62M", cashDrag: "฿ 10M", cashDragPct: 16,
-    ytdReturn: "+1.1%", ytdPositive: true, riskProfile: "Conservative",
-    aiInsight: "คุณวิชัยไม่มีการเคลื่อนไหวในพอร์ตตั้งแต่ ก.พ. 2026 แต่เคย engage สูงช่วง SET ลด AI ประเมิน 72% ที่เขาจะ respond ต่อ market update หรือ exclusive content",
+    totalAssets: "฿ 62M",
+    cashDrag: "฿ 10M",
+    cashDragPct: 16,
+    ytdReturn: "+1.1%",
+    ytdPositive: true,
+    riskProfile: "Conservative",
+    aiInsight:
+      "คุณวิชัยไม่มีการเคลื่อนไหวในพอร์ตตั้งแต่ ก.พ. 2026 แต่เคย engage สูงช่วง SET ลด AI ประเมิน 72% ที่เขาจะ respond ต่อ market update หรือ exclusive content",
     talkingPoints: [
-      { text: "เริ่มด้วย market update ที่ relate กับ portfolio ของเขา", category: "Re-Engagement" },
-      { text: "เสนอ exclusive morning brief สำหรับ HNW clients", category: "Re-Engagement" },
-      { text: "ทบทวนเงินสด 16% — โอกาสใน money market fund", category: "Portfolio Review" },
+      {
+        text: "เริ่มด้วย market update ที่ relate กับ portfolio ของเขา",
+        category: "Re-Engagement",
+      },
+      {
+        text: "เสนอ exclusive morning brief สำหรับ HNW clients",
+        category: "Re-Engagement",
+      },
+      {
+        text: "ทบทวนเงินสด 16% — โอกาสใน money market fund",
+        category: "Portfolio Review",
+      },
     ],
   },
 };
 
-const TALKING_POINT_TAG: Record<string, "green" | "red" | "blue" | "yellow" | "gray"> = {
+const TALKING_POINT_TAG: Record<
+  string,
+  "green" | "red" | "blue" | "yellow" | "gray"
+> = {
   "Portfolio Review": "blue",
   "Product Match": "green",
-  "Compliance": "red",
+  Compliance: "red",
   "Re-Engagement": "yellow",
 };
 
@@ -407,6 +586,16 @@ function ClientIntelligencePanel({
   onDismiss?: (id: string) => void;
 }) {
   const action = actions.find((a) => a.id === selectedId) ?? actions[0];
+  const [checkedPoints, setCheckedPoints] = useState<Set<number>>(new Set());
+
+  function togglePoint(i: number) {
+    setCheckedPoints((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }
   const intel = clientIntelligenceMap[action?.id ?? "1"];
   if (!action || !intel) return null;
 
@@ -420,9 +609,15 @@ function ClientIntelligencePanel({
         <div className="flex items-center gap-3">
           <Avatar type="text" initials={initials} size="m" />
           <div className="flex-1 min-w-0">
-            <p className="type-subtitle-1 text-foreground leading-tight">{action.clientName}</p>
+            <p className="type-subtitle-1 text-foreground leading-tight">
+              {action.clientName}
+            </p>
             <div className="flex items-center gap-1.5 mt-1">
-              <Tag text={action.tier} variant={action.tier === "UHNW" ? "blue" : "gray"} size="small" />
+              <Tag
+                text={action.tier}
+                variant={action.tier === "UHNW" ? "blue" : "gray"}
+                size="small"
+              />
               <Tag text={intel.riskProfile} variant="gray" size="small" />
             </div>
           </div>
@@ -431,10 +626,10 @@ function ClientIntelligencePanel({
         {/* Quick Actions */}
         <div className="grid grid-cols-4 gap-2">
           {[
-            { icon: <PhoneIcon size={20} />,      label: "Call" },
+            { icon: <PhoneIcon size={20} />, label: "Call" },
             { icon: <ChatCircleIcon size={20} />, label: "Message" },
-            { icon: <FileTextIcon size={20} />,   label: "Proposal" },
-            { icon: <ClockIcon size={20} />,       label: "Snooze" },
+            { icon: <FileTextIcon size={20} />, label: "Proposal" },
+            { icon: <ClockIcon size={20} />, label: "Snooze" },
           ].map(({ icon, label }) => (
             <button
               key={label}
@@ -442,7 +637,9 @@ function ClientIntelligencePanel({
               className="flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-xl bg-[var(--bg-default-secondary)] border border-primary-action/20 hover:bg-[var(--bg-brand-light)] hover:border-[var(--bg-brand-primary)] transition-colors cursor-pointer"
             >
               <span className="text-primary-action">{icon}</span>
-              <span className="text-[11px] font-medium text-primary-action leading-none">{label}</span>
+              <span className="text-[11px] font-medium text-primary-action leading-none">
+                {label}
+              </span>
             </button>
           ))}
         </div>
@@ -453,16 +650,51 @@ function ClientIntelligencePanel({
         {/* KPI grid */}
         <div className="grid grid-cols-2 gap-2">
           {[
-            { label: "Total Assets", value: intel.totalAssets, sub: null,                              accent: null },
-            { label: "Cash Drag",    value: intel.cashDrag,    sub: `${intel.cashDragPct}% of portfolio`, accent: "text-warning" },
-            { label: "YTD Return",   value: intel.ytdReturn,   sub: null,                              accent: intel.ytdPositive ? "text-success" : "text-destructive" },
-            { label: "Risk Profile", value: intel.riskProfile, sub: null,                              accent: null },
+            {
+              label: "Total Assets",
+              value: intel.totalAssets,
+              sub: null,
+              accent: null,
+            },
+            {
+              label: "Cash Drag",
+              value: intel.cashDrag,
+              sub: `${intel.cashDragPct}% of portfolio`,
+              accent: "text-warning",
+            },
+            {
+              label: "YTD Return",
+              value: intel.ytdReturn,
+              sub: null,
+              accent: intel.ytdPositive ? "text-success" : "text-destructive",
+            },
+            {
+              label: "Risk Profile",
+              value: intel.riskProfile,
+              sub: null,
+              accent: null,
+            },
           ].map((kpi) => (
-            <div key={kpi.label} className="flex flex-col justify-between gap-2 p-3 rounded-xl bg-[var(--bg-default-primary-medium)] border border-[var(--border-default)] min-h-[80px]">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide leading-none">{kpi.label}</p>
+            <div
+              key={kpi.label}
+              className="flex flex-col justify-between gap-2 p-3 rounded-xl bg-[var(--bg-default-primary-medium)] border border-[var(--border-default)] min-h-[80px]"
+            >
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide leading-none">
+                {kpi.label}
+              </p>
               <div className="flex flex-col gap-0.5">
-                <p className={`type-subtitle-1 font-bold leading-tight ${kpi.accent ?? "text-foreground"}`}>{kpi.value}</p>
-                {kpi.sub && <p className={`text-[10px] font-semibold leading-none ${kpi.accent ?? "text-muted-foreground"}`}>{kpi.sub}</p>}
+                <p
+                  className={`type-subtitle-1 font-bold leading-tight ${kpi.accent ?? "text-foreground"}`}
+                >
+                  {kpi.value}
+                </p>
+                {kpi.sub && (
+                  <p
+                    className={`text-[10px] font-semibold leading-none ${kpi.accent ?? "text-muted-foreground"}`}
+                  >
+                    {kpi.sub}
+                  </p>
+                )}
               </div>
             </div>
           ))}
@@ -471,14 +703,24 @@ function ClientIntelligencePanel({
         {/* AI Behavioral Insight */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">AI Behavioral Insight</p>
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+              AI Behavioral Insight
+            </p>
             <div className="inline-flex items-center gap-1 bg-primary-action/10 rounded-full px-1.5 py-0.5">
-              <SparkleIcon size={9} className="text-primary-action" weight="fill" />
-              <span className="text-[9px] font-bold text-primary-action">AI</span>
+              <SparkleIcon
+                size={9}
+                className="text-primary-action"
+                weight="fill"
+              />
+              <span className="text-[9px] font-bold text-primary-action">
+                AI
+              </span>
             </div>
           </div>
           <div className="bg-[var(--primary-action-light)] border border-[var(--border-brand-primary)] rounded-xl px-3 py-3 flex flex-col gap-3">
-            <p className="text-[12px] text-primary-action leading-relaxed">{intel.aiInsight}</p>
+            <p className="text-[12px] text-primary-action leading-relaxed">
+              {intel.aiInsight}
+            </p>
             <div className="flex items-center justify-between gap-2">
               <div className="flex flex-col gap-0.5">
                 <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wide leading-none">
@@ -487,37 +729,63 @@ function ClientIntelligencePanel({
                 <div className="flex items-center gap-1">
                   {isRevenue ? (
                     <>
-                      <CurrencyCircleDollarIcon size={13} weight="fill" className="text-success" />
+                      <CurrencyCircleDollarIcon
+                        size={13}
+                        weight="fill"
+                        className="text-success"
+                      />
                       <span className="text-[13px] font-bold text-success leading-none">
                         {action.revenueImpact.replace(" est. revenue", "")}
                       </span>
                     </>
                   ) : (
                     <>
-                      <WarningCircleIcon size={13} className="text-warning" weight="fill" />
-                      <span className="text-[13px] font-bold text-warning leading-none">{action.revenueImpact}</span>
+                      <WarningCircleIcon
+                        size={13}
+                        className="text-warning"
+                        weight="fill"
+                      />
+                      <span className="text-[13px] font-bold text-warning leading-none">
+                        {action.revenueImpact}
+                      </span>
                     </>
                   )}
                 </div>
               </div>
-              <Button variant="primary" size="sm">{action.action}</Button>
+              <Button variant="primary" size="sm">
+                {action.action}
+              </Button>
             </div>
           </div>
         </div>
 
         {/* Suggested Talking Points */}
         <div className="flex flex-col gap-2">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Suggested Talking Points</p>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+            Suggested Talking Points
+          </p>
           <div className="flex flex-col gap-0.5">
             {intel.talkingPoints.map((point, i) => (
               <div
                 key={i}
-                className="flex items-start gap-2.5 px-2 py-2.5 rounded-lg hover:bg-muted/40 transition-colors cursor-pointer group"
+                className="flex items-start gap-2.5 px-2 py-2.5 rounded-lg hover:bg-muted/40 transition-colors cursor-pointer"
+                onClick={() => togglePoint(i)}
               >
-                <div className="w-3.5 h-3.5 rounded border border-border mt-0.5 shrink-0 group-hover:border-primary-action transition-colors" />
+                <div className="mt-0.5 shrink-0">
+                  <Checkbox
+                    checked={checkedPoints.has(i)}
+                    onChange={() => togglePoint(i)}
+                  />
+                </div>
                 <div className="flex-1 min-w-0 flex flex-col gap-1">
-                  <p className="text-[12px] text-foreground leading-snug">{point.text}</p>
-                  <Tag text={point.category} variant={TALKING_POINT_TAG[point.category] ?? "gray"} size="small" />
+                  <p className="text-[12px] text-foreground leading-snug">
+                    {point.text}
+                  </p>
+                  <Tag
+                    text={point.category}
+                    variant={TALKING_POINT_TAG[point.category] ?? "gray"}
+                    size="small"
+                  />
                 </div>
               </div>
             ))}
@@ -824,8 +1092,18 @@ export default function CommandCenterPage() {
       </div>
 
       {/* Client Intelligence Drawer */}
-      <Sheet modal={false} open={drawerOpen} onOpenChange={(open) => { setDrawerOpen(open); if (!open) setSelectedClientId(null); }}>
-        <SheetContent side="right" className="w-full sm:w-[420px] sm:max-w-[420px] overflow-y-auto p-0">
+      <Sheet
+        modal={false}
+        open={drawerOpen}
+        onOpenChange={(open) => {
+          setDrawerOpen(open);
+          if (!open) setSelectedClientId(null);
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="w-full sm:w-[420px] sm:max-w-[420px] overflow-y-auto p-0"
+        >
           <ClientIntelligencePanel
             selectedId={selectedClientId}
             actions={nbaActions}

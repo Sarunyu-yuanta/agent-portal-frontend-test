@@ -34,32 +34,32 @@ type Insight = (typeof mockInsights)[number];
 
 const CATEGORY_CONFIG = {
   "Product Match": {
-    color: "#6366f1",
-    bg: "rgba(99,102,241,0.12)",
+    color: "var(--text-brand-primary)",
+    bg: "var(--bg-brand-light)",
     Icon: SparkleIcon,
     tagVariant: "green" as const,
     tagText: "Product Match",
     primaryAction: "Draft Proposal",
   },
   "Risk Alert": {
-    color: "#ef4444",
-    bg: "rgba(239,68,68,0.12)",
+    color: "var(--text-danger-primary)",
+    bg: "var(--bg-danger-light)",
     Icon: WarningIcon,
     tagVariant: "red" as const,
     tagText: "Risk Alert",
     primaryAction: "View Allocation",
   },
   "Engagement": {
-    color: "#f59e0b",
-    bg: "rgba(245,158,11,0.12)",
+    color: "var(--text-warning-primary)",
+    bg: "var(--bg-warning-light)",
     Icon: UsersIcon,
     tagVariant: "yellow" as const,
     tagText: "Engagement",
     primaryAction: "Call Now",
   },
   "Portfolio": {
-    color: "#3b82f6",
-    bg: "rgba(59,130,246,0.12)",
+    color: "var(--text-brand-secondary)",
+    bg: "var(--bg-brand-light)",
     Icon: ChartBarIcon,
     tagVariant: "blue" as const,
     tagText: "Portfolio",
@@ -117,9 +117,9 @@ function InsightRow({
   const { color, bg, Icon, tagVariant, tagText, primaryAction } = config;
 
   const confidenceColor =
-    insight.confidence >= 85 ? "#22c55e"
-    : insight.confidence >= 70 ? "#f59e0b"
-    : "#ef4444";
+    insight.confidence >= 85 ? "var(--text-success-primary)"
+    : insight.confidence >= 70 ? "var(--text-warning-primary)"
+    : "var(--text-danger-primary)";
 
   const isRisk = insight.type === "Risk Alert";
 
@@ -142,7 +142,7 @@ function InsightRow({
         <div className="flex items-center gap-3">
           <span className="text-[11px] font-semibold tabular-nums" style={{ color: confidenceColor }}>{insight.confidence}% confidence</span>
           {!isRisk && <span className="text-[11px] font-medium text-success">{insight.revenueImpact} potential</span>}
-          {isRisk && <span className="text-[11px] font-medium" style={{ color: "#ef4444" }}>Risk Reduction</span>}
+          {isRisk && <span className="text-[11px] font-medium" style={{ color: "var(--text-danger-primary)" }}>Risk Reduction</span>}
         </div>
         <div className="flex items-center justify-end gap-2">
           <Button variant="plain" size="sm" onClick={(e) => e.stopPropagation()}>Snooze 24h</Button>
@@ -165,7 +165,7 @@ function InsightRow({
           <div className="flex items-center gap-3 mt-0.5">
             <span className="text-[11px] font-semibold tabular-nums" style={{ color: confidenceColor }}>{insight.confidence}% confidence</span>
             {!isRisk && <span className="text-[11px] font-medium text-success">{insight.revenueImpact} potential</span>}
-            {isRisk && <span className="text-[11px] font-medium" style={{ color: "#ef4444" }}>Risk Reduction</span>}
+            {isRisk && <span className="text-[11px] font-medium" style={{ color: "var(--text-danger-primary)" }}>Risk Reduction</span>}
           </div>
         </div>
         <div className="flex flex-col gap-1.5 shrink-0 items-end">
@@ -186,14 +186,14 @@ function InsightDrawerPanel({ insight }: { insight: Insight }) {
 
   const tierVariant = client?.tier === "UHNW" ? ("blue" as const) : ("gray" as const);
   const { color, bg, Icon, tagVariant, tagText, primaryAction } = config ?? {
-    color: "#94a3b8", bg: "rgba(148,163,184,0.12)", Icon: SparkleIcon,
+    color: "var(--text-default-secondary)", bg: "var(--bg-default-secondary)", Icon: SparkleIcon,
     tagVariant: "gray" as const, tagText: insight.type, primaryAction: "View",
   };
 
   const confidenceColor =
-    insight.confidence >= 85 ? "#22c55e"
-    : insight.confidence >= 70 ? "#f59e0b"
-    : "#ef4444";
+    insight.confidence >= 85 ? "var(--text-success-primary)"
+    : insight.confidence >= 70 ? "var(--text-warning-primary)"
+    : "var(--text-danger-primary)";
 
   const isRisk = insight.type === "Risk Alert";
 
@@ -443,10 +443,10 @@ function LogicRulesSidebar() {
 
 function AiModelStats() {
   const stats = [
-    { label: "Product Match", count: 3, color: "#6366f1" },
-    { label: "Risk Alert", count: 2, color: "#ef4444" },
-    { label: "Engagement", count: 2, color: "#f59e0b" },
-    { label: "Portfolio", count: 1, color: "#3b82f6" },
+    { label: "Product Match", count: 3, color: "var(--text-brand-primary)" },
+    { label: "Risk Alert", count: 2, color: "var(--text-danger-primary)" },
+    { label: "Engagement", count: 2, color: "var(--text-warning-primary)" },
+    { label: "Portfolio", count: 1, color: "var(--text-brand-secondary)" },
   ];
 
   return (
@@ -530,14 +530,14 @@ export default function AiInsightsPage() {
               <Chip
                 label="AI Priority"
                 type="single"
-                size="medium"
+                size="small"
                 selected={sortBy === "priority"}
                 onClick={() => setSortBy("priority")}
               />
               <Chip
                 label="Most Recent"
                 type="single"
-                size="medium"
+                size="small"
                 selected={sortBy === "recent"}
                 onClick={() => setSortBy("recent")}
               />

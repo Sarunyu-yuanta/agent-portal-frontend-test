@@ -91,8 +91,8 @@ function KpiBar() {
 // ─── Alert Cards ──────────────────────────────────────────────────────────────
 
 const ALERT_META = {
-  critical: { label: "Critical", variant: "red"    as const, color: "#ef4444", accentColor: "#ef4444", bg: "rgba(239,68,68,0.1)", Icon: XCircleIcon },
-  warning:  { label: "Warning",  variant: "yellow" as const, color: "#f59e0b", accentColor: "#f59e0b", bg: "rgba(245,158,11,0.1)", Icon: WarningCircleIcon },
+  critical: { label: "Critical", variant: "red"    as const, color: "var(--text-danger-primary)", accentColor: "var(--text-danger-primary)", bg: "var(--bg-danger-light)", Icon: XCircleIcon },
+  warning:  { label: "Warning",  variant: "yellow" as const, color: "var(--text-warning-primary)", accentColor: "var(--text-warning-primary)", bg: "var(--bg-warning-light)", Icon: WarningCircleIcon },
 };
 
 const ALERT_TIMESTAMPS = ["2 hrs ago", "3 hrs ago", "5 hrs ago", "Today"];
@@ -332,7 +332,7 @@ function AiGuide() {
     <div className="rounded-2xl p-5 flex flex-col gap-5 sticky top-6" style={{ background: "#1e2337" }}>
       {/* Header */}
       <div className="flex items-center gap-2">
-        <SparkleIcon size={14} weight="fill" style={{ color: "#818cf8" }} />
+        <SparkleIcon size={14} weight="fill" style={{ color: "var(--text-brand-primary)" }} />
         <p className="text-[13px] font-semibold text-white">AI Compliance Guide</p>
       </div>
 
@@ -341,7 +341,7 @@ function AiGuide() {
         className="rounded-xl px-4 py-3 flex flex-col gap-1"
         style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.18)" }}
       >
-        <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "rgba(239,68,68,0.7)" }}>Active Alert</p>
+        <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "var(--text-danger-primary)" }}>Active Alert</p>
         <p className="text-[12px] font-semibold text-white leading-snug">Unsuitable Trade Blocked</p>
         <p className="text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.45)" }}>Malee Pongpipat · Risk mismatch</p>
       </div>
@@ -355,7 +355,7 @@ function AiGuide() {
               className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5"
               style={{ background: "rgba(129,140,248,0.15)", border: "1px solid rgba(129,140,248,0.25)" }}
             >
-              <span className="text-[10px] font-bold" style={{ color: "#818cf8" }}>{s.n}</span>
+              <span className="text-[10px] font-bold" style={{ color: "var(--text-brand-primary)" }}>{s.n}</span>
             </div>
             <p className="text-[11px] leading-snug flex-1" style={{ color: "rgba(255,255,255,0.65)" }}>{s.text}</p>
           </div>
@@ -482,9 +482,9 @@ function KycDetailPanel({ row, onClose }: { row: KycRow; onClose: () => void }) 
 
         {/* Expiry alert */}
         {(urgent || soon) && (
-          <div className={`flex items-start gap-2.5 rounded-xl p-3.5 ${urgent ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"}`}>
-            <ClockIcon size={13} weight="fill" className={`${urgent ? "text-destructive" : "text-warning"} shrink-0 mt-0.5`} />
-            <p className={`text-[12px] leading-relaxed ${urgent ? "text-red-700" : "text-amber-700"}`}>
+          <div className={`flex items-start gap-2.5 rounded-xl p-3.5 ${urgent ? "bg-[var(--bg-danger-light)] border border-[var(--border-danger)]" : "bg-[var(--bg-warning-light)] border border-[var(--border-warning)]"}`}>
+            <ClockIcon size={13} weight="fill" className={`${urgent ? "text-[var(--text-danger-primary)]" : "text-[var(--text-warning-primary)]"} shrink-0 mt-0.5`} />
+            <p className={`text-[12px] leading-relaxed ${urgent ? "text-[var(--text-danger-primary)]" : "text-[var(--text-warning-primary)]"}`}>
               {urgent ? "KYC expires in less than 7 days. Immediate action required." : `KYC expires in ${row.daysUntilExpiry} days. Schedule review soon.`}
             </p>
           </div>

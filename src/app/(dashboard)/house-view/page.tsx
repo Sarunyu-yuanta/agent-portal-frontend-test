@@ -23,19 +23,19 @@ type AssetClassFilter = "All" | "Equity" | "Fixed Income" | "Alternatives" | "Re
 const ASSET_FILTERS: AssetClassFilter[] = ["All", "Equity", "Fixed Income", "Alternatives", "Real Estate"];
 
 const STANCES = [
-  { label: "Thai Equity",         stance: "Overweight",  color: "#10b981", width: 100 },
-  { label: "Asian Equity",        stance: "Overweight",  color: "#10b981", width: 100 },
-  { label: "Global Fixed Income", stance: "Neutral",     color: "#6b7280", width: 50  },
-  { label: "Thai Bonds",          stance: "Neutral",     color: "#6b7280", width: 50  },
-  { label: "Global REITs",        stance: "Underweight", color: "#ef4444", width: 25  },
-  { label: "Alternatives",        stance: "Overweight",  color: "#10b981", width: 100 },
+  { label: "Thai Equity",         stance: "Overweight",  color: "var(--text-success-primary)", width: 100 },
+  { label: "Asian Equity",        stance: "Overweight",  color: "var(--text-success-primary)", width: 100 },
+  { label: "Global Fixed Income", stance: "Neutral",     color: "var(--text-default-secondary)", width: 50  },
+  { label: "Thai Bonds",          stance: "Neutral",     color: "var(--text-default-secondary)", width: 50  },
+  { label: "Global REITs",        stance: "Underweight", color: "var(--text-danger-primary)", width: 25  },
+  { label: "Alternatives",        stance: "Overweight",  color: "var(--text-success-primary)", width: 100 },
 ];
 
 const THEMES = [
-  { id: "t1", title: "AI-Driven Productivity",  horizon: "LONG-TERM",   horizonColor: "#3b82f6", stance: "Overweight",  stanceVariant: "green" as const,  description: "Tech sector earnings upgrades driven by AI capex cycle. Selective overweight in semis and cloud infrastructure." },
-  { id: "t2", title: "Rate Cut Cycle",           horizon: "6–12 MONTHS", horizonColor: "#f59e0b", stance: "Neutral",     stanceVariant: "gray" as const,   description: "US Fed on track for 2–3 cuts in H2 2026. Duration opportunity in IG bonds at current yields." },
-  { id: "t3", title: "China Recovery",           horizon: "LONG-TERM",   horizonColor: "#3b82f6", stance: "Overweight",  stanceVariant: "green" as const,  description: "Policy stimulus + retail consumption recovery H2 2026. Selective via HK-listed names." },
-  { id: "t4", title: "Energy Transition",        horizon: "18–24 MO.",   horizonColor: "#6b7280", stance: "Selective",   stanceVariant: "yellow" as const, description: "ESG mandates driving inflows into clean energy. Selective in logistics and data centres." },
+  { id: "t1", title: "AI-Driven Productivity",  horizon: "LONG-TERM",   horizonColor: "var(--text-brand-primary)", stance: "Overweight",  stanceVariant: "green" as const,  description: "Tech sector earnings upgrades driven by AI capex cycle. Selective overweight in semis and cloud infrastructure." },
+  { id: "t2", title: "Rate Cut Cycle",           horizon: "6–12 MONTHS", horizonColor: "var(--text-warning-primary)", stance: "Neutral",     stanceVariant: "gray" as const,   description: "US Fed on track for 2–3 cuts in H2 2026. Duration opportunity in IG bonds at current yields." },
+  { id: "t3", title: "China Recovery",           horizon: "LONG-TERM",   horizonColor: "var(--text-brand-primary)", stance: "Overweight",  stanceVariant: "green" as const,  description: "Policy stimulus + retail consumption recovery H2 2026. Selective via HK-listed names." },
+  { id: "t4", title: "Energy Transition",        horizon: "18–24 MO.",   horizonColor: "var(--text-default-secondary)", stance: "Selective",   stanceVariant: "yellow" as const, description: "ESG mandates driving inflows into clean energy. Selective in logistics and data centres." },
 ];
 
 // Extra strategy detail for the playbook cards
@@ -103,7 +103,7 @@ function AssetPosture() {
       <div className="flex flex-col divide-y divide-border">
         {STANCES.map((s) => {
           const Icon = s.stance === "Overweight" ? TrendUpIcon : s.stance === "Underweight" ? TrendDownIcon : MinusIcon;
-          const c = s.stance === "Overweight" ? "#10b981" : s.stance === "Underweight" ? "#ef4444" : "#94a3b8";
+          const c = s.stance === "Overweight" ? "var(--text-success-primary)" : s.stance === "Underweight" ? "var(--text-danger-primary)" : "var(--text-default-secondary)";
           return (
             <div key={s.label} className="flex items-center justify-between gap-4 py-2.5">
               <span className="text-[12px] text-foreground">{s.label}</span>
@@ -127,7 +127,7 @@ function MarketThemesCard() {
       <p className="type-subtitle-1 text-foreground">Active Market Themes</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {THEMES.map((t) => (
-          <div key={t.id} className="rounded-xl bg-muted p-3.5 flex flex-col gap-2 hover:bg-muted/70 transition-colors cursor-pointer">
+          <div key={t.id} className="rounded-xl bg-muted p-3.5 flex flex-col gap-2">
             <div className="flex items-start justify-between gap-2">
               <p className="text-[12px] font-semibold text-foreground leading-snug flex-1">{t.title}</p>
               <span className="text-[9px] font-bold uppercase tracking-wider shrink-0 mt-0.5" style={{ color: t.horizonColor }}>{t.horizon}</span>
@@ -150,7 +150,7 @@ function PlaybookCard({ strategy }: { strategy: (typeof mockHouseViewStrategies)
     <div className="rounded-2xl border border-border bg-card overflow-hidden flex">
       {/* Left accent bar */}
       <div className="w-1 shrink-0" style={{
-        background: strategy.conviction === "High" ? "#3b82f6" : strategy.conviction === "Medium" ? "#f59e0b" : "#ef4444"
+        background: strategy.conviction === "High" ? "var(--bg-brand-primary)" : strategy.conviction === "Medium" ? "var(--bg-warning-primary)" : "var(--bg-danger-primary)"
       }} />
 
       <div className="flex-1 p-6 flex flex-col gap-5">
@@ -316,9 +316,9 @@ function RightSidebar() {
             <SparkleIcon size={14} weight="fill" className="text-primary-action" />
             <p className="type-subtitle-1 text-foreground">AI Action Feed</p>
           </div>
-          <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-semibold text-emerald-600">Live</span>
+          <div className="flex items-center gap-1.5 bg-[var(--bg-success-light)] border border-[var(--border-success)] rounded-full px-2 py-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--bg-success-primary)] animate-pulse" />
+            <span className="text-[10px] font-semibold text-[var(--text-success-primary)]">Live</span>
           </div>
         </div>
 

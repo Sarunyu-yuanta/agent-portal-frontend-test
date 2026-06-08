@@ -114,8 +114,8 @@ export default function ClientPage({
 
   return (
     <div className="flex flex-col -mt-6">
-      {/* Sticky Identity + KPI bar — -top-6 compensates for main's p-6 padding-top so it sticks flush with the topbar */}
-      <div className="sticky -top-6 z-20 -mx-6 px-6 bg-card border-b border-border">
+      {/* Sticky Identity + KPI bar */}
+      <div className="sticky -top-6 z-20 -mx-[9999px] px-[9999px] bg-card border-b border-border">
         <div className={`flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 lg:gap-8 transition-[padding] duration-300 ease-out ${scrolled ? "py-3" : "py-5"}`}>
 
           {/* Left: identity + actions */}
@@ -180,7 +180,7 @@ export default function ClientPage({
         </div>
       </div>
 
-      {/* ── Body content — 2-column like command-center ───────────────────────── */}
+      {/* ── Body content ── */}
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start pt-8">
 
         {/* ── Left column (main) ── */}

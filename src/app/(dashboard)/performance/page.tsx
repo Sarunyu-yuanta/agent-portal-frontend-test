@@ -40,33 +40,16 @@ function KpiRow() {
     { label: "Product Penetration", ...mockPerformanceData.productPenetration },
   ];
   return (
-    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[160px_1fr_1fr_1fr_1fr] lg:items-start">
+    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[160px_1fr_1fr_1fr_1fr]">
       {/* Grade card — hidden on mobile, shown on desktop */}
-      <div className="hidden lg:flex rounded-2xl p-5 flex-col gap-3 justify-between" style={{ background: "#1e2337" }}>
-        {/* Row 1: label + grade */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex flex-col gap-0.5">
-            <p className="text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: "rgba(255,255,255,0.35)" }}>Overall</p>
-            <p className="text-[9px]" style={{ color: "rgba(255,255,255,0.25)" }}>Q2 2025</p>
-          </div>
-          <p className="text-[40px] font-bold text-white leading-none tracking-tight">B+</p>
-        </div>
-        {/* Row 2: status dots */}
-        <div className="flex items-center gap-4 lg:flex-col lg:items-start lg:gap-1" style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "8px" }}>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-            <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.45)" }}>3 lagging</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-            <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.45)" }}>1 on track</span>
-          </div>
-        </div>
+      <div className="hidden lg:flex rounded-2xl p-5 flex-col items-center justify-center gap-2 h-full" style={{ background: "#1e2337" }}>
+        <p className="text-[48px] font-bold text-white leading-none tracking-tight">B+</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: "rgba(255,255,255,0.35)" }}>Overall</p>
       </div>
       {/* KPI Cards — 2 per row on mobile, each takes 1fr on desktop */}
       <div className="grid grid-cols-2 gap-4 lg:contents">
         {metrics.map((m) => (
-          <Card key={m.label} variant="default" className="flex flex-col gap-3">
+          <Card key={m.label} variant="default" className="flex flex-col gap-3 h-full">
             <div className="flex items-start justify-between gap-2">
               <p className="type-caption text-muted-foreground">{m.label}</p>
               <Tag text={m.status} variant={statusVariant(m.status)} size="small" />
@@ -88,11 +71,11 @@ function KpiRow() {
 // ─── Income Tracker ───────────────────────────────────────────────────────────
 
 const PRODUCT_COLORS: Record<string, string> = {
-  "Equity Funds":    "#3b82f6",
-  "Fixed Income":    "#6366f1",
-  "Structured Notes":"#10b981",
-  "REITs":           "#f59e0b",
-  "Alternatives":    "#ec4899",
+  "Equity Funds":    "var(--bg-brand-secondary)",
+  "Fixed Income":    "var(--bg-brand-primary)",
+  "Structured Notes":"var(--bg-success-primary)",
+  "REITs":           "var(--bg-warning-primary)",
+  "Alternatives":    "var(--bg-theme-pink)",
 };
 
 function IncomeTracker() {
@@ -195,10 +178,10 @@ function GapAnalysisSidebar() {
       sub: "to hit Q2 target",
       badge: "19% gap",
       progress: 81,
-      color: "#f87171",
-      bg: "rgba(248,113,113,0.07)",
-      border: "rgba(248,113,113,0.15)",
-      track: "rgba(248,113,113,0.15)",
+      color: "var(--text-danger-primary)",
+      bg: "var(--bg-danger-light)",
+      border: "var(--border-danger)",
+      track: "var(--bg-danger-light)",
     },
     {
       label: "AUM Growth Gap",
@@ -206,10 +189,10 @@ function GapAnalysisSidebar() {
       sub: "below target rate",
       badge: "16% gap",
       progress: 84,
-      color: "#fb923c",
-      bg: "rgba(251,146,60,0.07)",
-      border: "rgba(251,146,60,0.15)",
-      track: "rgba(251,146,60,0.15)",
+      color: "var(--text-warning-primary)",
+      bg: "var(--bg-warning-light)",
+      border: "var(--border-warning)",
+      track: "var(--bg-warning-light)",
     },
     {
       label: "Product Penetration",
@@ -217,10 +200,10 @@ function GapAnalysisSidebar() {
       sub: "products / client gap",
       badge: "20% gap",
       progress: 80,
-      color: "#fbbf24",
-      bg: "rgba(251,191,36,0.07)",
-      border: "rgba(251,191,36,0.15)",
-      track: "rgba(251,191,36,0.15)",
+      color: "var(--text-warning-primary)",
+      bg: "var(--bg-warning-light)",
+      border: "var(--border-warning)",
+      track: "var(--bg-warning-light)",
     },
   ];
 
@@ -297,7 +280,7 @@ function AiActionPlan() {
     <div className="flex flex-col gap-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
       <div>
         <div className="flex items-center gap-2">
-          <SparkleIcon size={13} weight="fill" style={{ color: "#818cf8" }} />
+          <SparkleIcon size={13} weight="fill" style={{ color: "var(--text-brand-primary)" }} />
           <p className="text-[13px] font-semibold text-white">AI Action Plan</p>
         </div>
         <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>Prioritised steps to close ฿5.8M revenue gap.</p>
@@ -311,7 +294,7 @@ function AiActionPlan() {
               className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5"
               style={{ background: "rgba(129,140,248,0.2)", border: "1px solid rgba(129,140,248,0.3)" }}
             >
-              <span className="text-[10px] font-bold" style={{ color: "#818cf8" }}>{s.n}</span>
+              <span className="text-[10px] font-bold" style={{ color: "var(--text-brand-primary)" }}>{s.n}</span>
             </div>
 
             <div className="flex flex-col gap-1.5 flex-1 min-w-0">
@@ -326,7 +309,7 @@ function AiActionPlan() {
                 >
                   {s.cta}
                 </button>
-                <span className="text-[11px] font-semibold" style={{ color: "#34d399" }}>{s.impact}</span>
+                <span className="text-[11px] font-semibold" style={{ color: "var(--text-success-primary)" }}>{s.impact}</span>
               </div>
             </div>
           </div>
@@ -365,7 +348,7 @@ function CrossSellDiagnostics() {
         </div>
 
         <div className="flex items-center gap-2 pt-1">
-          <WarningCircleIcon size={12} weight="fill" className="text-amber-500 shrink-0" />
+          <WarningCircleIcon size={12} weight="fill" className="text-[var(--text-warning-primary)] shrink-0" />
           <p className="text-[11px] text-muted-foreground">Over-reliance on Equities (62% of book).</p>
         </div>
       </div>
@@ -404,16 +387,16 @@ function ClientEngagement() {
         {/* Segmented bar */}
         <div className="flex flex-col gap-1.5">
           <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
-            <div className="rounded-full bg-emerald-400" style={{ flex: 6 }} />
-            <div className="rounded-full bg-red-400" style={{ flex: 2 }} />
+            <div className="rounded-full bg-[var(--bg-success-primary)]" style={{ flex: 6 }} />
+            <div className="rounded-full bg-[var(--bg-danger-primary)]" style={{ flex: 2 }} />
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--bg-success-primary)] shrink-0" />
               <span className="type-caption text-muted-foreground">Active 75%</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--bg-danger-primary)] shrink-0" />
               <span className="type-caption text-muted-foreground">Dormant 25%</span>
             </div>
           </div>

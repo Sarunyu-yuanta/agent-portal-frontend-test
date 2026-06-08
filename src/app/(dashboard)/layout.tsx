@@ -76,8 +76,8 @@ function usePageInfo(): PageInfo {
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [searchOpen, setSearchOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { title: pageTitle, clientBreadcrumb, isCommandCenter, isHouseView, isPerformance } = usePageInfo();
 
   return (
@@ -120,8 +120,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Desktop: always visible search input */}
+            <div className="hidden lg:block">
+              <SearchInput
+                placeholder="Search clients, accounts, keywords…"
+                size="sm"
+                className="w-[400px]"
+              />
+            </div>
+            {/* Mobile: icon toggle */}
             <NavHeaderIconButton
               aria-label="Search"
+              className="lg:hidden"
               onClick={() => setSearchOpen((v) => !v)}
             >
               <MagnifyingGlassIcon weight="regular" size={24} />
@@ -142,9 +152,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {searchOpen && (
-          <div className="shrink-0 px-6 py-2 border-b border-border bg-card">
+          <div className="lg:hidden shrink-0 px-4 py-2 border-b border-border bg-card">
             <SearchInput
-              placeholder="Search clients, accounts, keywords… (⌘K)"
+              placeholder="Search clients, accounts, keywords…"
               size="sm"
             />
           </div>
