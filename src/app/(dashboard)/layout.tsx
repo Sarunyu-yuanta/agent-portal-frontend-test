@@ -129,13 +129,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               />
             </div>
             {/* Mobile: icon toggle */}
-            <NavHeaderIconButton
-              aria-label="Search"
-              className="lg:hidden"
-              onClick={() => setSearchOpen((v) => !v)}
-            >
-              <MagnifyingGlassIcon weight="regular" size={24} />
-            </NavHeaderIconButton>
+            <div className="lg:hidden">
+              <NavHeaderIconButton
+                aria-label="Search"
+                onClick={() => setSearchOpen((v) => !v)}
+              >
+                <MagnifyingGlassIcon weight="regular" size={24} />
+              </NavHeaderIconButton>
+            </div>
 
             <NavHeaderNotification groups={notificationGroups} badgeCount={4} />
 
