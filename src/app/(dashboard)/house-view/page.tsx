@@ -15,7 +15,8 @@ import {
   ClockIcon,
   ArrowsClockwiseIcon,
 } from "@phosphor-icons/react";
-import { mockHouseViewStrategies, mockNBAActions } from "@/lib/mock-data";
+import { mockHouseViewStrategies } from "@/lib/mock-data";
+import { useStrapiNBAActions } from "@/hooks/use-strapi";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -82,17 +83,18 @@ const STRATEGY_DETAIL: Record<string, { rationale: string; hook: string; objecti
   },
 };
 
-// AI Action Feed items built from NBA actions
-const AI_FEED = mockNBAActions.slice(0, 3).map((a) => ({
-  id: a.id,
-  initials: a.clientName.split(" ").map((n) => n[0]).join("").slice(0, 2),
-  name: a.clientName,
-  tag: a.priority === "HIGH" ? "Idle Cash" : a.priority === "MEDIUM" ? "Opportunity" : "Re-engage",
-  tagVariant: (a.priority === "HIGH" ? "red" : a.priority === "MEDIUM" ? "blue" : "yellow") as "red" | "blue" | "yellow",
-  description: a.insight,
-  impact: a.revenueImpact.startsWith("฿") ? `Est. Impact: ${a.revenueImpact.replace(" est. revenue", " Rev")}` : a.revenueImpact,
-  impactPositive: a.revenueImpact.startsWith("฿"),
-}));
+function buildAIFeed(actions: ReturnType<typeof useStrapiNBAActions>) {
+  return actions.slice(0, 3).map((a) => ({
+    id: a.id,
+    initials: a.clientName.split(" ").map((n) => n[0]).join("").slice(0, 2),
+    name: a.clientName,
+    tag: a.priority === "HIGH" ? "Idle Cash" : a.priority === "MEDIUM" ? "Opportunity" : "Re-engage",
+    tagVariant: (a.priority === "HIGH" ? "red" : a.priority === "MEDIUM" ? "blue" : "yellow") as "red" | "blue" | "yellow",
+    description: a.insight,
+    impact: a.revenueImpact.startsWith("฿") ? `Est. Impact: ${a.revenueImpact.replace(" est. revenue", " Rev")}` : a.revenueImpact,
+    impactPositive: a.revenueImpact.startsWith("฿"),
+  }));
+}
 
 // ─── Asset Allocation Posture ─────────────────────────────────────────────────
 
@@ -284,6 +286,8 @@ function StrategyPlaybooks() {
 // ─── Right Sidebar ────────────────────────────────────────────────────────────
 
 function RightSidebar() {
+  const nbaActions = useStrapiNBAActions();
+  const AI_FEED = buildAIFeed(nbaActions);
   return (
     <div className="flex flex-col gap-5 sticky top-6">
 

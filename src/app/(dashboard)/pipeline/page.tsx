@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Tag,
@@ -20,6 +20,7 @@ import {
   ArrowRightIcon,
 } from "@phosphor-icons/react";
 import { mockPipelineDeals } from "@/lib/mock-data";
+import { fetchPipelineDeals } from "@/lib/strapi";
 
 const STAGES = [
   "Qualified",
@@ -325,6 +326,9 @@ export default function PipelinePage() {
   const [showModal, setShowModal] = useState(false);
   const [newProposal, setNewProposal] = useState({ clientName: "", productType: "", dealSize: "" });
   const [deals, setDeals] = useState<Deal[]>(mockPipelineDeals.map(d => ({ ...d })));
+  useEffect(() => {
+    fetchPipelineDeals().then(data => setDeals(data.map(d => ({ ...d })))).catch(() => {});
+  }, []);
   const [advancing, setAdvancing] = useState<{ deal: Deal; next: Stage } | null>(null);
 
   const activeStages: Stage[] = ["Qualified", "Proposed", "Under Review", "Negotiation"];

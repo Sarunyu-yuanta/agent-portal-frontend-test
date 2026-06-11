@@ -28,11 +28,12 @@ import {
   CalendarPlusIcon,
   ClipboardTextIcon,
 } from "@phosphor-icons/react";
+import { mockClients } from "@/lib/mock-data";
 import {
-  mockClients,
-  mockPipelineDeals,
-  mockNBAActions,
-} from "@/lib/mock-data";
+  useStrapiClients,
+  useStrapiPipelineDeals,
+  useStrapiNBAActions,
+} from "@/hooks/use-strapi";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 type Client = (typeof mockClients)[number];
@@ -323,6 +324,17 @@ const recentInteractions: Record<string, Interaction[]> = {
   ],
 };
 
+// Build name-keyed lookups so Strapi IDs don't break static supplementary records
+const insightByName = Object.fromEntries(
+  mockClients.map((c) => [c.name, clientInsights[c.id]])
+);
+const allocationByName = Object.fromEntries(
+  mockClients.map((c) => [c.name, assetAllocation[c.id] ?? []])
+);
+const interactionsByName = Object.fromEntries(
+  mockClients.map((c) => [c.name, recentInteractions[c.id] ?? []])
+);
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getInitials(name: string): string {
@@ -370,16 +382,18 @@ function ClientDetailPanel({
   client: Client;
   onViewFull: () => void;
 }) {
-  const deals = mockPipelineDeals.filter(
+  const pipelineDeals = useStrapiPipelineDeals();
+  const nbaActions = useStrapiNBAActions();
+  const deals = pipelineDeals.filter(
     (d) =>
       d.client === client.name &&
       d.stage !== "Closed Won" &&
       d.stage !== "Closed Lost",
   );
-  const nba = mockNBAActions.find((a) => a.clientName === client.name);
-  const insight = clientInsights[client.id];
-  const allocation = assetAllocation[client.id] ?? [];
-  const interactions = recentInteractions[client.id] ?? [];
+  const nba = nbaActions.find((a) => a.clientName === client.name);
+  const insight = insightByName[client.name];
+  const allocation = allocationByName[client.name] ?? [];
+  const interactions = interactionsByName[client.name] ?? [];
   const cashHighlight = client.cashIdlePct > 20;
   const cashAmount = computeCashAmount(client.aum, client.cashIdlePct);
 
@@ -651,6 +665,7 @@ const PAGE_SIZE = 5;
 
 export default function ClientHubPage() {
   const router = useRouter();
+  const clients = useStrapiClients();
   const [activeTab, setActiveTab] = useState("all");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -665,12 +680,12 @@ export default function ClientHubPage() {
     {
       id: "priority",
       title: "High Priority",
-      notification: mockClients.filter((c) => c.aiScore >= 90).length,
+      notification: clients.filter((c) => c.aiScore >= 90).length,
     },
     {
       id: "attention",
       title: "Requires Attention",
-      notification: mockClients.filter(
+      notification: clients.filter(
         (c) => c.status === "error" || c.status === "hold",
       ).length,
     },
@@ -685,7 +700,7 @@ export default function ClientHubPage() {
   };
 
   const sorted = useMemo(() => {
-    let list = mockClients;
+    let list = clients;
     if (activeTab === "priority") list = list.filter((c) => c.aiScore >= 90);
     else if (activeTab === "attention")
       list = list.filter((c) => c.status === "error" || c.status === "hold");
@@ -834,7 +849,7 @@ export default function ClientHubPage() {
             </TableHead>
             <TableBody>
               {paged.map((client) => {
-                const insight = clientInsights[client.id];
+                const insight = insightByName[client.name];
                 const cashAmount = computeCashAmount(
                   client.aum,
                   client.cashIdlePct,

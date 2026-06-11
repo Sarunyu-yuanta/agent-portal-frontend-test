@@ -33,7 +33,13 @@ import {
   CurrencyCircleDollarIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
-import { mockClients, mockClientDetails, mockNBAActions } from "@/lib/mock-data";
+import { mockClients, mockClientDetails } from "@/lib/mock-data";
+import { useStrapiClients, useStrapiNBAActions } from "@/hooks/use-strapi";
+
+// Map mockClientDetails by client name so Strapi IDs don't break the lookup
+const clientDetailByName = Object.fromEntries(
+  mockClients.map((c) => [c.name, mockClientDetails[c.id]])
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -53,9 +59,11 @@ export default function ClientPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const clients = useStrapiClients();
+  const nbaActions = useStrapiNBAActions();
 
-  const client = mockClients.find((c) => c.id === id) ?? mockClients[0];
-  const detail = mockClientDetails[client.id] ?? mockClientDetails["1"];
+  const client = clients.find((c) => c.id === id) ?? clients[0] ?? mockClients[0];
+  const detail = clientDetailByName[client.name] ?? mockClientDetails["1"];
 
   // Task state (interactive checkboxes)
   const [tasks, setTasks] = useState(detail.tasks);
@@ -91,7 +99,7 @@ export default function ClientPage({
 
 
   // NBA action for this client (provides aiDraft + revenueImpact for AI cards)
-  const nbaAction = mockNBAActions.find((a) => a.clientName === client.name);
+  const nbaAction = nbaActions.find((a) => a.clientName === client.name);
 
 
   // Compact sticky header on scroll

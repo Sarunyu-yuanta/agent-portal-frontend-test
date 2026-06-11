@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, Tag, Button, Avatar, Checkbox } from "@sarunyu/system-one";
 import {
   SparkleIcon,
@@ -15,7 +15,8 @@ import {
   FileTextIcon,
   UserIcon,
 } from "@phosphor-icons/react";
-import { mockNBAActions, mockMiniKanban } from "@/lib/mock-data";
+import { mockNBAActions } from "@/lib/mock-data";
+import { useStrapiNBAActions, useStrapiMiniKanban } from "@/hooks/use-strapi";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -876,8 +877,9 @@ const STAGE_CONFIG: Record<
 };
 
 function MiniKanban() {
+  const miniKanban = useStrapiMiniKanban();
   const stageStats = KANBAN_STAGES.map((stage) => {
-    const deals = mockMiniKanban.filter((d) => d.stage === stage);
+    const deals = miniKanban.filter((d) => d.stage === stage);
     const aum = deals.reduce((sum, d) => {
       const m = d.deal.match(/฿([\d.]+)M/);
       return sum + (m ? parseFloat(m[1]) : 0);
@@ -888,7 +890,7 @@ function MiniKanban() {
   const maxAum = Math.max(...stageStats.map((s) => s.aum), 1);
   const BAR_MAX_H = 52;
 
-  const sortedDeals = [...mockMiniKanban].sort(
+  const sortedDeals = [...miniKanban].sort(
     (a, b) =>
       KANBAN_STAGES.indexOf(a.stage as KanbanStage) -
       KANBAN_STAGES.indexOf(b.stage as KanbanStage),
@@ -901,7 +903,7 @@ function MiniKanban() {
         <div className="flex flex-col gap-0.5">
           <p className="type-subtitle-1 text-foreground">Pipeline</p>
           <p className="type-caption text-muted-foreground">
-            ฿ 400M · {mockMiniKanban.length} active deals
+            ฿ 400M · {miniKanban.length} active deals
           </p>
         </div>
         <Button variant="plain" size="sm">
@@ -1048,7 +1050,11 @@ function AutomationLog() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CommandCenterPage() {
+  const strapiNBAActions = useStrapiNBAActions();
   const [nbaActions, setNbaActions] = useState(mockNBAActions);
+  useEffect(() => {
+    setNbaActions(strapiNBAActions);
+  }, [strapiNBAActions]);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -1072,7 +1078,7 @@ export default function CommandCenterPage() {
               onDismiss={(id) =>
                 setNbaActions((prev) => prev.filter((a) => a.id !== id))
               }
-              onRefresh={() => setNbaActions(mockNBAActions)}
+              onRefresh={() => setNbaActions(strapiNBAActions)}
               selectedId={selectedClientId}
               onSelect={handleSelectClient}
             />
