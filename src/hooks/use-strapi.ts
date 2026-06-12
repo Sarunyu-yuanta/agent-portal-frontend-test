@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   mockClients,
   mockNBAActions,
@@ -13,32 +13,56 @@ import {
   fetchMiniKanban,
 } from "@/lib/strapi";
 
-const POLL_INTERVAL = 10_000;
+const POLL_MS = 10_000;
 
-function useStrapi<T>(fetcher: () => Promise<T[]>, initial: T[]) {
-  const [data, setData] = useState(initial);
+export function useStrapiClients() {
+  const [data, setData] = useState(mockClients);
+  const load = useCallback(() => {
+    fetchClients().then(setData).catch(() => {});
+  }, []);
   useEffect(() => {
-    fetcher().then(setData).catch(() => {});
-    const id = setInterval(() => {
-      fetcher().then(setData).catch(() => {});
-    }, POLL_INTERVAL);
+    load();
+    const id = setInterval(load, POLL_MS);
     return () => clearInterval(id);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [load]);
   return data;
 }
 
-export function useStrapiClients() {
-  return useStrapi(fetchClients, mockClients);
+export function useStrapiNBAActions(clients = mockClients) {
+  const [data, setData] = useState(mockNBAActions);
+  const load = useCallback(() => {
+    fetchNBAActions(clients).then(setData).catch(() => {});
+  }, [clients]);
+  useEffect(() => {
+    load();
+    const id = setInterval(load, POLL_MS);
+    return () => clearInterval(id);
+  }, [load]);
+  return data;
 }
 
-export function useStrapiNBAActions() {
-  return useStrapi(fetchNBAActions, mockNBAActions);
+export function useStrapiPipelineDeals(clients = mockClients) {
+  const [data, setData] = useState(mockPipelineDeals);
+  const load = useCallback(() => {
+    fetchPipelineDeals(clients).then(setData).catch(() => {});
+  }, [clients]);
+  useEffect(() => {
+    load();
+    const id = setInterval(load, POLL_MS);
+    return () => clearInterval(id);
+  }, [load]);
+  return data;
 }
 
-export function useStrapiPipelineDeals() {
-  return useStrapi(fetchPipelineDeals, mockPipelineDeals);
-}
-
-export function useStrapiMiniKanban() {
-  return useStrapi(fetchMiniKanban, mockMiniKanban);
+export function useStrapiMiniKanban(clients = mockClients) {
+  const [data, setData] = useState(mockMiniKanban);
+  const load = useCallback(() => {
+    fetchMiniKanban(clients).then(setData).catch(() => {});
+  }, [clients]);
+  useEffect(() => {
+    load();
+    const id = setInterval(load, POLL_MS);
+    return () => clearInterval(id);
+  }, [load]);
+  return data;
 }

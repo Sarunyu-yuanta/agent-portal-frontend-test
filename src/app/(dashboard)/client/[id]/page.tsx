@@ -60,7 +60,7 @@ export default function ClientPage({
 }) {
   const { id } = use(params);
   const clients = useStrapiClients();
-  const nbaActions = useStrapiNBAActions();
+  const nbaActions = useStrapiNBAActions(clients);
 
   const client = clients.find((c) => c.id === id) ?? clients[0] ?? mockClients[0];
   const detail = clientDetailByName[client.name] ?? mockClientDetails["1"];

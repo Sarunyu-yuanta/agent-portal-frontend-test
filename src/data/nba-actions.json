@@ -1,0 +1,46 @@
+[
+  {
+    "id": "1",
+    "clientId": "1",
+    "tier": "UHNW",
+    "priority": "HIGH",
+    "priorityVariant": "red",
+    "insight": "฿ 81M idle cash (18% of portfolio) — underperforming by 220bps vs target allocation.",
+    "aiDraft": "คุณสมชาย สวัสดีครับ ผมสังเกตว่าพอร์ตของคุณมีเงินสด 18% ซึ่งสูงกว่าเป้าหมาย ผมมีโอกาสการลงทุนใน Structured Note ที่น่าสนใจสำหรับคุณครับ",
+    "action": "Review & Send",
+    "revenueImpact": "฿ 2.4M est. revenue"
+  },
+  {
+    "id": "2",
+    "clientId": "2",
+    "tier": "HNW",
+    "priority": "HIGH",
+    "priorityVariant": "red",
+    "insight": "KYC expires in 14 days. Portfolio shows -3.1% YTD — review required to prevent suitability breach.",
+    "aiDraft": "คุณมาลี สวัสดีค่ะ ครบกำหนดการต่ออายุ KYC ของคุณในอีก 14 วัน ขอนัดหมายเพื่ออัปเดตข้อมูลและทบทวนพอร์ตครับ",
+    "action": "Schedule Review",
+    "revenueImpact": "Compliance Risk"
+  },
+  {
+    "id": "3",
+    "clientId": "4",
+    "tier": "UHNW",
+    "priority": "MEDIUM",
+    "priorityVariant": "yellow",
+    "insight": "New Structured Note (6-month tenor, 8.5% p.a.) — AI matched 3 UHNW clients. Best fit: Nattaporn.",
+    "aiDraft": "คุณณัฐพร สวัสดีครับ มี Structured Note รุ่นใหม่ที่ตรงกับ Risk Profile ของคุณมาก โอกาสดีที่หาได้ยากครับ",
+    "action": "Pitch Product",
+    "revenueImpact": "฿ 1.8M est. revenue"
+  },
+  {
+    "id": "4",
+    "clientId": "5",
+    "tier": "HNW",
+    "priority": "LOW",
+    "priorityVariant": "blue",
+    "insight": "No contact in 14 days. Engagement score dropped 22 points. Re-engage with market update.",
+    "aiDraft": "คุณวิชัย สวัสดีครับ ตลาดหุ้นไทยมีสัญญาณน่าสนใจสัปดาห์นี้ อยากนัดคุยเพื่ออัปเดตสถานการณ์ครับ",
+    "action": "Re-engage",
+    "revenueImpact": "฿ 0.5M est. revenue"
+  }
+]

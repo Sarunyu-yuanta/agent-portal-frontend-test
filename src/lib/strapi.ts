@@ -5,9 +5,11 @@ async function strapiGet<T>(path: string): Promise<T[]> {
     cache: "no-store",
   });
   if (!res.ok) throw new Error(`Strapi /${path}: ${res.status}`);
-  const json = (await res.json()) as { data: T[] };
-  return json.data;
+  const { data } = (await res.json()) as { data: T[] };
+  return data;
 }
+
+// ── Clients ───────────────────────────────────────────────────────────────────
 
 interface StrapiClient {
   id: number;
@@ -18,7 +20,7 @@ interface StrapiClient {
   plYtd: string;
   plPositive: boolean;
   aiScore: number;
-  clientStatus: string;
+  healthStatus: string;
   lastContact: string;
   riskProfile: string;
 }
@@ -34,42 +36,48 @@ export async function fetchClients() {
     plYtd: item.plYtd,
     plPositive: item.plPositive,
     aiScore: item.aiScore,
-    status: item.clientStatus as "success" | "error" | "hold" | "processing",
+    status: item.healthStatus as "success" | "error" | "hold" | "processing",
     lastContact: item.lastContact,
     riskProfile: item.riskProfile,
   }));
 }
 
+// ── NBA Actions ───────────────────────────────────────────────────────────────
+
 interface StrapiNBAAction {
   id: number;
-  clientName: string;
+  clientId: string;
   tier: string;
   priority: string;
   priorityVariant: string;
   insight: string;
   aiDraft: string;
-  actionLabel: string;
+  action: string;
   revenueImpact: string;
 }
 
-export async function fetchNBAActions() {
+export async function fetchNBAActions(clients: Awaited<ReturnType<typeof fetchClients>>) {
+  const nameById = Object.fromEntries(clients.map((c) => [c.id, c.name]));
   const items = await strapiGet<StrapiNBAAction>("nba-actions");
   return items.map((item) => ({
     id: String(item.id),
-    clientName: item.clientName,
+    clientId: item.clientId,
+    clientName: nameById[item.clientId] ?? item.clientId,
     tier: item.tier,
     priority: item.priority,
     priorityVariant: item.priorityVariant as "red" | "yellow" | "blue",
     insight: item.insight,
     aiDraft: item.aiDraft,
-    action: item.actionLabel,
+    action: item.action,
     revenueImpact: item.revenueImpact,
   }));
 }
 
+// ── Pipeline Deals ────────────────────────────────────────────────────────────
+
 interface StrapiPipelineDeal {
   id: number;
-  client: string;
+  clientId: string;
   product: string;
   dealSize: string;
   probability: number;
@@ -78,11 +86,13 @@ interface StrapiPipelineDeal {
   stalled: boolean;
 }
 
-export async function fetchPipelineDeals() {
+export async function fetchPipelineDeals(clients: Awaited<ReturnType<typeof fetchClients>>) {
+  const nameById = Object.fromEntries(clients.map((c) => [c.id, c.name]));
   const items = await strapiGet<StrapiPipelineDeal>("pipeline-deals");
   return items.map((item) => ({
     id: `p${item.id}`,
-    client: item.client,
+    clientId: item.clientId,
+    client: nameById[item.clientId] ?? item.clientId,
     product: item.product,
     dealSize: item.dealSize,
     probability: item.probability,
@@ -92,19 +102,22 @@ export async function fetchPipelineDeals() {
   }));
 }
 
+// ── Mini Kanban ───────────────────────────────────────────────────────────────
+
 interface StrapiMiniKanban {
   id: number;
-  client: string;
+  clientId: string;
   deal: string;
   stage: string;
 }
 
-export async function fetchMiniKanban() {
+export async function fetchMiniKanban(clients: Awaited<ReturnType<typeof fetchClients>>) {
+  const nameById = Object.fromEntries(clients.map((c) => [c.id, c.name]));
   const items = await strapiGet<StrapiMiniKanban>("mini-kanbans");
-  return items.map((item) => ({
-    id: `k${item.id}`,
-    client: item.client,
-    deal: item.deal,
-    stage: item.stage,
-  }));
+  return items.map((item) => {
+    const full = nameById[item.clientId] ?? item.clientId;
+    const parts = full.split(" ");
+    const short = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : full;
+    return { id: `k${item.id}`, clientId: item.clientId, client: short, deal: item.deal, stage: item.stage };
+  });
 }

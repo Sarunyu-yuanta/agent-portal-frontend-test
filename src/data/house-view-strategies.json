@@ -1,0 +1,46 @@
+[
+  {
+    "id": "s1",
+    "name": "Asia ex-Japan Equity — Selective Growth",
+    "conviction": "High",
+    "convictionVariant": "green",
+    "targetAllocation": "20–25%",
+    "pitchHook": "Earnings recovery in tech/financials sector with AI-driven productivity tailwinds.",
+    "products": ["Thailand Equity Fund A", "Asia Growth ETF", "HK Tech Sector Fund"],
+    "matchedClients": 8,
+    "assetClass": "Equity"
+  },
+  {
+    "id": "s2",
+    "name": "Short-Duration Investment Grade Bond",
+    "conviction": "Medium",
+    "convictionVariant": "yellow",
+    "targetAllocation": "15–20%",
+    "pitchHook": "Rate cycle peak — lock in 5–6% yield before cuts. Capital preservation with income.",
+    "products": ["IG Corporate Bond Fund", "Short Duration Bond ETF"],
+    "matchedClients": 12,
+    "assetClass": "Fixed Income"
+  },
+  {
+    "id": "s3",
+    "name": "Structured Note — Capital Protected 8.5%",
+    "conviction": "High",
+    "convictionVariant": "green",
+    "targetAllocation": "5–10%",
+    "pitchHook": "100% capital protection + 8.5% p.a. coupon. Ideal for idle cash redeployment.",
+    "products": ["6-Month Structured Note Series 12"],
+    "matchedClients": 5,
+    "assetClass": "Alternatives"
+  },
+  {
+    "id": "s4",
+    "name": "Global REITs — Dividend Income",
+    "conviction": "Low",
+    "convictionVariant": "red",
+    "targetAllocation": "5–8%",
+    "pitchHook": "Sector under pressure from rates. Selective exposure only — quality assets in logistics/data centers.",
+    "products": ["Global REITs Fund", "Logistics REIT ETF"],
+    "matchedClients": 3,
+    "assetClass": "Real Estate"
+  }
+]

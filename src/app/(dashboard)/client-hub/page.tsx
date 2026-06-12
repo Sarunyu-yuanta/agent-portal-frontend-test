@@ -29,11 +29,7 @@ import {
   ClipboardTextIcon,
 } from "@phosphor-icons/react";
 import { mockClients } from "@/lib/mock-data";
-import {
-  useStrapiClients,
-  useStrapiPipelineDeals,
-  useStrapiNBAActions,
-} from "@/hooks/use-strapi";
+import { useStrapiClients, useStrapiPipelineDeals, useStrapiNBAActions } from "@/hooks/use-strapi";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 type Client = (typeof mockClients)[number];
@@ -391,7 +387,7 @@ function ClientDetailPanel({
       d.stage !== "Closed Lost",
   );
   const nba = nbaActions.find((a) => a.clientName === client.name);
-  const insight = insightByName[client.name];
+  const insight = insightByName[client.name] ?? { title: "—", description: "—", category: "stable" as InsightCategory };
   const allocation = allocationByName[client.name] ?? [];
   const interactions = interactionsByName[client.name] ?? [];
   const cashHighlight = client.cashIdlePct > 20;
@@ -735,7 +731,7 @@ export default function ClientHubPage() {
     }
 
     return list;
-  }, [activeTab, search, sortKey, sortDir]);
+  }, [activeTab, search, sortKey, sortDir, clients]);
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
@@ -849,7 +845,7 @@ export default function ClientHubPage() {
             </TableHead>
             <TableBody>
               {paged.map((client) => {
-                const insight = insightByName[client.name];
+                const insight = insightByName[client.name] ?? { title: "—", description: "—", category: "stable" as InsightCategory };
                 const cashAmount = computeCashAmount(
                   client.aum,
                   client.cashIdlePct,

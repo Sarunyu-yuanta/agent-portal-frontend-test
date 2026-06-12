@@ -1,0 +1,6 @@
+[
+  { "id": "k1", "clientId": "1", "deal": "Structured Note ฿50M",  "stage": "Pitch"        },
+  { "id": "k2", "clientId": "4", "deal": "Equity Fund ฿120M",     "stage": "Client Review"},
+  { "id": "k3", "clientId": "7", "deal": "Bond Portfolio ฿200M",  "stage": "Executed"     },
+  { "id": "k4", "clientId": "8", "deal": "DCA Fund ฿30M",         "stage": "Idea"         }
+]

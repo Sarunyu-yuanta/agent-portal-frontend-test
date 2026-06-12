@@ -1,0 +1,9 @@
+[
+  { "id": "k1", "clientId": "1", "riskRating": "High",   "kycStatus": "success",    "nextReview": "2026-12-15", "daysUntilExpiry": 201 },
+  { "id": "k2", "clientId": "2", "riskRating": "Medium", "kycStatus": "error",      "nextReview": "2026-06-11", "daysUntilExpiry": 14  },
+  { "id": "k3", "clientId": "3", "riskRating": "Low",    "kycStatus": "success",    "nextReview": "2027-01-20", "daysUntilExpiry": 237 },
+  { "id": "k4", "clientId": "4", "riskRating": "High",   "kycStatus": "processing", "nextReview": "2026-08-30", "daysUntilExpiry": 94  },
+  { "id": "k5", "clientId": "5", "riskRating": "Medium", "kycStatus": "hold",       "nextReview": "2026-06-05", "daysUntilExpiry": 8   },
+  { "id": "k6", "clientId": "6", "riskRating": "Low",    "kycStatus": "success",    "nextReview": "2026-11-10", "daysUntilExpiry": 166 },
+  { "id": "k7", "clientId": "7", "riskRating": "High",   "kycStatus": "success",    "nextReview": "2027-03-01", "daysUntilExpiry": 277 }
+]
