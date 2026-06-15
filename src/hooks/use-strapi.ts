@@ -13,7 +13,7 @@ import {
   fetchMiniKanban,
 } from "@/lib/strapi";
 
-const POLL_MS = 10_000;
+const POLL_MS = 300_000; // 5 min — Beeceptor free tier: 50 req/day
 
 export function useStrapiClients() {
   const [data, setData] = useState(mockClients);

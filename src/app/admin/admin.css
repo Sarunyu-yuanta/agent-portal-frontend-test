@@ -1,0 +1,97 @@
+/* react-jsonschema-form base styles */
+.rjsf .field {
+  margin-bottom: 1rem;
+}
+
+.rjsf label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.375rem;
+}
+
+.rjsf input[type="text"],
+.rjsf input[type="number"],
+.rjsf input[type="email"],
+.rjsf textarea,
+.rjsf select {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.rjsf input[type="text"]:focus,
+.rjsf input[type="number"]:focus,
+.rjsf textarea:focus,
+.rjsf select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.rjsf textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.rjsf .field-boolean {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rjsf .field-boolean > label {
+  margin-bottom: 0;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.rjsf .field-boolean input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.rjsf .field-string.field-has-errors input,
+.rjsf .field-integer.field-has-errors input {
+  border-color: #ef4444;
+}
+
+.rjsf .error-detail {
+  font-size: 0.75rem;
+  color: #ef4444;
+  margin-top: 0.25rem;
+  list-style: none;
+  padding: 0;
+}
+
+.rjsf fieldset {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rjsf legend {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0 0.25rem;
+  color: #1f2937;
+}
+
+.rjsf .required {
+  color: #ef4444;
+  margin-left: 0.125rem;
+}
+
+.rjsf #root__description {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
