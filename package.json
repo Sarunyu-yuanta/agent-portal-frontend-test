@@ -18,7 +18,7 @@
     "@rjsf/utils": "^6.6.2",
     "@rjsf/validator-ajv8": "^6.6.2",
     "@sarunyu/system-one": "^4.10.2",
-    "@vercel/blob": "^2.4.0",
+    "@vercel/kv": "^3.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "js-yaml": "^4.2.0",

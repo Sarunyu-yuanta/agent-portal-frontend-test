@@ -1,47 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { put } from "@vercel/blob";
+import { kv } from "@vercel/kv";
 
 export const dynamic = "force-dynamic";
 
-const BLOB_KEY = "mock-db.json";
+const KV_KEY = "mock-db";
 
 // ── DB helpers ─────────────────────────────────────────────────────────────────
 
 type DB = Record<string, Record<string, unknown>[]>;
 
-// In-memory cache — ensures read-your-writes within the same server instance.
-// Blob is the persistent backing store (survives cold starts / redeploys).
-let memDb: DB | null = null;
-
-function getBlobUrl(): string {
-  const storeId = (process.env.BLOB_STORE_ID ?? "").replace("store_", "").toLowerCase();
-  return `https://${storeId}.private.blob.vercel-storage.com/${BLOB_KEY}`;
-}
-
 async function readDB(): Promise<DB> {
-  if (memDb !== null) return memDb;
-  try {
-    const res = await fetch(`${getBlobUrl()}?t=${Date.now()}`, {
-      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
-      cache: "no-store",
-    });
-    if (!res.ok) { memDb = {}; return {}; }
-    memDb = (await res.json()) as DB;
-    return memDb;
-  } catch {
-    memDb = {};
-    return {};
-  }
+  const db = await kv.get<DB>(KV_KEY);
+  return db ?? {};
 }
 
 async function writeDB(db: DB): Promise<void> {
-  memDb = db;
-  await put(BLOB_KEY, JSON.stringify(db), {
-    access: "private",
-    contentType: "application/json",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
+  await kv.set(KV_KEY, db);
 }
 
 function nextId(items: Record<string, unknown>[]): number {
