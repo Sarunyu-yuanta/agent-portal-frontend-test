@@ -16,7 +16,7 @@ import {
   ArrowsClockwiseIcon,
 } from "@phosphor-icons/react";
 import { mockHouseViewStrategies } from "@/lib/mock-data";
-import { useStrapiNBAActions } from "@/hooks/use-strapi";
+import { useNBAActions } from "@/hooks/use-api";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -83,7 +83,7 @@ const STRATEGY_DETAIL: Record<string, { rationale: string; hook: string; objecti
   },
 };
 
-function buildAIFeed(actions: ReturnType<typeof useStrapiNBAActions>) {
+function buildAIFeed(actions: ReturnType<typeof useNBAActions>) {
   return actions.slice(0, 3).map((a) => ({
     id: a.id,
     initials: a.clientName.split(" ").map((n) => n[0]).join("").slice(0, 2),
@@ -286,7 +286,7 @@ function StrategyPlaybooks() {
 // ─── Right Sidebar ────────────────────────────────────────────────────────────
 
 function RightSidebar() {
-  const nbaActions = useStrapiNBAActions();
+  const nbaActions = useNBAActions();
   const AI_FEED = buildAIFeed(nbaActions);
   return (
     <div className="flex flex-col gap-5 sticky top-6">

@@ -181,7 +181,7 @@ function InsightRow({
 
 function InsightDrawerPanel({ insight }: { insight: Insight }) {
   const config = CATEGORY_CONFIG[insight.type as keyof typeof CATEGORY_CONFIG];
-  const client = mockClients.find((c) => c.name === insight.clientName);
+  const client = mockClients.find((c) => c.id === insight.clientId);
   const detail = client ? mockClientDetails[client.id] : null;
 
   const tierVariant = client?.tier === "UHNW" ? ("blue" as const) : ("gray" as const);

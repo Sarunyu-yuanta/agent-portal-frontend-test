@@ -1,4 +1,4 @@
-const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:1337/api").replace(/\/$/, "");
+const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/mock").replace(/\/$/, "");
 
 async function apiGet<T>(path: string): Promise<T[]> {
   const res = await fetch(`${BASE}/${path}?pagination[pageSize]=100`, {
@@ -11,7 +11,7 @@ async function apiGet<T>(path: string): Promise<T[]> {
 
 // ── Clients ───────────────────────────────────────────────────────────────────
 
-interface StrapiClient {
+interface Client {
   id: number;
   name: string;
   tier: string;
@@ -26,8 +26,8 @@ interface StrapiClient {
 }
 
 export async function fetchClients() {
-  const items = await apiGet<StrapiClient>("clients");
-  return items.map((item: StrapiClient) => ({
+  const items = await apiGet<Client>("clients");
+  return items.map((item: Client) => ({
     id: String(item.id),
     name: item.name,
     tier: item.tier,
@@ -44,7 +44,7 @@ export async function fetchClients() {
 
 // ── NBA Actions ───────────────────────────────────────────────────────────────
 
-interface StrapiNBAAction {
+interface NBAAction {
   id: number;
   clientId: string;
   tier: string;
@@ -58,8 +58,8 @@ interface StrapiNBAAction {
 
 export async function fetchNBAActions(clients: Awaited<ReturnType<typeof fetchClients>>) {
   const nameById = Object.fromEntries(clients.map((c: { id: string; name: string }) => [c.id, c.name]));
-  const items = await apiGet<StrapiNBAAction>("nba-actions");
-  return items.map((item: StrapiNBAAction) => ({
+  const items = await apiGet<NBAAction>("nba-actions");
+  return items.map((item: NBAAction) => ({
     id: String(item.id),
     clientId: item.clientId,
     clientName: nameById[item.clientId] ?? item.clientId,
@@ -75,7 +75,7 @@ export async function fetchNBAActions(clients: Awaited<ReturnType<typeof fetchCl
 
 // ── Pipeline Deals ────────────────────────────────────────────────────────────
 
-interface StrapiPipelineDeal {
+interface PipelineDeal {
   id: number;
   clientId: string;
   product: string;
@@ -88,8 +88,8 @@ interface StrapiPipelineDeal {
 
 export async function fetchPipelineDeals(clients: Awaited<ReturnType<typeof fetchClients>>) {
   const nameById = Object.fromEntries(clients.map((c: { id: string; name: string }) => [c.id, c.name]));
-  const items = await apiGet<StrapiPipelineDeal>("pipeline-deals");
-  return items.map((item: StrapiPipelineDeal) => ({
+  const items = await apiGet<PipelineDeal>("pipeline-deals");
+  return items.map((item: PipelineDeal) => ({
     id: `p${item.id}`,
     clientId: item.clientId,
     client: nameById[item.clientId] ?? item.clientId,
@@ -104,7 +104,7 @@ export async function fetchPipelineDeals(clients: Awaited<ReturnType<typeof fetc
 
 // ── Mini Kanban ───────────────────────────────────────────────────────────────
 
-interface StrapiMiniKanban {
+interface MiniKanban {
   id: number;
   clientId: string;
   deal: string;
@@ -113,8 +113,8 @@ interface StrapiMiniKanban {
 
 export async function fetchMiniKanban(clients: Awaited<ReturnType<typeof fetchClients>>) {
   const nameById = Object.fromEntries(clients.map((c: { id: string; name: string }) => [c.id, c.name]));
-  const items = await apiGet<StrapiMiniKanban>("mini-kanbans");
-  return items.map((item: StrapiMiniKanban) => {
+  const items = await apiGet<MiniKanban>("mini-kanbans");
+  return items.map((item: MiniKanban) => {
     const full = nameById[item.clientId] ?? item.clientId;
     const parts = full.split(" ");
     const short = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : full;

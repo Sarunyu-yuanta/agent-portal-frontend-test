@@ -1,41 +1,43 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  Button,
+  Modal,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableHeaderCell,
+  TableCell,
+  Card,
+} from "@sarunyu/system-one";
 import Form from "@rjsf/core";
 import validator from "@rjsf/validator-ajv8";
 import type { RJSFSchema } from "@rjsf/utils";
+import { customWidgets, FieldTemplate } from "./rjsf-widgets";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 interface OpenAPISpec {
   paths: Record<string, PathItem>;
-  components?: {
-    schemas?: Record<string, RJSFSchema>;
-  };
+  components?: { schemas?: Record<string, RJSFSchema> };
 }
-
 interface PathItem {
   get?: Operation;
   post?: Operation;
 }
-
 interface Operation {
   tags?: string[];
   requestBody?: {
-    content?: {
-      "application/json"?: {
-        schema?: { $ref?: string };
-      };
-    };
+    content?: { "application/json"?: { schema?: { $ref?: string } } };
   };
 }
-
 interface Resource {
   path: string;
   name: string;
   schema: RJSFSchema;
 }
-
 interface ApiItem {
   id: number | string;
   [key: string]: unknown;
@@ -59,13 +61,11 @@ function extractResources(spec: OpenAPISpec): Resource[] {
     if (path.includes("{")) continue;
     const postOp = item.post;
     if (!postOp?.requestBody) continue;
-    const ref =
-      postOp.requestBody.content?.["application/json"]?.schema?.$ref;
+    const ref = postOp.requestBody.content?.["application/json"]?.schema?.$ref;
     if (!ref) continue;
     const schema = resolveRef(ref, spec);
     if (!schema) continue;
-    const name =
-      postOp.tags?.[0] ?? item.get?.tags?.[0] ?? path.replace(/^\//, "");
+    const name = postOp.tags?.[0] ?? item.get?.tags?.[0] ?? path.replace(/^\//, "");
     result.push({ path, name, schema });
   }
   return result;
@@ -88,15 +88,31 @@ export default function AdminPage() {
   const [items, setItems] = useState<ApiItem[]>([]);
   const [itemsLoading, setItemsLoading] = useState(false);
 
-  const [modal, setModal] = useState<{
-    mode: "add" | "edit";
-    data?: ApiItem;
-  } | null>(null);
+  const [modal, setModal] = useState<{ mode: "add" | "edit"; data?: ApiItem } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"none" | "asc" | "desc">("none");
 
-  // Load spec once on mount
+  const dirFor = (k: string): "none" | "asc" | "desc" => (sortKey === k ? sortDir : "none");
+  const handleSort = (k: string) => (next: "none" | "asc" | "desc") => {
+    setSortKey(next === "none" ? null : k);
+    setSortDir(next);
+  };
+
+  const sortedItems = useMemo(() => {
+    if (!sortKey || sortDir === "none") return items;
+    return [...items].sort((a, b) => {
+      const av = a[sortKey] ?? "";
+      const bv = b[sortKey] ?? "";
+      const cmp = typeof av === "number" && typeof bv === "number"
+        ? av - bv
+        : String(av).localeCompare(String(bv));
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [items, sortKey, sortDir]);
+
   useEffect(() => {
-    fetch("/api/openapi")
+    fetch("/api/openapi", { cache: "no-store" })
       .then((r) => r.json())
       .then((spec: OpenAPISpec) => {
         setResources(extractResources(spec));
@@ -110,53 +126,37 @@ export default function AdminPage() {
 
   const active = resources[activeIdx];
 
-  // Reload items whenever the active resource changes
   const loadItems = useCallback(() => {
-    if (!active || !API_BASE) {
-      setItems([]);
-      return;
-    }
+    if (!active || !API_BASE) { setItems([]); return; }
     setItemsLoading(true);
     fetch(`${API_BASE}${active.path}?pagination[pageSize]=100`, { cache: "no-store" })
       .then((r) => r.json())
       .then((json: unknown) => {
         const raw = json as Record<string, unknown>;
-        const data = Array.isArray(raw)
-          ? raw
-          : Array.isArray(raw.data)
-          ? (raw.data as ApiItem[])
-          : [];
+        const data = Array.isArray(raw) ? raw : Array.isArray(raw.data) ? (raw.data as ApiItem[]) : [];
         setItems(data);
       })
       .catch(() => setItems([]))
       .finally(() => setItemsLoading(false));
   }, [active]);
 
-  useEffect(() => {
-    loadItems();
-  }, [loadItems]);
+  useEffect(() => { loadItems(); }, [loadItems]);
 
   const handleDelete = async (id: number | string) => {
     if (!active || !API_BASE) return;
     if (!confirm(`Delete item #${id}?`)) return;
-    const res = await fetch(`${API_BASE}${active.path}/${id}`, {
-      method: "DELETE",
-    }).catch(() => null);
+    const res = await fetch(`${API_BASE}${active.path}/${id}`, { method: "DELETE" }).catch(() => null);
     if (!res || !res.ok) { alert("Delete failed"); return; }
     setItems((prev) => prev.filter((i) => String(i.id) !== String(id)));
   };
 
-  const handleSubmit = async (
-    e: { formData?: Record<string, unknown> }
-  ) => {
+  const handleSubmit = async (e: { formData?: Record<string, unknown> }) => {
     if (!active || !API_BASE || e.formData == null) return;
     const formData = e.formData;
     setSaving(true);
     try {
       const isEdit = modal?.mode === "edit" && modal.data?.id != null;
-      const url = isEdit
-        ? `${API_BASE}${active.path}/${modal!.data!.id}`
-        : `${API_BASE}${active.path}`;
+      const url = isEdit ? `${API_BASE}${active.path}/${modal!.data!.id}` : `${API_BASE}${active.path}`;
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -166,11 +166,7 @@ export default function AdminPage() {
       const json = (await res.json()) as { data: ApiItem };
       setModal(null);
       if (isEdit) {
-        setItems((prev) =>
-          prev.map((item) =>
-            String(item.id) === String(modal!.data!.id) ? json.data : item
-          )
-        );
+        setItems((prev) => prev.map((item) => String(item.id) === String(modal!.data!.id) ? json.data : item));
       } else {
         setItems((prev) => [...prev, json.data]);
       }
@@ -185,16 +181,16 @@ export default function AdminPage() {
 
   if (specLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <p className="text-sm text-gray-400">Loading schema…</p>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <p className="text-sm text-muted-foreground">Loading schema…</p>
       </div>
     );
   }
 
   if (specError) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <p className="text-sm text-red-500">{specError}</p>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <p className="text-sm text-destructive">{specError}</p>
       </div>
     );
   }
@@ -202,42 +198,28 @@ export default function AdminPage() {
   // ── Main UI ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <div>
-          <h1 className="text-lg font-semibold text-gray-900">Admin Panel</h1>
-          <p className="text-xs text-gray-400 font-mono mt-0.5">
-            {API_BASE || (
-              <span className="text-amber-500">
-                NEXT_PUBLIC_API_URL not set
-              </span>
-            )}
-          </p>
+      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
+        <h1 className="text-base font-semibold text-foreground">Admin Panel</h1>
+        <div className="ml-auto">
+          <Button variant="outline" size="sm" onClick={() => window.open("/api-docs", "_blank")}>
+            API Docs
+          </Button>
         </div>
-        <a
-          href="/api-docs"
-          className="ml-auto text-xs text-blue-600 hover:underline"
-        >
-          API Docs →
-        </a>
       </header>
 
       <div className="flex flex-1">
         {/* Sidebar */}
-        <nav className="w-44 shrink-0 bg-white border-r border-gray-200 pt-4">
+        <nav className="w-44 shrink-0 bg-card border-r border-border pt-3 flex flex-col gap-0.5 px-2">
           {resources.map((r, i) => (
             <button
               key={r.path}
-              onClick={() => {
-                setActiveIdx(i);
-                setItems([]);
-                setModal(null);
-              }}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+              onClick={() => { setActiveIdx(i); setItems([]); setModal(null); }}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 i === activeIdx
-                  ? "bg-blue-50 text-blue-700 font-medium border-r-2 border-blue-600"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               {r.name}
@@ -247,147 +229,137 @@ export default function AdminPage() {
 
         {/* Content */}
         <main className="flex-1 p-6 min-w-0">
+          <div className="max-w-[1600px] mx-auto">
           {active && (
             <>
               {/* Toolbar */}
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-base font-medium text-gray-900">
-                  {active.name}
-                  <span className="ml-2 text-xs font-normal text-gray-400 font-mono">
-                    {active.path}
-                  </span>
-                </h2>
-                <button
-                  onClick={() => setModal({ mode: "add" })}
-                  className="ml-auto px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  + Add New
-                </button>
+                <div>
+                  <h2 className="text-sm font-semibold text-foreground">{active.name}</h2>
+                  <p className="text-xs text-muted-foreground font-mono">{active.path}</p>
+                </div>
+                <div className="ml-auto">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setModal({ mode: "add" })}
+                  >
+                    + Add New
+                  </Button>
+                </div>
               </div>
 
               {/* Table */}
               {itemsLoading ? (
-                <p className="text-sm text-gray-400">Loading…</p>
+                <p className="text-sm text-muted-foreground">Loading…</p>
               ) : items.length === 0 ? (
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   No items found.{" "}
-                  {!API_BASE && (
-                    <span className="text-amber-500">
-                      Set NEXT_PUBLIC_API_URL in .env.local to connect an API.
-                    </span>
-                  )}
+                  {!API_BASE && <span className="text-warning">Set NEXT_PUBLIC_API_URL in .env.local.</span>}
                 </p>
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200 text-left">
-                        <th className="px-4 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                          ID
-                        </th>
-                        {previewColumns(active.schema).map((col) => (
-                          <th
-                            key={col}
-                            className="px-4 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wide"
-                          >
-                            {col}
-                          </th>
-                        ))}
-                        <th className="px-4 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {items.map((item) => (
-                        <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-2.5 font-mono text-xs text-gray-400">
+                <Card>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeaderCell
+                        sortDirection={dirFor("id")}
+                        onSortChange={handleSort("id")}
+                      >
+                        ID
+                      </TableHeaderCell>
+                      {previewColumns(active.schema).map((col) => (
+                        <TableHeaderCell
+                          key={col}
+                          sortDirection={dirFor(col)}
+                          onSortChange={handleSort(col)}
+                        >
+                          {col}
+                        </TableHeaderCell>
+                      ))}
+                      <TableHeaderCell>Actions</TableHeaderCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {sortedItems.map((item) => (
+                      <TableRow key={item.id} hoverable>
+                        <TableCell>
+                          <span className="font-mono text-xs text-muted-foreground">
                             {String(item.id)}
-                          </td>
-                          {previewColumns(active.schema).map((col) => (
-                            <td
-                              key={col}
-                              className="px-4 py-2.5 text-gray-700 max-w-[200px] truncate"
-                              title={String(item[col] ?? "")}
-                            >
+                          </span>
+                        </TableCell>
+                        {previewColumns(active.schema).map((col) => (
+                          <TableCell key={col}>
+                            <span className="text-sm text-foreground">
                               {String(item[col] ?? "—")}
-                            </td>
-                          ))}
-                          <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                            <button
-                              onClick={() =>
-                                setModal({ mode: "edit", data: item })
-                              }
-                              className="text-blue-600 hover:text-blue-800 text-xs mr-3"
+                            </span>
+                          </TableCell>
+                        ))}
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setModal({ mode: "edit", data: item })}
                             >
                               Edit
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              variant="plain"
+                              size="sm"
                               onClick={() => handleDelete(item.id)}
-                              className="text-red-500 hover:text-red-700 text-xs"
                             >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                              <span className="text-destructive">Delete</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                </Card>
               )}
             </>
           )}
+          </div>
         </main>
       </div>
 
       {/* Modal */}
       {modal && active && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setModal(null);
-          }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setModal(null); }}
         >
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col">
-            {/* Modal header */}
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between shrink-0">
-              <h3 className="font-semibold text-gray-900">
-                {modal.mode === "add" ? "Add" : "Edit"} {active.name}
-              </h3>
-              <button
-                onClick={() => setModal(null)}
-                className="text-gray-400 hover:text-gray-600 text-xl leading-none"
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Modal body */}
-            <div className="px-6 py-5 overflow-y-auto">
+          <Modal
+            variant="content"
+            title={`${modal.mode === "add" ? "Add" : "Edit"} ${active.name}`}
+            className="w-[600px] max-w-[95vw]"
+            actionLayout="none"
+            onClose={() => setModal(null)}
+          >
+            <div className="overflow-y-auto max-h-[60vh] pr-1">
               <Form
                 schema={active.schema}
                 validator={validator}
                 formData={modal.data as Record<string, unknown>}
                 onSubmit={handleSubmit}
                 disabled={saving}
+                widgets={customWidgets}
+                templates={{ FieldTemplate }}
                 uiSchema={{
                   "ui:submitButtonOptions": {
-                    submitText: saving
-                      ? "Saving…"
-                      : modal.mode === "add"
-                      ? "Create"
-                      : "Update",
+                    submitText: saving ? "Saving…" : modal.mode === "add" ? "Create" : "Update",
                     props: {
                       className:
-                        "mt-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors cursor-pointer",
+                        "mt-4 px-4 py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer",
                       disabled: saving,
                     },
                   },
                 }}
               />
             </div>
-          </div>
+          </Modal>
         </div>
       )}
     </div>

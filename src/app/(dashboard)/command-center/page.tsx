@@ -16,7 +16,7 @@ import {
   UserIcon,
 } from "@phosphor-icons/react";
 import { mockNBAActions } from "@/lib/mock-data";
-import { useStrapiClients, useStrapiNBAActions, useStrapiMiniKanban } from "@/hooks/use-strapi";
+import { useClients, useNBAActions, useMiniKanban } from "@/hooks/use-api";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -877,8 +877,8 @@ const STAGE_CONFIG: Record<
 };
 
 function MiniKanban() {
-  const clients = useStrapiClients();
-  const miniKanban = useStrapiMiniKanban(clients);
+  const clients = useClients();
+  const miniKanban = useMiniKanban(clients);
   const stageStats = KANBAN_STAGES.map((stage) => {
     const deals = miniKanban.filter((d) => d.stage === stage);
     const aum = deals.reduce((sum, d) => {
@@ -1051,8 +1051,8 @@ function AutomationLog() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CommandCenterPage() {
-  const clients = useStrapiClients();
-  const strapiNBA = useStrapiNBAActions(clients);
+  const clients = useClients();
+  const strapiNBA = useNBAActions(clients);
   const [nbaActions, setNbaActions] = useState(mockNBAActions);
   useEffect(() => { setNbaActions(strapiNBA); }, [strapiNBA]);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);

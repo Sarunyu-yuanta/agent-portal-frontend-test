@@ -11,11 +11,11 @@ import {
   fetchNBAActions,
   fetchPipelineDeals,
   fetchMiniKanban,
-} from "@/lib/strapi";
+} from "@/lib/api";
 
-const POLL_MS = 300_000; // 5 min — Beeceptor free tier: 50 req/day
+const POLL_MS = 300_000;
 
-export function useStrapiClients() {
+export function useClients() {
   const [data, setData] = useState(mockClients);
   const load = useCallback(() => {
     fetchClients().then(setData).catch(() => {});
@@ -28,7 +28,7 @@ export function useStrapiClients() {
   return data;
 }
 
-export function useStrapiNBAActions(clients = mockClients) {
+export function useNBAActions(clients = mockClients) {
   const [data, setData] = useState(mockNBAActions);
   const load = useCallback(() => {
     fetchNBAActions(clients).then(setData).catch(() => {});
@@ -41,7 +41,7 @@ export function useStrapiNBAActions(clients = mockClients) {
   return data;
 }
 
-export function useStrapiPipelineDeals(clients = mockClients) {
+export function usePipelineDeals(clients = mockClients) {
   const [data, setData] = useState(mockPipelineDeals);
   const load = useCallback(() => {
     fetchPipelineDeals(clients).then(setData).catch(() => {});
@@ -54,7 +54,7 @@ export function useStrapiPipelineDeals(clients = mockClients) {
   return data;
 }
 
-export function useStrapiMiniKanban(clients = mockClients) {
+export function useMiniKanban(clients = mockClients) {
   const [data, setData] = useState(mockMiniKanban);
   const load = useCallback(() => {
     fetchMiniKanban(clients).then(setData).catch(() => {});

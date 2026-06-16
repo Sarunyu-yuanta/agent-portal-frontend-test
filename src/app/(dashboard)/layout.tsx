@@ -15,7 +15,7 @@ import { MagnifyingGlassIcon, ListIcon } from "@phosphor-icons/react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { notificationGroups } from "@/lib/mock-data";
-import { useStrapiClients } from "@/hooks/use-strapi";
+import { useClients } from "@/hooks/use-api";
 
 const PAGE_TITLES: Record<string, string> = {
   "/command-center": "Command Center",
@@ -49,7 +49,7 @@ type PageInfo = {
 
 function usePageInfo(): PageInfo {
   const pathname = usePathname();
-  const clients = useStrapiClients();
+  const clients = useClients();
 
   // Client detail page — show breadcrumb instead of title
   const clientMatch = pathname.match(/^\/client\/([^/]+)/);

@@ -20,7 +20,7 @@ import {
   ArrowRightIcon,
 } from "@phosphor-icons/react";
 import { mockPipelineDeals } from "@/lib/mock-data";
-import { useStrapiClients, useStrapiPipelineDeals } from "@/hooks/use-strapi";
+import { useClients, usePipelineDeals } from "@/hooks/use-api";
 
 const STAGES = [
   "Qualified",
@@ -323,8 +323,8 @@ function KanbanColumn({ stage, deals, dimmed = false, onAdvanceRequest }: {
 }
 
 export default function PipelinePage() {
-  const clients = useStrapiClients();
-  const strapiDeals = useStrapiPipelineDeals(clients);
+  const clients = useClients();
+  const strapiDeals = usePipelineDeals(clients);
   const [showModal, setShowModal] = useState(false);
   const [newProposal, setNewProposal] = useState({ clientName: "", productType: "", dealSize: "" });
   const [deals, setDeals] = useState<Deal[]>(mockPipelineDeals.map(d => ({ ...d })));
