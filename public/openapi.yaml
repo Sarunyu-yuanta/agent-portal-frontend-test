@@ -652,48 +652,141 @@ components:
       type: object
       required: [name, tier, aum, cashIdlePct, plYtd, plPositive, aiScore, status, lastContact, riskProfile]
       properties:
-        name:          { type: string, example: Somchai Rattanakul }
-        tier:          { type: string, enum: [UHNW, HNW] }
-        aum:           { type: string, example: "฿ 450M" }
-        cashIdlePct:   { type: integer, minimum: 0, maximum: 100, example: 18 }
-        plYtd:         { type: string, example: "+12.4%" }
-        plPositive:    { type: boolean, example: true }
-        aiScore:       { type: integer, minimum: 0, maximum: 100, example: 94 }
-        status:        { type: string, enum: [success, error, hold, processing] }
-        lastContact:   { type: string, example: "2 days ago" }
-        riskProfile:   { type: string, enum: [Aggressive, Moderate, Conservative] }
-        segment:       { type: string, enum: [Retail, Private, Premier] }
-        branch:        { type: string, enum: [Bangkok, Chiang Mai, Phuket, Pattaya] }
+        name:
+          type: string
+          example: Somchai Rattanakul
+        tier:
+          type: string
+          enum: [UHNW, HNW]
+          description: "UHNW = Ultra High Net Worth (>฿100M), HNW = High Net Worth (>฿10M)"
+        aum:
+          type: string
+          example: "฿ 450M"
+          description: "กรอกในรูปแบบ ฿ ตามด้วยตัวเลข เช่น ฿ 450M, ฿ 1.2B"
+        cashIdlePct:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 18
+          description: "เปอร์เซ็นต์เงินสดที่ไม่ได้ลงทุน"
+        plYtd:
+          type: string
+          example: "+12.4%"
+          description: "กำไร/ขาดทุนตั้งแต่ต้นปี เช่น +12.4% หรือ -3.2%"
+        plPositive:
+          type: boolean
+          example: true
+          description: "เปิดถ้า P&L ปีนี้เป็นบวก"
+        aiScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 94
+          description: "คะแนน AI สำหรับโอกาสทางธุรกิจ"
+        status:
+          type: string
+          enum: [success, error, hold, processing]
+          description: "success = ปกติ, hold = ต้องติดตาม, error = เร่งด่วน, processing = กำลังดำเนินการ"
+        lastContact:
+          type: string
+          example: "2 days ago"
+          description: "ระบุเป็นข้อความ เช่น 2 days ago, 1 week ago"
+        riskProfile:
+          type: string
+          enum: [Aggressive, Moderate, Conservative]
+        segment:
+          type: string
+          enum: [Retail, Private, Premier]
+        branch:
+          type: string
+          enum: [Bangkok, Chiang Mai, Phuket, Pattaya]
 
     NBAActionInput:
       type: object
       required: [clientId, tier, priority, priorityVariant, insight, aiDraft, action, revenueImpact]
       properties:
-        clientId:        { type: string, example: "1" }
-        tier:            { type: string, enum: [UHNW, HNW] }
-        priority:        { type: string, enum: [HIGH, MEDIUM, LOW] }
-        priorityVariant: { type: string, enum: [red, yellow, blue] }
-        insight:         { type: string }
-        aiDraft:         { type: string }
-        action:          { type: string, example: "Review & Send" }
-        revenueImpact:   { type: string, example: "฿ 2.4M est. revenue" }
+        clientId:
+          type: string
+          example: "1"
+          description: "ID ของ Client ที่เชื่อมโยง"
+        tier:
+          type: string
+          enum: [UHNW, HNW]
+          description: "UHNW = Ultra High Net Worth, HNW = High Net Worth"
+        priority:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+          description: "HIGH = เร่งด่วน, MEDIUM = ปานกลาง, LOW = ทั่วไป"
+        priorityVariant:
+          type: string
+          enum: [red, yellow, blue]
+          description: "สีของ priority badge: red = HIGH, yellow = MEDIUM, blue = LOW"
+        insight:
+          type: string
+          example: "Client มีเงินสดค้างอยู่ 18% ควรพิจารณาลงทุนเพิ่ม"
+          description: "ข้อมูลเชิงลึกที่ AI วิเคราะห์ได้"
+        aiDraft:
+          type: string
+          example: "สวัสดีคุณลูกค้า ทางเราอยากแนะนำผลิตภัณฑ์ใหม่..."
+          description: "ร่างข้อความที่ AI สร้างสำหรับ NBA นี้"
+        action:
+          type: string
+          example: "Review & Send"
+          description: "การดำเนินการที่แนะนำ เช่น Review & Send, Call Client"
+        revenueImpact:
+          type: string
+          example: "฿ 2.4M est. revenue"
+          description: "ผลกระทบด้านรายได้โดยประมาณ เช่น ฿ 2.4M est. revenue"
 
     PipelineDealInput:
       type: object
       required: [clientId, product, dealSize, probability, stage, daysInStage, stalled]
       properties:
-        clientId:    { type: string, example: "1" }
-        product:     { type: string, example: Structured Note }
-        dealSize:    { type: string, example: "฿ 50M" }
-        probability: { type: integer, minimum: 0, maximum: 100, example: 85 }
-        stage:       { type: string, enum: [Qualified, Proposed, Under Review, Negotiation, Closed Won, Closed Lost] }
-        daysInStage: { type: integer, minimum: 0, example: 5 }
-        stalled:     { type: boolean, example: false }
+        clientId:
+          type: string
+          example: "1"
+          description: "ID ของ Client ที่เชื่อมโยง"
+        product:
+          type: string
+          example: Structured Note
+          description: "ชื่อผลิตภัณฑ์ เช่น Structured Note, Equity Fund, Bond"
+        dealSize:
+          type: string
+          example: "฿ 50M"
+          description: "มูลค่า Deal เช่น ฿ 50M, ฿ 1.2B"
+        probability:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 85
+          description: "ความน่าจะเป็นที่จะปิด Deal สำเร็จ"
+        stage:
+          type: string
+          enum: [Qualified, Proposed, Under Review, Negotiation, Closed Won, Closed Lost]
+          description: "ขั้นตอนปัจจุบันของ Deal ใน Pipeline"
+        daysInStage:
+          type: integer
+          minimum: 0
+          example: 5
+          description: "จำนวนวันที่ Deal อยู่ใน Stage นี้"
+        stalled:
+          type: boolean
+          example: false
+          description: "เปิดถ้า Deal หยุดนิ่งไม่มีความคืบหน้า"
 
     MiniKanbanInput:
       type: object
       required: [clientId, deal, stage]
       properties:
-        clientId: { type: string, example: "1" }
-        deal:     { type: string, example: "Structured Note ฿50M" }
-        stage:    { type: string, enum: [Idea, Pitch, Client Review, Executed] }
+        clientId:
+          type: string
+          example: "1"
+          description: "ID ของ Client ที่เชื่อมโยง"
+        deal:
+          type: string
+          example: "Structured Note ฿50M"
+          description: "ชื่อ Deal พร้อมมูลค่า เช่น Structured Note ฿50M"
+        stage:
+          type: string
+          enum: [Idea, Pitch, Client Review, Executed]
+          description: "Idea = ไอเดีย, Pitch = นำเสนอ, Client Review = รอ Client, Executed = ปิดแล้ว"
