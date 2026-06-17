@@ -694,12 +694,6 @@ components:
         riskProfile:
           type: string
           enum: [Aggressive, Moderate, Conservative]
-        segment:
-          type: string
-          enum: [Retail, Private, Premier]
-        branch:
-          type: string
-          enum: [Bangkok, Chiang Mai, Phuket, Pattaya]
 
     NBAActionInput:
       type: object
