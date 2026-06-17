@@ -107,7 +107,8 @@ export async function fetchPipelineDeals(clients: Awaited<ReturnType<typeof fetc
 interface MiniKanban {
   id: number;
   clientId: string;
-  deal: string;
+  dealName: string;
+  dealSize: string;
   stage: string;
 }
 
@@ -118,6 +119,6 @@ export async function fetchMiniKanban(clients: Awaited<ReturnType<typeof fetchCl
     const full = nameById[item.clientId] ?? item.clientId;
     const parts = full.split(" ");
     const short = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : full;
-    return { id: `k${item.id}`, clientId: item.clientId, client: short, deal: item.deal, stage: item.stage };
+    return { id: `k${item.id}`, clientId: item.clientId, client: short, dealName: item.dealName, dealSize: item.dealSize, stage: item.stage };
   });
 }

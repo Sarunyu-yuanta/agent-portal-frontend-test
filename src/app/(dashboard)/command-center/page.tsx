@@ -882,7 +882,7 @@ function MiniKanban() {
   const stageStats = KANBAN_STAGES.map((stage) => {
     const deals = miniKanban.filter((d) => d.stage === stage);
     const aum = deals.reduce((sum, d) => {
-      const m = d.deal.match(/฿([\d.]+)M/);
+      const m = d.dealSize?.match(/฿([\d.]+)M/);
       return sum + (m ? parseFloat(m[1]) : 0);
     }, 0);
     return { stage: stage as KanbanStage, count: deals.length, aum };
@@ -971,9 +971,8 @@ function MiniKanban() {
         {sortedDeals.map((item) => {
           const stage = item.stage as KanbanStage;
           const cfg = STAGE_CONFIG[stage];
-          const amountMatch = item.deal.match(/฿[\d.]+M/);
-          const amount = amountMatch ? amountMatch[0] : "";
-          const product = item.deal.replace(/\s*฿[\d.]+M/, "");
+          const amount = item.dealSize ?? "";
+          const product = item.dealName ?? "";
 
           return (
             <div

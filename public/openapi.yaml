@@ -606,7 +606,7 @@ components:
 
     MiniKanban:
       type: object
-      required: [id, clientId, deal, stage]
+      required: [id, clientId, dealName, dealSize, stage]
       properties:
         id:
           type: integer
@@ -618,10 +618,12 @@ components:
           type: string
           description: References the id field of the Client resource
           example: "1"
-        deal:
+        dealName:
           type: string
-          description: Deal description including product and size
-          example: "Structured Note ฿50M"
+          example: "Structured Note"
+        dealSize:
+          type: string
+          example: "฿50M"
         stage:
           type: string
           enum: [Idea, Pitch, Client Review, Executed]
@@ -770,16 +772,20 @@ components:
 
     MiniKanbanInput:
       type: object
-      required: [clientId, deal, stage]
+      required: [clientId, dealName, dealSize, stage]
       properties:
         clientId:
           type: string
           example: "1"
           description: "ID ของ Client ที่เชื่อมโยง"
-        deal:
+        dealName:
           type: string
-          example: "Structured Note ฿50M"
-          description: "ชื่อ Deal พร้อมมูลค่า เช่น Structured Note ฿50M"
+          example: "Structured Note"
+          description: "ชื่อ Deal เช่น Structured Note, Bond Portfolio"
+        dealSize:
+          type: string
+          example: "฿50M"
+          description: "มูลค่า Deal เช่น ฿50M, ฿1.2B"
         stage:
           type: string
           enum: [Idea, Pitch, Client Review, Executed]
