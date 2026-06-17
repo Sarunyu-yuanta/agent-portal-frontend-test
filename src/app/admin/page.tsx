@@ -543,13 +543,13 @@ export default function AdminPage() {
                 }}
               />
             </div>
-            <div className="pt-4 border-t border-border flex items-center justify-between">
-              <button
+            <div className="pt-4 border-t border-border flex items-center justify-end gap-2">
+              <Button
+                variant="outline"
                 onClick={() => setModal(null)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Cancel
-              </button>
+              </Button>
               <Button
                 variant="primary"
                 disabled={saving}
