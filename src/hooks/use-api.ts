@@ -18,7 +18,9 @@ const POLL_MS = 300_000;
 export function useClients() {
   const [data, setData] = useState(mockClients);
   const load = useCallback(() => {
-    fetchClients().then(setData).catch(() => {});
+    fetchClients()
+      .then(setData)
+      .catch((err) => console.warn("[useClients]", err));
   }, []);
   useEffect(() => {
     load();
@@ -31,7 +33,9 @@ export function useClients() {
 export function useNBAActions(clients = mockClients) {
   const [data, setData] = useState(mockNBAActions);
   const load = useCallback(() => {
-    fetchNBAActions(clients).then(setData).catch(() => {});
+    fetchNBAActions(clients)
+      .then(setData)
+      .catch((err) => console.warn("[useNBAActions]", err));
   }, [clients]);
   useEffect(() => {
     load();
@@ -44,7 +48,9 @@ export function useNBAActions(clients = mockClients) {
 export function usePipelineDeals(clients = mockClients) {
   const [data, setData] = useState(mockPipelineDeals);
   const load = useCallback(() => {
-    fetchPipelineDeals(clients).then(setData).catch(() => {});
+    fetchPipelineDeals(clients)
+      .then(setData)
+      .catch((err) => console.warn("[usePipelineDeals]", err));
   }, [clients]);
   useEffect(() => {
     load();
@@ -57,7 +63,9 @@ export function usePipelineDeals(clients = mockClients) {
 export function useMiniKanban(clients = mockClients) {
   const [data, setData] = useState(mockMiniKanban);
   const load = useCallback(() => {
-    fetchMiniKanban(clients).then(setData).catch(() => {});
+    fetchMiniKanban(clients)
+      .then(setData)
+      .catch((err) => console.warn("[useMiniKanban]", err));
   }, [clients]);
   useEffect(() => {
     load();

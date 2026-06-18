@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import type { WidgetProps, FieldTemplateProps, SubmitButtonProps } from "@rjsf/utils";
 import { getSubmitButtonOptions } from "@rjsf/utils";
-import { Input, Dropdown, Toggle, Button } from "@sarunyu/system-one";
+import { Input, Dropdown, Toggle, Button, DateInput } from "@sarunyu/system-one";
 
 type SchemaExtra = {
   placeholder: string;
@@ -24,16 +25,21 @@ function getSchemaExtra(schema: WidgetProps["schema"], id: string): SchemaExtra 
   // Numeric % — value IS the number, just show unit
   const isPctNumeric =
     isNumeric &&
-    (idLower.endsWith("pct") ||
-      idLower.endsWith("percent") ||
-      desc.toLowerCase().includes("percentage"));
+    (idLower.includes("pct") ||
+      idLower.includes("percent") ||
+      idLower.includes("ytd") ||
+      idLower.includes("probability") ||
+      desc.toLowerCase().includes("percentage") ||
+      desc.toLowerCase().includes("percent"));
 
   // String % — user types number, system appends "%"
   const pctSuffix = isString && exampleStr.endsWith("%");
 
   // String ฿ — user types amount, system prepends "฿ "
   const isCurrencyString = isString && (exampleStr.startsWith("฿") || desc.includes("฿"));
-  const currencyPrefix = isCurrencyString ? "฿" : undefined;
+  // Numeric ฿ — number field with THB currency (aum, dealSize)
+  const isCurrencyNumeric = isNumeric && (desc.includes("฿") || desc.toLowerCase().includes("thb") || desc.toLowerCase().includes("millions thb"));
+  const currencyPrefix = (isCurrencyString || isCurrencyNumeric) ? "฿" : undefined;
 
   const unit = isPctNumeric || pctSuffix ? "%" : undefined;
 
@@ -56,6 +62,71 @@ function getSchemaExtra(schema: WidgetProps["schema"], id: string): SchemaExtra 
 function HelperText({ text }: { text?: string }) {
   if (!text) return null;
   return <p className="text-xs text-muted-foreground px-1 mt-1">{text}</p>;
+}
+
+function SignedPctInput({
+  id, label, value, onChange, disabled, errorMsg, helperText,
+}: {
+  id: string; label: string; value: unknown;
+  onChange: (v: number | undefined) => void; disabled?: boolean;
+  errorMsg?: string; helperText?: string;
+}) {
+  const num = value != null && value !== "" ? Number(value) : undefined;
+  const [isLoss, setIsLoss] = useState(num != null ? num < 0 : false);
+  const absStr = num != null ? String(Math.abs(num)) : "";
+
+  const toggle = (loss: boolean) => {
+    setIsLoss(loss);
+    if (num != null) onChange(loss ? -Math.abs(num) : Math.abs(num));
+  };
+
+  const btnBase = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all shrink-0 cursor-pointer";
+  const active = "bg-card text-foreground shadow-sm";
+  const inactive = "text-muted-foreground hover:bg-card/60 hover:text-foreground";
+
+  return (
+    <div className="flex flex-col gap-1">
+      {label && <p className="text-sm font-bold text-foreground px-0.5">{label}</p>}
+      <div className={[
+        "flex items-center rounded-lg border overflow-hidden bg-background",
+        errorMsg ? "border-destructive" : "border-border",
+        disabled ? "opacity-50" : "",
+      ].join(" ")}>
+        <div className="flex items-center gap-1 p-1.5 bg-muted border-r border-border shrink-0">
+          <button type="button" disabled={disabled}
+            className={`${btnBase} ${!isLoss ? active : inactive}`}
+            onClick={() => toggle(false)}>
+            +
+          </button>
+          <button type="button" disabled={disabled}
+            className={`${btnBase} ${isLoss ? active : inactive}`}
+            onClick={() => toggle(true)}>
+            −
+          </button>
+        </div>
+        <input
+          id={id}
+          type="number"
+          min="0"
+          step="any"
+          value={absStr}
+          placeholder="e.g. 12.4"
+          disabled={disabled}
+          onChange={(e) => {
+            const abs = parseFloat(e.target.value);
+            if (isNaN(abs)) onChange(undefined);
+            else onChange(isLoss ? -abs : abs);
+          }}
+          className="flex-1 px-3 py-2.5 text-sm bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+        />
+        <span className="px-3 py-2.5 text-sm text-muted-foreground bg-muted border-l border-border shrink-0">%</span>
+      </div>
+      {errorMsg
+        ? <p className="text-xs text-destructive px-1">{errorMsg}</p>
+        : <HelperText text={helperText} />
+      }
+    </div>
+  );
 }
 
 function AdornedInput({
@@ -101,24 +172,43 @@ export function TextWidget({ id, value, label, required, disabled, onChange, raw
   const { placeholder, unit, helperText, currencyPrefix, pctSuffix } = getSchemaExtra(schema, id);
 
   const fullLabel = required ? `${label} *` : label;
+  const idLower = id.toLowerCase();
+  const schemaDesc = String(schema.description ?? "").toLowerCase();
+  const isPct = unit === "%" || idLower.includes("pct") || idLower.includes("ytd") || idLower.includes("probability");
+  const isSignedPct = isPct && (idLower.includes("ytd") || schemaDesc.includes("loss") || schemaDesc.includes("negative"));
+
+  if (isSignedPct) {
+    return (
+      <SignedPctInput
+        id={id} label={fullLabel} value={value}
+        onChange={onChange} disabled={disabled}
+        errorMsg={errorMsg} helperText={helperText}
+      />
+    );
+  }
 
   if (currencyPrefix) {
-    const raw = String(value ?? "").replace(/^฿\s*/, "");
+    const isNumericField = schema.type === "number" || schema.type === "integer";
+    const raw = typeof value === "number" ? String(value) : String(value ?? "").replace(/^฿\s*/, "");
     return (
       <AdornedInput
         id={id} label={fullLabel} placeholder={uiPlaceholder || placeholder}
-        rawValue={raw} onChange={(v) => onChange(v ? `฿ ${v}` : "")}
+        rawValue={raw}
+        onChange={(v) => {
+          if (!v) { onChange(isNumericField ? undefined : ""); return; }
+          onChange(isNumericField ? Number(v) : `฿ ${v}`);
+        }}
         disabled={disabled} errorMsg={errorMsg} helperText={helperText} prefix="฿"
       />
     );
   }
 
-  if (pctSuffix) {
+  if (pctSuffix || isPct) {
     const raw = String(value ?? "").replace(/%$/, "");
     return (
       <AdornedInput
         id={id} label={fullLabel} placeholder={uiPlaceholder || placeholder}
-        rawValue={raw} onChange={(v) => onChange(v ? `${v}%` : "")}
+        rawValue={raw} onChange={(v) => onChange(pctSuffix ? (v ? `${v}%` : "") : (v === "" ? undefined : Number(v)))}
         disabled={disabled} errorMsg={errorMsg} helperText={helperText} suffix="%"
       />
     );
@@ -139,18 +229,40 @@ export function TextWidget({ id, value, label, required, disabled, onChange, raw
 
 export function NumberWidget({ id, value, label, required, disabled, onChange, rawErrors, schema, placeholder: uiPlaceholder }: WidgetProps) {
   const errorMsg = rawErrors?.[0];
-  const { placeholder, unit, helperText } = getSchemaExtra(schema, id);
+  const { placeholder, unit, helperText, currencyPrefix } = getSchemaExtra(schema, id);
+  const fullLabel = required ? `${label} *` : label;
+  const rawValue = value != null ? String(value) : "";
+
+  if (currencyPrefix) {
+    return (
+      <AdornedInput
+        id={id} label={fullLabel} placeholder={uiPlaceholder || placeholder}
+        rawValue={rawValue} onChange={(v) => onChange(v === "" ? undefined : Number(v))}
+        disabled={disabled} errorMsg={errorMsg} helperText={helperText} prefix={currencyPrefix}
+      />
+    );
+  }
+
+  if (unit === "%" || id.toLowerCase().includes("pct") || id.toLowerCase().includes("ytd") || id.toLowerCase().includes("probability")) {
+    return (
+      <AdornedInput
+        id={id} label={fullLabel} placeholder={uiPlaceholder || placeholder}
+        rawValue={rawValue} onChange={(v) => onChange(v === "" ? undefined : Number(v))}
+        disabled={disabled} errorMsg={errorMsg} helperText={helperText} suffix="%"
+      />
+    );
+  }
+
   return (
     <div>
       <Input
         id={id}
         type="number"
-        label={required ? `${label} *` : label}
+        label={fullLabel}
         placeholder={uiPlaceholder || placeholder}
-        value={value != null ? String(value) : ""}
+        value={rawValue}
         onChange={(v) => onChange(v === "" ? undefined : Number(v))}
         disabled={disabled}
-        unit={unit}
         forceState={errorMsg ? "error" : undefined}
         errorMessage={errorMsg}
       />
@@ -203,6 +315,25 @@ export function ToggleWidget({ id, value, label, required, disabled, onChange, r
   );
 }
 
+export function DateWidget({ value, label, required, disabled, onChange, rawErrors }: WidgetProps) {
+  const errorMsg = rawErrors?.[0];
+  const dateValue = value ? new Date(String(value)) : undefined;
+  const fullLabel = required ? `${label} *` : label;
+
+  return (
+    <div className="flex flex-col gap-1">
+      {fullLabel && <p className="text-sm font-bold text-foreground px-0.5">{fullLabel}</p>}
+      <DateInput
+        placeholder={fullLabel}
+        value={dateValue}
+        onChange={(d) => onChange(d ? d.toISOString().split("T")[0] : undefined)}
+        forceState={disabled ? "disabled" : errorMsg ? "error" : undefined}
+        errorMessage={errorMsg}
+      />
+    </div>
+  );
+}
+
 export function FieldTemplate({ children, hidden }: FieldTemplateProps) {
   if (hidden) return null;
   return <div className="mb-4">{children}</div>;
@@ -225,4 +356,5 @@ export const customWidgets = {
   SelectWidget,
   CheckboxWidget: ToggleWidget,
   UpDownWidget: NumberWidget,
+  DateWidget,
 };

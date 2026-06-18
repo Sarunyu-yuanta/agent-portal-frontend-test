@@ -9,16 +9,48 @@ async function apiGet<T>(path: string): Promise<T[]> {
   return data;
 }
 
+// ── Format helpers ────────────────────────────────────────────────────────────
+
+function formatAUM(millions: number): string {
+  if (millions >= 1000) return `฿ ${(millions / 1000).toFixed(1).replace(/\.0$/, "")}B`;
+  return `฿ ${millions}M`;
+}
+
+function formatPlYtd(pct: number): string {
+  const sign = pct >= 0 ? "+" : "";
+  return `${sign}${pct}%`;
+}
+
+function formatDealSize(millions: number): string {
+  if (millions >= 1000) return `฿ ${(millions / 1000).toFixed(1).replace(/\.0$/, "")}B`;
+  return `฿ ${millions}M`;
+}
+
+function formatLastContact(isoDate: string): string {
+  try {
+    const date = new Date(isoDate);
+    const now = new Date();
+    const days = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (days <= 0) return "Today";
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days} days ago`;
+    if (days < 14) return "1 week ago";
+    if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+    return `${Math.floor(days / 30)} months ago`;
+  } catch {
+    return isoDate;
+  }
+}
+
 // ── Clients ───────────────────────────────────────────────────────────────────
 
 interface Client {
   id: number;
   name: string;
   tier: string;
-  aum: string;
+  aum: number;
   cashIdlePct: number;
-  plYtd: string;
-  plPositive: boolean;
+  plYtd: number;
   aiScore: number;
   status: string;
   lastContact: string;
@@ -31,13 +63,13 @@ export async function fetchClients() {
     id: String(item.id),
     name: item.name,
     tier: item.tier,
-    aum: item.aum,
+    aum: formatAUM(item.aum),
     cashIdlePct: item.cashIdlePct,
-    plYtd: item.plYtd,
-    plPositive: item.plPositive,
+    plYtd: formatPlYtd(item.plYtd),
+    plPositive: item.plYtd >= 0,
     aiScore: item.aiScore,
     status: item.status as "success" | "error" | "hold" | "processing",
-    lastContact: item.lastContact,
+    lastContact: formatLastContact(item.lastContact),
     riskProfile: item.riskProfile,
   }));
 }
@@ -79,7 +111,7 @@ interface PipelineDeal {
   id: number;
   clientId: string;
   product: string;
-  dealSize: string;
+  dealSize: number;
   probability: number;
   stage: string;
   daysInStage: number;
@@ -94,7 +126,7 @@ export async function fetchPipelineDeals(clients: Awaited<ReturnType<typeof fetc
     clientId: item.clientId,
     client: nameById[item.clientId] ?? item.clientId,
     product: item.product,
-    dealSize: item.dealSize,
+    dealSize: formatDealSize(item.dealSize),
     probability: item.probability,
     stage: item.stage,
     daysInStage: item.daysInStage,
@@ -108,7 +140,7 @@ interface MiniKanban {
   id: number;
   clientId: string;
   dealName: string;
-  dealSize: string;
+  dealSize: number;
   stage: string;
 }
 
@@ -119,6 +151,13 @@ export async function fetchMiniKanban(clients: Awaited<ReturnType<typeof fetchCl
     const full = nameById[item.clientId] ?? item.clientId;
     const parts = full.split(" ");
     const short = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : full;
-    return { id: `k${item.id}`, clientId: item.clientId, client: short, dealName: item.dealName, dealSize: item.dealSize, stage: item.stage };
+    return {
+      id: `k${item.id}`,
+      clientId: item.clientId,
+      client: short,
+      dealName: item.dealName,
+      dealSize: formatDealSize(item.dealSize),
+      stage: item.stage,
+    };
   });
 }

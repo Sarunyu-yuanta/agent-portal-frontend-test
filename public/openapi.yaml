@@ -8,6 +8,11 @@ info:
   contact:
     name: Yuanta Dev Team
 
+servers:
+  - url: http://localhost:3000/api/mock
+    description: Local development (mock)
+  - url: /api/mock
+    description: Production (mock)
 
 tags:
   - name: Clients
@@ -398,16 +403,11 @@ components:
 
     Client:
       type: object
-      required: [id, name, tier, aum, cashIdlePct, plYtd, plPositive, aiScore, status, lastContact, riskProfile]
+      required: [id, name, tier, aum, cashIdlePct, plYtd, aiScore, status, lastContact, riskProfile]
       properties:
         id:
           type: integer
-          description: Auto-incremented Strapi ID
           example: 1
-        documentId:
-          type: string
-          description: Strapi 5 stable document identifier
-          example: "himitut0frxfli283ojm1mr9"
         name:
           type: string
           example: Somchai Rattanakul
@@ -416,9 +416,9 @@ components:
           enum: [UHNW, HNW]
           example: UHNW
         aum:
-          type: string
-          description: Assets under management (formatted string with ฿ symbol)
-          example: "฿ 450M"
+          type: number
+          description: Assets under management in millions THB (e.g., 450 = ฿450M)
+          example: 450
         cashIdlePct:
           type: integer
           minimum: 0
@@ -426,13 +426,9 @@ components:
           description: Percentage of portfolio sitting as idle cash
           example: 18
         plYtd:
-          type: string
-          description: Year-to-date P&L as formatted string
-          example: "+12.4%"
-        plPositive:
-          type: boolean
-          description: True if YTD P&L is positive
-          example: true
+          type: number
+          description: Year-to-date P&L as percentage (e.g., 12.4 = +12.4%, -3.1 = -3.1%)
+          example: 12.4
         aiScore:
           type: integer
           minimum: 0
@@ -449,8 +445,9 @@ components:
           example: success
         lastContact:
           type: string
-          description: Human-readable time since last contact
-          example: "2 days ago"
+          format: date
+          description: Date of last contact in ISO 8601 format (YYYY-MM-DD)
+          example: "2026-06-16"
         riskProfile:
           type: string
           enum: [Aggressive, Moderate, Conservative]
@@ -484,9 +481,6 @@ components:
         id:
           type: integer
           example: 1
-        documentId:
-          type: string
-          example: "abc123"
         clientId:
           type: string
           description: References the id field of the Client resource
@@ -549,9 +543,6 @@ components:
         id:
           type: integer
           example: 1
-        documentId:
-          type: string
-          example: "abc123"
         clientId:
           type: string
           description: References the id field of the Client resource
@@ -560,9 +551,9 @@ components:
           type: string
           example: Structured Note
         dealSize:
-          type: string
-          description: Deal size as formatted string
-          example: "฿ 50M"
+          type: number
+          description: Deal size in millions THB (e.g., 50 = ฿50M)
+          example: 50
         probability:
           type: integer
           minimum: 0
@@ -611,9 +602,6 @@ components:
         id:
           type: integer
           example: 1
-        documentId:
-          type: string
-          example: "abc123"
         clientId:
           type: string
           description: References the id field of the Client resource
@@ -622,8 +610,9 @@ components:
           type: string
           example: "Structured Note"
         dealSize:
-          type: string
-          example: "฿50M"
+          type: number
+          description: Deal size in millions THB (e.g., 50 = ฿50M)
+          example: 50
         stage:
           type: string
           enum: [Idea, Pitch, Client Review, Executed]
@@ -652,50 +641,17 @@ components:
 
     ClientInput:
       type: object
-      required: [name, tier, aum, cashIdlePct, plYtd, plPositive, aiScore, status, lastContact, riskProfile]
+      required: [name, tier, aum, cashIdlePct, plYtd, aiScore, status, lastContact, riskProfile]
       properties:
-        name:
-          type: string
-          example: Somchai Rattanakul
-        tier:
-          type: string
-          enum: [UHNW, HNW]
-          description: "UHNW = Ultra High Net Worth (>฿100M), HNW = High Net Worth (>฿10M)"
-        aum:
-          type: string
-          example: "฿ 450M"
-          description: "กรอกในรูปแบบ ฿ ตามด้วยตัวเลข เช่น ฿ 450M, ฿ 1.2B"
-        cashIdlePct:
-          type: integer
-          minimum: 0
-          maximum: 100
-          example: 18
-          description: "เปอร์เซ็นต์เงินสดที่ไม่ได้ลงทุน"
-        plYtd:
-          type: string
-          example: "+12.4%"
-          description: "กำไร/ขาดทุนตั้งแต่ต้นปี เช่น +12.4% หรือ -3.2%"
-        plPositive:
-          type: boolean
-          example: true
-          description: "เปิดถ้า P&L ปีนี้เป็นบวก"
-        aiScore:
-          type: integer
-          minimum: 0
-          maximum: 100
-          example: 94
-          description: "คะแนน AI สำหรับโอกาสทางธุรกิจ"
-        status:
-          type: string
-          enum: [success, error, hold, processing]
-          description: "success = ปกติ, hold = ต้องติดตาม, error = เร่งด่วน, processing = กำลังดำเนินการ"
-        lastContact:
-          type: string
-          example: "2 days ago"
-          description: "ระบุเป็นข้อความ เช่น 2 days ago, 1 week ago"
-        riskProfile:
-          type: string
-          enum: [Aggressive, Moderate, Conservative]
+        name:          { type: string, example: Somchai Rattanakul }
+        tier:          { type: string, enum: [UHNW, HNW] }
+        aum:           { type: number, example: 450, description: "Value in millions THB (e.g., 450 = ฿450M)" }
+        cashIdlePct:   { type: integer, minimum: 0, maximum: 100, example: 18 }
+        plYtd:         { type: number, example: -3.1, description: "YTD P&L percentage — use - for loss (e.g., -3.1), no sign for gain (e.g., 12.4)" }
+        aiScore:       { type: integer, minimum: 0, maximum: 100, example: 94 }
+        status:        { type: string, enum: [success, error, hold, processing] }
+        lastContact:   { type: string, format: date, example: "2026-06-16" }
+        riskProfile:   { type: string, enum: [Aggressive, Moderate, Conservative] }
 
     NBAActionInput:
       type: object
@@ -747,9 +703,9 @@ components:
           example: Structured Note
           description: "ชื่อผลิตภัณฑ์ เช่น Structured Note, Equity Fund, Bond"
         dealSize:
-          type: string
-          example: "฿ 50M"
-          description: "มูลค่า Deal เช่น ฿ 50M, ฿ 1.2B"
+          type: number
+          example: 50
+          description: "Deal size in millions THB (e.g., 50 = ฿50M)"
         probability:
           type: integer
           minimum: 0
@@ -783,9 +739,9 @@ components:
           example: "Structured Note"
           description: "ชื่อ Deal เช่น Structured Note, Bond Portfolio"
         dealSize:
-          type: string
-          example: "฿50M"
-          description: "มูลค่า Deal เช่น ฿50M, ฿1.2B"
+          type: number
+          example: 50
+          description: "Deal size in millions THB (e.g., 50 = ฿50M)"
         stage:
           type: string
           enum: [Idea, Pitch, Client Review, Executed]

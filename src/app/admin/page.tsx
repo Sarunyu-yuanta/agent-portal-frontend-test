@@ -5,7 +5,9 @@ import {
   Button,
   SearchInput,
   Modal,
+  Toaster,
 } from "@sarunyu/system-one";
+import type { ToastProps } from "@sarunyu/system-one";
 import Form from "@rjsf/core";
 import validator from "@rjsf/validator-ajv8";
 import type { RJSFSchema } from "@rjsf/utils";
@@ -82,6 +84,34 @@ function previewColumns(schema: RJSFSchema): string[] {
   return Object.keys(schema.properties ?? {});
 }
 
+function formatCellValue(key: string, value: unknown, schema: RJSFSchema): string {
+  if (value == null || value === "") return "—";
+  const props = (schema.properties ?? {}) as Record<string, { type?: string; description?: string }>;
+  const field = props[key];
+  if (!field) return String(value);
+
+  const desc = (field.description ?? "").toLowerCase();
+  const keyLower = key.toLowerCase();
+  const isNumeric = field.type === "number" || field.type === "integer";
+
+  if (isNumeric && typeof value === "number") {
+    const isPct = keyLower.includes("pct") || keyLower.includes("ytd") || keyLower.includes("probability") ||
+      desc.includes("percentage") || desc.includes("percent");
+    const isCurrency = desc.includes("฿") || desc.includes("thb") || desc.includes("millions");
+
+    if (isPct) {
+      const sign = value >= 0 ? "+" : "";
+      return `${sign}${value}%`;
+    }
+    if (isCurrency) {
+      if (value >= 1000) return `฿ ${(value / 1000).toFixed(1).replace(/\.0$/, "")}B`;
+      return `฿ ${value}M`;
+    }
+  }
+
+  return String(value);
+}
+
 function formatColName(key: string): string {
   return key
     .replace(/([A-Z])/g, " $1")
@@ -156,7 +186,15 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
 
   const [modal, setModal] = useState<{ mode: "add" | "edit"; data?: ApiItem } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<number | string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [toasts, setToasts] = useState<Array<ToastProps & { id: string }>>([]);
+
+  const toast = (message: string, status: ToastProps["status"] = "success") => {
+    const id = String(Date.now());
+    setToasts((prev) => [...prev, { id, message, status }]);
+  };
   const formRef = useRef<Form>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [hasRightOverflow, setHasRightOverflow] = useState(false);
@@ -246,17 +284,17 @@ export default function AdminPage() {
     loadItems();
   }, [loadItems]);
 
-  const handleDelete = async (id: number | string) => {
-    if (!active || !API_BASE) return;
-    if (!confirm(`Delete item #${id}?`)) return;
-    const res = await fetch(`${API_BASE}${active.path}/${id}`, { method: "DELETE" }).catch(
-      () => null
-    );
-    if (!res || !res.ok) {
-      alert("Delete failed");
-      return;
-    }
-    setItems((prev) => prev.filter((i) => String(i.id) !== String(id)));
+  const handleDelete = (id: number | string) => setDeleteTarget(id);
+
+  const confirmDelete = async () => {
+    if (!active || !API_BASE || deleteTarget == null) return;
+    setDeleting(true);
+    const res = await fetch(`${API_BASE}${active.path}/${deleteTarget}`, { method: "DELETE" }).catch(() => null);
+    setDeleting(false);
+    setDeleteTarget(null);
+    if (!res || !res.ok) { toast("Delete failed", "critical"); return; }
+    setItems((prev) => prev.filter((i) => String(i.id) !== String(deleteTarget)));
+    toast("Deleted successfully", "success");
   };
 
   const handleSubmit = async (e: { formData?: Record<string, unknown> }) => {
@@ -282,11 +320,13 @@ export default function AdminPage() {
             String(item.id) === String(modal!.data!.id) ? json.data : item
           )
         );
+        toast("Updated successfully", "success");
       } else {
         setItems((prev) => [...prev, json.data]);
+        toast("Created successfully", "success");
       }
     } catch (err) {
-      alert(`Save failed: ${err}`);
+      toast(`Save failed: ${err}`, "critical");
     } finally {
       setSaving(false);
     }
@@ -320,7 +360,15 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open("/", "_blank")}
+            rightIcon={<ExternalLink className="w-3.5 h-3.5" />}
+          >
+            Dashboard
+          </Button>
           <Button
             variant="plain-black"
             size="sm"
@@ -467,7 +515,7 @@ export default function AdminPage() {
                                 </td>
                                 {cols.map((col) => (
                                   <td key={col} className="px-4 py-3 text-sm text-foreground max-w-[200px] border-b border-border">
-                                    <span className="truncate block">{String(item[col] ?? "—")}</span>
+                                    <span className="truncate block">{formatCellValue(col, item[col], active.schema)}</span>
                                   </td>
                                 ))}
                                 <td className={`px-4 py-3 border-b border-border transition-colors ${hasRightOverflow ? "sticky right-0 bg-white group-hover:bg-gray-50 border-l shadow-[-8px_0_12px_-4px_rgba(0,0,0,0.06)]" : ""}`}>
@@ -570,6 +618,28 @@ export default function AdminPage() {
           </Modal>
         </div>
       )}
+
+      {deleteTarget != null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <Modal
+            variant="alert"
+            alertStatus="danger"
+            title="Delete item?"
+            description={`Item #${deleteTarget} will be permanently removed.`}
+            actionLayout="double"
+            primaryLabel={deleting ? "Deleting…" : "Delete"}
+            secondaryLabel="Cancel"
+            onPrimaryClick={confirmDelete}
+            onSecondaryClick={() => setDeleteTarget(null)}
+            onClose={() => setDeleteTarget(null)}
+          />
+        </div>
+      )}
+
+      <Toaster
+        items={toasts}
+        onRemove={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))}
+      />
     </div>
   );
 }

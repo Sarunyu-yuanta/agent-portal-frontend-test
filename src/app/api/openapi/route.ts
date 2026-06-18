@@ -11,7 +11,8 @@ export async function GET() {
     const content = readFileSync(filePath, "utf8");
     const spec = yaml.load(content);
     return NextResponse.json(spec);
-  } catch {
+  } catch (err) {
+    console.error("[/api/openapi]", err);
     return NextResponse.json(
       { error: "Failed to read openapi.yaml" },
       { status: 500 }
