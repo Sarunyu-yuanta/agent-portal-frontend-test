@@ -156,4 +156,7 @@
   html {
     @apply font-sans;
     }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+    }
 }

@@ -15,7 +15,9 @@ import {
   Checkbox,
   List,
   ListItem,
+  TabGroup,
 } from "@sarunyu/system-one";
+import { ProductCatalogTab } from "./ProductCatalogTab";
 import {
   PhoneIcon,
   ChatCircleIcon,
@@ -63,6 +65,9 @@ export default function ClientPage({
 
   const client = clients.find((c) => c.id === id) ?? clients[0] ?? mockClients[0];
   const detail = clientDetailById[client.id] ?? mockClientDetails["1"];
+
+  // Page tab state
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Task state (interactive checkboxes)
   const [tasks, setTasks] = useState(detail.tasks);
@@ -187,7 +192,25 @@ export default function ClientPage({
         </div>
       </div>
 
+      {/* ── Tab navigation ── */}
+      <div className="pt-6 border-b border-border -mx-[9999px] px-[9999px]">
+        <TabGroup
+          items={[
+            { id: "overview", title: "Overview" },
+            { id: "product-catalog", title: "Product Catalog" },
+          ]}
+          activeId={activeTab}
+          onChange={setActiveTab}
+          size="md"
+        />
+      </div>
+
       {/* ── Body content ── */}
+      {activeTab === "product-catalog" ? (
+        <div className="pt-8">
+          <ProductCatalogTab />
+        </div>
+      ) : (
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start pt-8">
 
         {/* ── Left column (main) ── */}
@@ -472,7 +495,8 @@ export default function ClientPage({
 
         </div>{/* end right column */}
 
-      </div>{/* end 2-col */}
+      </div>
+      )}{/* end tab content */}
     </div>
   );
 }

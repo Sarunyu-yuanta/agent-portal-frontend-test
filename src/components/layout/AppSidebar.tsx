@@ -12,20 +12,27 @@ import {
   ShieldCheckIcon,
   GlobeIcon,
   CaretUpDownIcon,
+  SquaresFourIcon,
 } from "@phosphor-icons/react";
 
 const workspaceItems = [
-  { href: "/command-center", label: "Command Center", icon: HouseIcon, badge: null },
+  // { href: "/command-center", label: "Command Center", icon: HouseIcon, badge: null },
   { href: "/client-hub", label: "Client 360", icon: UsersIcon, badge: null },
-  { href: "/pipeline", label: "Pipeline", icon: FunnelIcon, badge: 12 },
-  { href: "/ai-insights", label: "AI Insights", icon: SparkleIcon, badge: null },
+  // { href: "/pipeline", label: "Pipeline", icon: FunnelIcon, badge: 12 },
+  // { href: "/ai-insights", label: "AI Insights", icon: SparkleIcon, badge: null },
+  {
+    href: "/product-catalog",
+    label: "Product Catalog",
+    icon: SquaresFourIcon,
+    badge: null,
+  },
 ];
 
-const managementItems = [
-  { href: "/performance", label: "Performance", icon: ChartBarIcon, badge: "B+" },
-  { href: "/compliance", label: "Compliance", icon: ShieldCheckIcon, badge: null },
-  { href: "/house-view", label: "House View", icon: GlobeIcon, badge: null },
-];
+// const managementItems = [
+//   { href: "/performance", label: "Performance", icon: ChartBarIcon, badge: "B+" },
+//   { href: "/compliance", label: "Compliance", icon: ShieldCheckIcon, badge: null },
+//   { href: "/house-view", label: "House View", icon: GlobeIcon, badge: null },
+// ];
 
 type NavItem = {
   href: string;
@@ -34,7 +41,15 @@ type NavItem = {
   badge: number | string | null;
 };
 
-function NavSection({ label, items, onNavigate }: { label: string; items: NavItem[]; onNavigate?: () => void }) {
+function NavSection({
+  label,
+  items,
+  onNavigate,
+}: {
+  label: string;
+  items: NavItem[];
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
 
   return (
@@ -46,7 +61,12 @@ function NavSection({ label, items, onNavigate }: { label: string; items: NavIte
         const Icon = item.icon;
         const isActive = pathname.startsWith(item.href);
         return (
-          <Link key={item.href} href={item.href} className="no-underline block" onClick={onNavigate}>
+          <Link
+            key={item.href}
+            href={item.href}
+            className="no-underline block"
+            onClick={onNavigate}
+          >
             <div
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
                 isActive ? "bg-slate-700/60" : "hover:bg-slate-800"
@@ -92,8 +112,12 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-2">
-        <NavSection label="Workspace" items={workspaceItems} onNavigate={onClose} />
-        <NavSection label="Management" items={managementItems} onNavigate={onClose} />
+        <NavSection
+          label="Workspace"
+          items={workspaceItems}
+          onNavigate={onClose}
+        />
+        {/* <NavSection label="Management" items={managementItems} onNavigate={onClose} /> */}
       </nav>
 
       {/* User profile */}
@@ -104,7 +128,9 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
             <p className="text-[13px] font-medium text-white truncate leading-tight">
               Relation Manager
             </p>
-            <p className="text-[11px] text-slate-400 truncate leading-tight">Senior RM</p>
+            <p className="text-[11px] text-slate-400 truncate leading-tight">
+              Senior RM
+            </p>
           </div>
           <CaretUpDownIcon size={15} className="text-slate-500 shrink-0" />
         </div>
