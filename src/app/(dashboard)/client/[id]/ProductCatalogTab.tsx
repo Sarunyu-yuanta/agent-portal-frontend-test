@@ -49,6 +49,26 @@ const A = {
   logoAXP:    "https://www.figma.com/api/mcp/asset/af0aeaf6-937f-4416-81ad-d11c3d31f1f9",
 };
 
+// ─── Industrials cloud sub-images (16 individual SVGs) ────────────────────────
+const IND_CLOUDS = [
+  { src: "/ind-cloud-0.svg",  l: 151.37, t: 8.09,  w: 8.922,  h: 6.592  },
+  { src: "/ind-cloud-1.svg",  l: 133.79, t: 6.4,   w: 8.908,  h: 7.031  },
+  { src: "/ind-cloud-2.svg",  l: 135.75, t: 4.32,  w: 15.023, h: 6.273  },
+  { src: "/ind-cloud-3.svg",  l: 118.8,  t: -1.36, w: 16.574, h: 9.961  },
+  { src: "/ind-cloud-4.svg",  l: 117.86, t: 5.52,  w: 7.324,  h: 7.471  },
+  { src: "/ind-cloud-5.svg",  l: 145.58, t: 2.1,   w: 8.981,  h: 6.981  },
+  { src: "/ind-cloud-6.svg",  l: 152.38, t: 15.12, w: 10.491, h: 3.144  },
+  { src: "/ind-cloud-7.svg",  l: 135.08, t: 15.71, w: 11.948, h: 4.152  },
+  { src: "/ind-cloud-8.svg",  l: 156.76, t: -6.57, w: 19.402, h: 9.591  },
+  { src: "/ind-cloud-9.svg",  l: 107.22, t: 10.21, w: 20.92,  h: 11.378 },
+  { src: "/ind-cloud-10.svg", l: 124.83, t: 4.46,  w: 10.394, h: 3.428  },
+  { src: "/ind-cloud-11.svg", l: 146.08, t: 8.87,  w: 8.628,  h: 4.19   },
+  { src: "/ind-cloud-12.svg", l: 124.48, t: 1.95,  w: 8.629,  h: 4.192  },
+  { src: "/ind-cloud-13.svg", l: 169.56, t: -2.93, w: 4.05,   h: 1.979  },
+  { src: "/ind-cloud-14.svg", l: 121.11, t: 12.74, w: 4.481,  h: 2.473  },
+  { src: "/ind-cloud-15.svg", l: 151.23, t: -0.3,  w: 16.212, h: 9.972  },
+];
+
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const TOP_IDEAS = [
@@ -135,12 +155,12 @@ function TopIdeaCard({ sector, icon, sectorImg }: typeof TOP_IDEAS[0]) {
           <img alt="" className="absolute inset-0 w-full h-full" src={sectorImg} />
         </div>
       )}
-      {sector === "Industrials" && sectorImg && (
-        <div className="absolute pointer-events-none"
-          style={{ left: 107.22, top: -6.57, width: 68.947, height: 28.161, mixBlendMode: "screen" }}>
-          <img alt="" className="absolute inset-0 w-full h-full" src={sectorImg} />
+      {sector === "Industrials" && IND_CLOUDS.map((c, i) => (
+        <div key={i} className="absolute pointer-events-none"
+          style={{ left: c.l, top: c.t, width: c.w, height: c.h }}>
+          <img alt="" className="absolute inset-0 max-w-none w-full h-full" src={c.src} />
         </div>
-      )}
+      ))}
       {sector === "Consumer Discretionary" && sectorImg && (
         <div className="absolute pointer-events-none"
           style={{ left: 106, top: -3.97, width: 68.696, height: 41.109 }}>
@@ -156,8 +176,8 @@ function TopIdeaCard({ sector, icon, sectorImg }: typeof TOP_IDEAS[0]) {
           style={{ left: 130, top: -3.64, width: 41.03, height: 27.563, mixBlendMode: "luminosity" }}>
           <div style={{ transform: "rotate(-15deg)", flexShrink: 0 }}>
             <div style={{ width: 37.525, height: 18.481, position: "relative" }}>
-              <img alt="" className="absolute inset-0 w-full h-full"
-                style={{ objectFit: "contain", objectPosition: "bottom", opacity: 0.8 }}
+              <img alt="" className="absolute inset-0 max-w-none w-full h-full pointer-events-none"
+                style={{ objectPosition: "bottom", opacity: 0.8 }}
                 src={sectorImg} />
             </div>
           </div>

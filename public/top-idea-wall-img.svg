@@ -1,39 +1,39 @@
 <svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 63.1029 23.2105" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="Wall">
-<path id="XMLID_9484_" d="M19.9938 6.18359H2.76566e-05V10.8472H19.9938V6.18359Z" fill="url(#paint0_linear_0_4)"/>
-<path id="XMLID_9483_" d="M41.548 6.18359H21.5543V10.8472H41.548V6.18359Z" fill="url(#paint1_linear_0_4)"/>
-<path id="XMLID_9482_" d="M63.1028 6.18359H43.1091V10.8472H63.1028V6.18359Z" fill="url(#paint2_linear_0_4)"/>
-<path id="XMLID_9472_" d="M41.5479 18.5467H21.5542V23.2103H41.5479V18.5467Z" fill="url(#paint3_linear_0_4)"/>
-<path id="XMLID_9166_" d="M30.7714 12.3633H10.7777V17.0269H30.7714V12.3633Z" fill="url(#paint4_linear_0_4)"/>
-<path id="XMLID_9165_" d="M30.7714 0H10.7777V4.66359H30.7714V0Z" fill="url(#paint5_linear_0_4)"/>
-<path id="XMLID_9053_" d="M52.3257 12.3633H32.332V17.0269H52.3257V12.3633Z" fill="url(#paint6_linear_0_4)"/>
+<path id="XMLID_9484_" d="M19.9938 6.18359H2.76566e-05V10.8472H19.9938V6.18359Z" fill="url(#paint0_linear_0_27)"/>
+<path id="XMLID_9483_" d="M41.548 6.18359H21.5543V10.8472H41.548V6.18359Z" fill="url(#paint1_linear_0_27)"/>
+<path id="XMLID_9482_" d="M63.1028 6.18359H43.1091V10.8472H63.1028V6.18359Z" fill="url(#paint2_linear_0_27)"/>
+<path id="XMLID_9472_" d="M41.5479 18.5467H21.5542V23.2103H41.5479V18.5467Z" fill="url(#paint3_linear_0_27)"/>
+<path id="XMLID_9166_" d="M30.7714 12.3633H10.7777V17.0269H30.7714V12.3633Z" fill="url(#paint4_linear_0_27)"/>
+<path id="XMLID_9165_" d="M30.7714 0H10.7777V4.66359H30.7714V0Z" fill="url(#paint5_linear_0_27)"/>
+<path id="XMLID_9053_" d="M52.3257 12.3633H32.332V17.0269H52.3257V12.3633Z" fill="url(#paint6_linear_0_27)"/>
 </g>
 <defs>
-<linearGradient id="paint0_linear_0_4" x1="19.9938" y1="8.51539" x2="2.76566e-05" y2="8.51539" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint0_linear_0_27" x1="19.9938" y1="8.51539" x2="2.76566e-05" y2="8.51539" gradientUnits="userSpaceOnUse">
 <stop stop-color="white" stop-opacity="0"/>
 <stop offset="1" stop-color="white"/>
 </linearGradient>
-<linearGradient id="paint1_linear_0_4" x1="21.5543" y1="8.51539" x2="41.548" y2="8.51539" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint1_linear_0_27" x1="21.5543" y1="8.51539" x2="41.548" y2="8.51539" gradientUnits="userSpaceOnUse">
 <stop stop-color="white" stop-opacity="0"/>
 <stop offset="1" stop-color="white"/>
 </linearGradient>
-<linearGradient id="paint2_linear_0_4" x1="63.1028" y1="8.51539" x2="43.1091" y2="8.51539" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint2_linear_0_27" x1="63.1028" y1="8.51539" x2="43.1091" y2="8.51539" gradientUnits="userSpaceOnUse">
 <stop stop-color="white" stop-opacity="0"/>
 <stop offset="1" stop-color="white"/>
 </linearGradient>
-<linearGradient id="paint3_linear_0_4" x1="41.5479" y1="20.8785" x2="21.5542" y2="20.8785" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint3_linear_0_27" x1="41.5479" y1="20.8785" x2="21.5542" y2="20.8785" gradientUnits="userSpaceOnUse">
 <stop stop-color="white" stop-opacity="0"/>
 <stop offset="1" stop-color="white"/>
 </linearGradient>
-<linearGradient id="paint4_linear_0_4" x1="10.7777" y1="14.6951" x2="30.7714" y2="14.6951" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint4_linear_0_27" x1="10.7777" y1="14.6951" x2="30.7714" y2="14.6951" gradientUnits="userSpaceOnUse">
 <stop stop-color="white" stop-opacity="0"/>
 <stop offset="1" stop-color="white"/>
 </linearGradient>
-<linearGradient id="paint5_linear_0_4" x1="10.7777" y1="2.3318" x2="30.7714" y2="2.3318" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint5_linear_0_27" x1="10.7777" y1="2.3318" x2="30.7714" y2="2.3318" gradientUnits="userSpaceOnUse">
 <stop stop-color="white" stop-opacity="0"/>
 <stop offset="1" stop-color="white"/>
 </linearGradient>
-<linearGradient id="paint6_linear_0_4" x1="52.3257" y1="14.6951" x2="32.332" y2="14.6951" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint6_linear_0_27" x1="52.3257" y1="14.6951" x2="32.332" y2="14.6951" gradientUnits="userSpaceOnUse">
 <stop stop-color="white" stop-opacity="0"/>
 <stop offset="1" stop-color="white"/>
 </linearGradient>
