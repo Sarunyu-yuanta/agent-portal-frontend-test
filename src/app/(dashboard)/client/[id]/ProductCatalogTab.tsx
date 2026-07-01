@@ -137,7 +137,7 @@ function TopIdeaCard({ sector, icon, sectorImg }: typeof TOP_IDEAS[0]) {
       )}
       {sector === "Industrials" && sectorImg && (
         <div className="absolute pointer-events-none"
-          style={{ left: 107.22, top: -6.57, width: 68.947, height: 28.161 }}>
+          style={{ left: 107.22, top: -6.57, width: 68.947, height: 28.161, mixBlendMode: "screen" }}>
           <img alt="" className="absolute inset-0 w-full h-full" src={sectorImg} />
         </div>
       )}
