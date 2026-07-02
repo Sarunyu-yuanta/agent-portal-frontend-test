@@ -1,85 +1,88 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { TabGroup } from "@sarunyu/system-one";
+import { Button, SearchInput, TabGroup } from "@sarunyu/system-one";
 import {
   ShapesIcon, CertificateIcon, GlobeHemisphereWestIcon,
   LightningIcon, WallIcon, FactoryIcon, BasketIcon, ShirtFoldedIcon,
+  InfoIcon, XIcon, ClockCounterClockwiseIcon, HourglassHighIcon,
+  ArrowRightIcon, FunnelSimpleIcon, SparkleIcon, PhoneIcon,
+  FireIcon, ShieldCheckIcon,
 } from "@phosphor-icons/react";
 
 // ─── Figma Asset URLs (refreshed) ────────────────────────────────────────────
 const A = {
   // UI icons
   magnifyingGlass: "https://www.figma.com/api/mcp/asset/2f89682b-fdc1-4045-9041-572aaabfc626",
-  infoFill:        "https://www.figma.com/api/mcp/asset/a298a2c1-417e-404e-947c-2d573d56a438",
-  closeX:          "https://www.figma.com/api/mcp/asset/d41bed6e-2d74-4bd9-8454-5d6117e31004",
-  hourglassHigh:   "https://www.figma.com/api/mcp/asset/57ccec5b-3a0a-4dab-a4d9-90d077aa7e1f",
-  arrowRight:      "https://www.figma.com/api/mcp/asset/ba1e0039-95d0-4ce2-ba86-26e3a1c5d612",
-  arrowRightSm:    "https://www.figma.com/api/mcp/asset/bd7d1b7f-8d11-4c2e-b017-c2295410cd1e",
-  orderListIcon:   "https://www.figma.com/api/mcp/asset/67d60e44-f9e4-4782-9dc7-2d97ae6f4992",
-  filterIcon:      "https://www.figma.com/api/mcp/asset/75721d74-1d76-4a21-b3d4-b44777a09bea",
-  sparkle:         "https://www.figma.com/api/mcp/asset/3ab94ca8-803f-4683-a15e-ff0de3868bec",
-  phoneIcon:       "https://www.figma.com/api/mcp/asset/242c59cf-4099-444d-866e-03b11b663717",
-  fire:            "https://www.figma.com/api/mcp/asset/7781fa1c-d4b1-4f18-9bb1-c7944ceef4e7",
-  fireSmall:       "https://www.figma.com/api/mcp/asset/c5622f0d-2de9-4890-b0ce-442d75f90b13",
-  shieldCheck:     "https://www.figma.com/api/mcp/asset/c2c3aab0-bfd1-4eea-ad52-036428770223",
-  lineDivider:     "https://www.figma.com/api/mcp/asset/2986753b-4895-4381-8a8d-f3a50d3bf169",
+  infoFill: "https://www.figma.com/api/mcp/asset/a298a2c1-417e-404e-947c-2d573d56a438",
+  closeX: "https://www.figma.com/api/mcp/asset/d41bed6e-2d74-4bd9-8454-5d6117e31004",
+  hourglassHigh: "https://www.figma.com/api/mcp/asset/57ccec5b-3a0a-4dab-a4d9-90d077aa7e1f",
+  arrowRight: "https://www.figma.com/api/mcp/asset/ba1e0039-95d0-4ce2-ba86-26e3a1c5d612",
+  arrowRightSm: "https://www.figma.com/api/mcp/asset/bd7d1b7f-8d11-4c2e-b017-c2295410cd1e",
+  orderListIcon: "https://www.figma.com/api/mcp/asset/67d60e44-f9e4-4782-9dc7-2d97ae6f4992",
+  filterIcon: "https://www.figma.com/api/mcp/asset/75721d74-1d76-4a21-b3d4-b44777a09bea",
+  sparkle: "https://www.figma.com/api/mcp/asset/3ab94ca8-803f-4683-a15e-ff0de3868bec",
+  phoneIcon: "https://www.figma.com/api/mcp/asset/242c59cf-4099-444d-866e-03b11b663717",
+  fire: "https://www.figma.com/api/mcp/asset/7781fa1c-d4b1-4f18-9bb1-c7944ceef4e7",
+  fireSmall: "https://www.figma.com/api/mcp/asset/c5622f0d-2de9-4890-b0ce-442d75f90b13",
+  shieldCheck: "https://www.figma.com/api/mcp/asset/c2c3aab0-bfd1-4eea-ad52-036428770223",
+  lineDivider: "https://www.figma.com/api/mcp/asset/2986753b-4895-4381-8a8d-f3a50d3bf169",
   // Top idea sector assets (local files — stable, never expire)
-  vector:          "/top-idea-wave.svg",
-  wall1:           "/top-idea-wall-img.svg",
-  energy1:         "/top-idea-energy.png",
-  industrials1:    "/top-idea-industrials.png",
-  effect:          "/top-idea-effect.png",
-  graphic:         "/top-idea-graphic.png",
+  vector: "/top-idea-wave.svg",
+  wall1: "/top-idea-wall-img.svg",
+  energy1: "/top-idea-energy.png",
+  industrials1: "/top-idea-industrials.png",
+  effect: "/top-idea-effect.png",
+  graphic: "/top-idea-graphic.png",
   // Investment Solution (local files — stable, never expire)
-  imgSecureIncome:    "/invest-secure-income.png",
-  imgBalancedGrowth:  "/invest-balanced-growth.png",
-  imgHighConvBg:      "/invest-high-conviction.png",
-  recommendBg:        "/investment-solution-bg.jpg",
+  imgSecureIncome: "/invest-secure-income.png",
+  imgBalancedGrowth: "/invest-balanced-growth.png",
+  imgHighConvBg: "/invest-high-conviction.png",
+  recommendBg: "/investment-solution-bg.jpg",
   // Stock logos
-  logoKO:     "https://www.figma.com/api/mcp/asset/35aeb96b-04ba-45b4-ab74-c4efce9975bc",
-  logoWMT:    "https://www.figma.com/api/mcp/asset/f2d38797-fa49-4638-80aa-b2fd40baa5b3",
-  logoAAPL:   "https://www.figma.com/api/mcp/asset/3e3f247c-9e5f-4d73-889b-8e2ac39c6775",
-  logoAMZN:   "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-  logoNFLX:   "https://www.figma.com/api/mcp/asset/96c3fbf3-e9b9-456c-b58e-5e8de310848b",
-  logoSAWAD:  "https://www.figma.com/api/mcp/asset/bfc79ad4-d98a-43be-8f21-7c985bdf5f50",
-  logoPTT:    "https://www.figma.com/api/mcp/asset/66f9ced5-92fa-4ac4-92b8-0987267234ed",
+  logoKO: "https://www.figma.com/api/mcp/asset/35aeb96b-04ba-45b4-ab74-c4efce9975bc",
+  logoWMT: "https://www.figma.com/api/mcp/asset/f2d38797-fa49-4638-80aa-b2fd40baa5b3",
+  logoAAPL: "https://www.figma.com/api/mcp/asset/3e3f247c-9e5f-4d73-889b-8e2ac39c6775",
+  logoAMZN: "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
+  logoNFLX: "https://www.figma.com/api/mcp/asset/96c3fbf3-e9b9-456c-b58e-5e8de310848b",
+  logoSAWAD: "https://www.figma.com/api/mcp/asset/bfc79ad4-d98a-43be-8f21-7c985bdf5f50",
+  logoPTT: "https://www.figma.com/api/mcp/asset/66f9ced5-92fa-4ac4-92b8-0987267234ed",
   logoNasdaq: "https://www.figma.com/api/mcp/asset/a708082e-9b94-471a-8131-97c46b0e5141",
-  logoNVDA:   "https://www.figma.com/api/mcp/asset/4c98c144-ca5e-4810-b5de-d052b7d23f15",
-  logoAXP:    "https://www.figma.com/api/mcp/asset/af0aeaf6-937f-4416-81ad-d11c3d31f1f9",
+  logoNVDA: "https://www.figma.com/api/mcp/asset/4c98c144-ca5e-4810-b5de-d052b7d23f15",
+  logoAXP: "https://www.figma.com/api/mcp/asset/af0aeaf6-937f-4416-81ad-d11c3d31f1f9",
 };
 
 // ─── Industrials cloud sub-images (16 individual SVGs) ────────────────────────
 const IND_CLOUDS = [
-  { src: "/ind-cloud-0.svg",  l: 151.37, t: 8.09,  w: 8.922,  h: 6.592  },
-  { src: "/ind-cloud-1.svg",  l: 133.79, t: 6.4,   w: 8.908,  h: 7.031  },
-  { src: "/ind-cloud-2.svg",  l: 135.75, t: 4.32,  w: 15.023, h: 6.273  },
-  { src: "/ind-cloud-3.svg",  l: 118.8,  t: -1.36, w: 16.574, h: 9.961  },
-  { src: "/ind-cloud-4.svg",  l: 117.86, t: 5.52,  w: 7.324,  h: 7.471  },
-  { src: "/ind-cloud-5.svg",  l: 145.58, t: 2.1,   w: 8.981,  h: 6.981  },
-  { src: "/ind-cloud-6.svg",  l: 152.38, t: 15.12, w: 10.491, h: 3.144  },
-  { src: "/ind-cloud-7.svg",  l: 135.08, t: 15.71, w: 11.948, h: 4.152  },
-  { src: "/ind-cloud-8.svg",  l: 156.76, t: -6.57, w: 19.402, h: 9.591  },
-  { src: "/ind-cloud-9.svg",  l: 107.22, t: 10.21, w: 20.92,  h: 11.378 },
-  { src: "/ind-cloud-10.svg", l: 124.83, t: 4.46,  w: 10.394, h: 3.428  },
-  { src: "/ind-cloud-11.svg", l: 146.08, t: 8.87,  w: 8.628,  h: 4.19   },
-  { src: "/ind-cloud-12.svg", l: 124.48, t: 1.95,  w: 8.629,  h: 4.192  },
-  { src: "/ind-cloud-13.svg", l: 169.56, t: -2.93, w: 4.05,   h: 1.979  },
-  { src: "/ind-cloud-14.svg", l: 121.11, t: 12.74, w: 4.481,  h: 2.473  },
-  { src: "/ind-cloud-15.svg", l: 151.23, t: -0.3,  w: 16.212, h: 9.972  },
+  { src: "/ind-cloud-0.svg", l: 151.37, t: 8.09, w: 8.922, h: 6.592 },
+  { src: "/ind-cloud-1.svg", l: 133.79, t: 6.4, w: 8.908, h: 7.031 },
+  { src: "/ind-cloud-2.svg", l: 135.75, t: 4.32, w: 15.023, h: 6.273 },
+  { src: "/ind-cloud-3.svg", l: 118.8, t: -1.36, w: 16.574, h: 9.961 },
+  { src: "/ind-cloud-4.svg", l: 117.86, t: 5.52, w: 7.324, h: 7.471 },
+  { src: "/ind-cloud-5.svg", l: 145.58, t: 2.1, w: 8.981, h: 6.981 },
+  { src: "/ind-cloud-6.svg", l: 152.38, t: 15.12, w: 10.491, h: 3.144 },
+  { src: "/ind-cloud-7.svg", l: 135.08, t: 15.71, w: 11.948, h: 4.152 },
+  { src: "/ind-cloud-8.svg", l: 156.76, t: -6.57, w: 19.402, h: 9.591 },
+  { src: "/ind-cloud-9.svg", l: 107.22, t: 10.21, w: 20.92, h: 11.378 },
+  { src: "/ind-cloud-10.svg", l: 124.83, t: 4.46, w: 10.394, h: 3.428 },
+  { src: "/ind-cloud-11.svg", l: 146.08, t: 8.87, w: 8.628, h: 4.19 },
+  { src: "/ind-cloud-12.svg", l: 124.48, t: 1.95, w: 8.629, h: 4.192 },
+  { src: "/ind-cloud-13.svg", l: 169.56, t: -2.93, w: 4.05, h: 1.979 },
+  { src: "/ind-cloud-14.svg", l: 121.11, t: 12.74, w: 4.481, h: 2.473 },
+  { src: "/ind-cloud-15.svg", l: 151.23, t: -0.3, w: 16.212, h: 9.972 },
 ];
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const TOP_IDEAS = [
-  { sector: "Energy",                 icon: <LightningIcon size={12} color="#525252" />,   sectorImg: A.energy1  },
-  { sector: "Material",               icon: <WallIcon      size={12} color="#525252" />,   sectorImg: A.wall1    },
-  { sector: "Industrials",            icon: <FactoryIcon   size={12} color="#525252" />,   sectorImg: A.industrials1 },
-  { sector: "Consumer Discretionary", icon: <BasketIcon    size={12} color="#525252" />,   sectorImg: A.effect   },
-  { sector: "Consumer Staples",       icon: <ShirtFoldedIcon size={12} color="#525252" />, sectorImg: A.graphic  },
-  { sector: "Material",               icon: <WallIcon      size={12} color="#525252" />,   sectorImg: A.wall1    },
-  { sector: "Energy",                 icon: <LightningIcon size={12} color="#525252" />,   sectorImg: A.energy1  },
-  { sector: "Consumer Discretionary", icon: <BasketIcon    size={12} color="#525252" />,   sectorImg: A.effect   },
+  { sector: "Energy", icon: <LightningIcon size={12} color="#525252" />, sectorImg: A.energy1 },
+  { sector: "Material", icon: <WallIcon size={12} color="#525252" />, sectorImg: A.wall1 },
+  { sector: "Industrials", icon: <FactoryIcon size={12} color="#525252" />, sectorImg: A.industrials1 },
+  { sector: "Consumer Discretionary", icon: <BasketIcon size={12} color="#525252" />, sectorImg: A.effect },
+  { sector: "Consumer Staples", icon: <ShirtFoldedIcon size={12} color="#525252" />, sectorImg: A.graphic },
+  { sector: "Material", icon: <WallIcon size={12} color="#525252" />, sectorImg: A.wall1 },
+  { sector: "Energy", icon: <LightningIcon size={12} color="#525252" />, sectorImg: A.energy1 },
+  { sector: "Consumer Discretionary", icon: <BasketIcon size={12} color="#525252" />, sectorImg: A.effect },
 ];
 
 const TOP_IDEA_THEMES: Record<string, string> = {
@@ -97,23 +100,23 @@ type StockProduct = {
 };
 
 const TOP_PICKS: StockProduct[] = [
-  { underlying: "KO - WMT",          coupon: "28.33%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["ใกล้เต็ม", "รับประกันเงินต้น"], logos: [A.logoKO, A.logoWMT] },
+  { underlying: "KO - WMT", coupon: "28.33%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["ใกล้เต็ม", "รับประกันเงินต้น"], logos: [A.logoKO, A.logoWMT] },
   { underlying: "AAPL - AMZN - NFLX", coupon: "30.00%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["ใกล้เต็ม"], logos: [A.logoAAPL, A.logoAMZN, A.logoNFLX] },
-  { underlying: "SAWAD - PTT",        coupon: "29.87%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["ใกล้เต็ม"], logos: [A.logoSAWAD, A.logoPTT] },
+  { underlying: "SAWAD - PTT", coupon: "29.87%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["ใกล้เต็ม"], logos: [A.logoSAWAD, A.logoPTT] },
 ];
 
 const STRUCTURED_PRODUCTS: StockProduct[] = [
-  { underlying: "KO - WMT",           coupon: "14.22%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["รับประกันเงินต้น"], logos: [A.logoKO, A.logoWMT] },
+  { underlying: "KO - WMT", coupon: "14.22%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["รับประกันเงินต้น"], logos: [A.logoKO, A.logoWMT] },
   { underlying: "AAPL - AMZN - NFLX", coupon: "12.56%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["ใกล้เต็ม"], logos: [A.logoAAPL, A.logoAMZN, A.logoNFLX] },
-  { underlying: "SAWAD - PTT",         coupon: "13.98%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["ใกล้เต็ม", "รับประกันเงินต้น"], logos: [A.logoSAWAD, A.logoPTT] },
-  { underlying: "Nasdaq - AMZN - NFLX",coupon: "11.76%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["รับประกันเงินต้น"], logos: [A.logoNasdaq, A.logoAMZN, A.logoNFLX] },
-  { underlying: "NVDA - AMZN - AXP",   coupon: "10.45%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: [], logos: [A.logoNVDA, A.logoAMZN, A.logoAXP] },
+  { underlying: "SAWAD - PTT", coupon: "13.98%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["ใกล้เต็ม", "รับประกันเงินต้น"], logos: [A.logoSAWAD, A.logoPTT] },
+  { underlying: "Nasdaq - AMZN - NFLX", coupon: "11.76%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: ["รับประกันเงินต้น"], logos: [A.logoNasdaq, A.logoAMZN, A.logoNFLX] },
+  { underlying: "NVDA - AMZN - AXP", coupon: "10.45%", tenor: "6 เดือน", ko: "100.00%", strike: "80.00%", ki: "60.00%", tags: [], logos: [A.logoNVDA, A.logoAMZN, A.logoAXP] },
 ];
 
 const PRODUCT_TABS = [
-  { id: "structured",  title: "Structured Product", icon: <ShapesIcon size={18} /> },
-  { id: "fixed-income",title: "Fixed Income",        icon: <CertificateIcon size={18} /> },
-  { id: "global-bond", title: "Global Bond",         icon: <GlobeHemisphereWestIcon size={18} /> },
+  { id: "structured", title: "Structured Product", icon: <ShapesIcon size={18} /> },
+  { id: "fixed-income", title: "Fixed Income", icon: <CertificateIcon size={18} /> },
+  { id: "global-bond", title: "Global Bond", icon: <GlobeHemisphereWestIcon size={18} /> },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -241,17 +244,13 @@ function ProductCard({ underlying, coupon, tenor, ko, strike, ki, tags, logos }:
           <div className="flex gap-1 items-center shrink-0">
             {tags.includes("ใกล้เต็ม") && (
               <div className="flex gap-0.5 items-center overflow-hidden px-1 py-0.5 rounded shrink-0" style={{ backgroundColor: "#fdefe6" }}>
-                <div className="relative shrink-0" style={{ width: 14, height: 14 }}>
-                  <img alt="" className="absolute inset-0 w-full h-full" src={A.fireSmall} />
-                </div>
+                <FireIcon size={12} weight="fill" color="#f97316" />
                 <p className="whitespace-nowrap" style={{ color: "#101828", fontSize: 9, lineHeight: "14px" }}>ใกล้เต็ม</p>
               </div>
             )}
             {tags.includes("รับประกันเงินต้น") && (
               <div className="flex gap-0.5 items-center overflow-hidden px-1 py-0.5 rounded shrink-0" style={{ backgroundColor: "#eff6ff" }}>
-                <div className="relative shrink-0" style={{ width: 14, height: 14 }}>
-                  <img alt="" className="absolute inset-0 w-full h-full" src={A.shieldCheck} />
-                </div>
+                <ShieldCheckIcon size={12} weight="fill" color="#2b7fff" />
                 <p className="whitespace-nowrap" style={{ color: "#101828", fontSize: 9, lineHeight: "14px" }}>รับประกันเงินต้น</p>
               </div>
             )}
@@ -289,55 +288,57 @@ function ProductCard({ underlying, coupon, tenor, ko, strike, ki, tags, logos }:
 
 type CropTransform = { scaleX: number; scaleY: number; tx: number; ty: number };
 
-function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, imgTop, imgW, imgH, imgRotation, contentLeft, crop }: {
+function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, imgW, imgH, imgRotation, crop }: {
   name: string; desc: string; coupon: string; tenor: string;
   imgSrc: string; gradient: string;
-  imgLeft: number; imgTop: number; imgW: number; imgH: number;
-  imgRotation?: number; contentLeft: number;
+  imgLeft: number; imgW: number; imgH: number;
+  imgRotation?: number;
   crop?: CropTransform;
 }) {
+  const isHighConviction = imgRotation === 180;
   return (
-    <div className="relative overflow-hidden flex-1 min-w-0 rounded-[12px]"
-      style={{ backgroundImage: gradient, boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1),0px 2px 4px -2px rgba(0,0,0,0.1)", height: 132 }}
+    <div
+      className={`relative overflow-hidden rounded-xl flex gap-4 p-3 flex-1 ${isHighConviction ? "items-center justify-end" : "items-center"}`}
+      style={{ backgroundImage: gradient, boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1),0px 2px 4px -2px rgba(0,0,0,0.1)" }}
     >
-      {/* Image — pixel-perfect position from Figma */}
-      {crop ? (
-        /* CROP mode: use background-image to preserve Figma's exact crop transform */
-        <div className="absolute pointer-events-none" style={{
-          left: imgLeft, top: imgTop, width: imgW, height: imgH,
-          backgroundImage: `url(${imgSrc})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: `${(100 / crop.scaleX).toFixed(2)}% ${(100 / crop.scaleY).toFixed(2)}%`,
-          backgroundPosition: `${(-(crop.tx * imgW / crop.scaleX)).toFixed(2)}px ${(-(crop.ty * imgH / crop.scaleY)).toFixed(2)}px`,
-        }} />
-      ) : (
-        /* FILL mode: absolute img with optional rotation */
-        <img alt="" className="absolute pointer-events-none"
-          style={{ left: imgLeft, top: imgTop, width: imgW, height: imgH,
-            objectFit: "cover",
-            transform: imgRotation ? `rotate(${imgRotation}deg)` : undefined,
-            transformOrigin: "center center" }}
-          src={imgSrc}
-        />
+      {/* Secure Income / Balanced Growth: image in fixed container on left */}
+      {crop && (
+        <div className="relative shrink-0 overflow-hidden" style={{ width: 72, height: imgH }}>
+          <img
+            alt="" className="absolute h-full max-w-none top-0 pointer-events-none"
+            style={{
+              left: `${(-crop.tx / crop.scaleX * 100).toFixed(1)}%`,
+              width: `${(100 / crop.scaleX).toFixed(1)}%`,
+            }}
+            src={imgSrc}
+          />
+        </div>
       )}
-      {/* Content — absolutely positioned right portion */}
-      <div className="absolute flex flex-col items-start justify-between"
-        style={{ left: contentLeft, top: 12, right: 12, height: 108 }}
+      {/* High Conviction: image absolutely positioned, extends past left edge */}
+      {isHighConviction && (
+        <div className="absolute flex items-center justify-center pointer-events-none"
+          style={{ left: imgLeft, top: 0, width: imgW, height: imgH }}
+        >
+          <div style={{ transform: "rotate(180deg)", flexShrink: 0 }}>
+            <img alt="" className="object-cover" style={{ width: imgW, height: imgH }} src={imgSrc} />
+          </div>
+        </div>
+      )}
+      {/* Content */}
+      <div
+        className="flex flex-col gap-3 items-start min-w-0"
+        style={isHighConviction ? { width: 231 } : { flex: "1 0 0" }}
       >
         <div className="flex gap-2 items-center shrink-0 w-full">
-          <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex flex-col flex-1 min-w-0 whitespace-nowrap">
             <p className="font-bold truncate" style={{ color: "#101828", fontSize: 16, lineHeight: "24px" }}>{name}</p>
             <p className="truncate" style={{ color: "#6a7282", fontSize: 12, lineHeight: "16px" }}>{desc}</p>
           </div>
-          <button className="flex items-center justify-center cursor-pointer shrink-0"
-            style={{ backgroundColor: "white", border: "1px solid rgba(0,0,0,0.1)", borderRadius: 4, width: 26, height: 26 }}
-          >
-            <div className="relative shrink-0" style={{ width: 16, height: 16 }}>
-              <img alt="" className="absolute inset-0 w-full h-full" src={A.arrowRightSm} />
-            </div>
-          </button>
+          <Button variant="outline" size="icon-xs" aria-label="ดูรายละเอียด">
+            <ArrowRightIcon size={16} />
+          </Button>
         </div>
-        <div className="flex gap-4 items-center justify-center shrink-0 w-full"
+        <div className="flex gap-4 items-start justify-center shrink-0 w-full"
           style={{ backgroundColor: "rgba(255,255,255,0.5)", borderRadius: 8, padding: 8 }}
         >
           <div className="flex flex-col items-center flex-1 min-w-0 text-center">
@@ -356,9 +357,9 @@ function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, 
 }
 
 // ─── Investment Solution gradient backgrounds ────────────────────────────────
-const GRAD_SECURE   = "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 389 132' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect width='100%25' height='100%25' fill='url(%23g)'/><defs><radialGradient id='g' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(30.4 6.2 -6.6 47.4 66.3 69.8)'><stop stop-color='%23f6f7fb'/><stop offset='1' stop-color='%23c5dbe8'/></radialGradient></defs></svg>\")";
+const GRAD_SECURE = "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 389 132' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect width='100%25' height='100%25' fill='url(%23g)'/><defs><radialGradient id='g' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(30.4 6.2 -6.6 47.4 66.3 69.8)'><stop stop-color='%23f6f7fb'/><stop offset='1' stop-color='%23c5dbe8'/></radialGradient></defs></svg>\")";
 const GRAD_BALANCED = "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 389 132' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect width='100%25' height='100%25' fill='url(%23g)'/><defs><radialGradient id='g' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(30.4 6.2 -6.6 47.4 66.3 69.8)'><stop stop-color='%23ffedfc'/><stop offset='1' stop-color='%23f8d0d8'/></radialGradient></defs></svg>\")";
-const GRAD_HIGH_CV  = "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 389 132' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect width='100%25' height='100%25' fill='url(%23g)'/><defs><radialGradient id='g' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(30.4 6.2 -6.6 47.4 66.3 69.8)'><stop stop-color='%23e5e3fe'/><stop offset='1' stop-color='%23d5beff'/></radialGradient></defs></svg>\")";
+const GRAD_HIGH_CV = "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 389 132' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect width='100%25' height='100%25' fill='url(%23g)'/><defs><radialGradient id='g' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(30.4 6.2 -6.6 47.4 66.3 69.8)'><stop stop-color='%23e5e3fe'/><stop offset='1' stop-color='%23d5beff'/></radialGradient></defs></svg>\")";
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -412,24 +413,12 @@ export function ProductCatalogTab() {
         className="flex flex-col items-center justify-center shrink-0 w-full bg-gradient-to-t from-[#f7f7f7] to-white px-4 lg:px-6"
         style={{ height: 120, paddingTop: 32, paddingBottom: 24 }}
       >
-        <div
-          className="flex gap-2 items-center w-full"
-          style={{
-            backgroundColor: "white", border: "1px solid rgba(0,0,0,0.1)", borderRadius: 8,
-            height: 54, maxWidth: 792, paddingLeft: 16, paddingRight: 16,
-          }}
-        >
-          <div className="relative shrink-0" style={{ width: 24, height: 24 }}>
-            <img alt="" className="absolute inset-0 w-full h-full" src={A.magnifyingGlass} />
-          </div>
-          <input
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Discover your next investment"
-            className="flex-1 outline-none bg-transparent"
-            style={{ color: "#99a1af", fontSize: 16, lineHeight: "24px" }}
-          />
-        </div>
+        <SearchInput
+          value={searchValue}
+          onChange={setSearchValue}
+          placeholder="Discover your next investment"
+          className="w-full max-w-[792px]"
+        />
       </div>
 
       {/* ── Tab bar — each tab has bg-white from the library ─────────────────── */}
@@ -448,33 +437,27 @@ export function ProductCatalogTab() {
         {/* Toast — bg-[#eff6ff], centered max-w-704px */}
         {showAlert && (
           <div className="px-4 lg:px-6 w-full flex justify-center">
-          <div
-            className="flex gap-2 items-center shrink-0 w-full"
-            style={{
-              backgroundColor: "#eff6ff", borderRadius: 8, padding: 12,
-              boxShadow: "0px 1px 2px 0px rgba(0,0,0,0.1),0px 1px 3px 1px rgba(0,0,0,0.05)",
-              maxWidth: 704,
-            }}
-          >
-            <div className="flex gap-2 items-center flex-1 min-w-0 opacity-80">
-              <div className="relative shrink-0" style={{ width: 24, height: 24 }}>
-                <img alt="" className="absolute inset-0 w-full h-full" src={A.infoFill} />
+            <div
+              className="flex gap-2 items-center shrink-0 w-full"
+              style={{
+                backgroundColor: "#eff6ff", borderRadius: 8, padding: 12,
+                boxShadow: "0px 1px 2px 0px rgba(0,0,0,0.1),0px 1px 3px 1px rgba(0,0,0,0.05)",
+                maxWidth: 704,
+              }}
+            >
+              <div className="flex gap-2 items-center flex-1 min-w-0 opacity-80">
+                <InfoIcon size={24} weight="fill" color="#2b7fff" className="shrink-0" />
+                <p className="whitespace-nowrap" style={{ color: "#2b7fff", fontSize: 14, lineHeight: "20px" }}>
+                  ผู้ลงทุนในสินทรัพย์นี้ต้องมีคุณสมบัติเป็นนักลงทุนรายใหญ่
+                </p>
               </div>
-              <p className="whitespace-nowrap" style={{ color: "#2b7fff", fontSize: 14, lineHeight: "20px" }}>
-                ผู้ลงทุนในสินทรัพย์นี้ต้องมีคุณสมบัติเป็นนักลงทุนรายใหญ่
-              </p>
+              <div className="flex gap-3 items-center shrink-0">
+                <Button variant="plain" size="sm" onClick={() => { }}>อัปเดตสถานะ</Button>
+                <Button variant="plain" size="icon-xs" onClick={() => setShowAlert(false)} aria-label="ปิด">
+                  <XIcon size={18} />
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-3 items-center shrink-0">
-              <p className="underline whitespace-nowrap cursor-pointer" style={{ color: "#0a6ee7", fontSize: 14, lineHeight: "20px" }}>
-                อัปเดตสถานะ
-              </p>
-              <button onClick={() => setShowAlert(false)} className="relative shrink-0 cursor-pointer"
-                style={{ width: 18, height: 18, background: "none", border: "none", padding: 0 }}
-              >
-                <img alt="" className="absolute inset-0 w-full h-full" src={A.closeX} />
-              </button>
-            </div>
-          </div>
           </div>
         )}
 
@@ -503,33 +486,25 @@ export function ProductCatalogTab() {
                 );
               })}
             </div>
-            <button className="flex gap-1 items-center justify-center cursor-pointer shrink-0"
-              style={{ backgroundColor: "white", border: "1px solid rgba(0,0,0,0.1)", borderRadius: 999, paddingLeft: 12, paddingRight: 16, paddingTop: 10, paddingBottom: 10 }}
-            >
-              <div className="relative shrink-0" style={{ width: 20, height: 20 }}>
-                <img alt="" className="absolute inset-0 w-full h-full" src={A.orderListIcon} />
-              </div>
-              <p className="font-bold whitespace-nowrap" style={{ color: "#101828", fontSize: 14, lineHeight: "20px" }}>รายการคำสั่ง</p>
-            </button>
+            <Button variant="outline-black" size="icon-xl" aria-label="รายการคำสั่ง" className="rounded-full shrink-0 lg:hidden">
+              <ClockCounterClockwiseIcon size={20} />
+            </Button>
+            <Button variant="outline-black" size="xl" leftIcon={<ClockCounterClockwiseIcon size={20} className="-scale-x-100" />} className="rounded-full shrink-0 hidden lg:flex">
+              รายการคำสั่ง
+            </Button>
           </div>
           {/* Waiting banner */}
           <div className="flex gap-2 items-center relative shrink-0 w-full"
             style={{ backgroundColor: "#fefce8", border: "1px solid #fff085", borderRadius: 8, padding: 12 }}
           >
             <div className="flex items-center p-1 shrink-0" style={{ backgroundColor: "#fef9c2", borderRadius: 4 }}>
-              <div className="relative shrink-0" style={{ width: 20, height: 20 }}>
-                <img alt="" className="absolute inset-0 w-full h-full" src={A.hourglassHigh} />
-              </div>
+              <HourglassHighIcon size={20} weight="fill" color="#ca8a04" />
             </div>
             <div className="flex flex-col gap-0.5 items-start justify-center flex-1 min-w-0">
               <p className="font-bold" style={{ color: "#101828", fontSize: 14, lineHeight: "20px" }}>รอดำเนินการ 2 รายการ</p>
               <p style={{ color: "#4a5565", fontSize: 12, lineHeight: "16px" }}>จำนวนเงิน 300,000 USD</p>
             </div>
-            <button className="flex items-center justify-center cursor-pointer shrink-0"
-              style={{ backgroundColor: "white", border: "1px solid rgba(0,0,0,0.1)", borderRadius: 6, paddingLeft: 10, paddingRight: 10, paddingTop: 6, paddingBottom: 6 }}
-            >
-              <p className="font-bold whitespace-nowrap" style={{ color: "#101828", fontSize: 14, lineHeight: "20px" }}>ดูรายการ</p>
-            </button>
+            <Button variant="outline-black" size="sm" className="shrink-0">ดูรายการ</Button>
           </div>
         </div>
 
@@ -540,12 +515,7 @@ export function ProductCatalogTab() {
             <p className="font-bold flex-1 overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
               Top idea
             </p>
-            <button className="flex gap-0.5 items-center cursor-pointer shrink-0" style={{ borderRadius: 6, paddingLeft: 10, paddingRight: 8, paddingTop: 6, paddingBottom: 6, background: "none", border: "none" }}>
-              <p className="font-bold whitespace-nowrap" style={{ color: "#0a6ee7", fontSize: 14, lineHeight: "20px" }}>ทั้งหมด</p>
-              <div className="relative shrink-0" style={{ width: 18, height: 18 }}>
-                <img alt="" className="absolute inset-0 w-full h-full" src={A.arrowRight} />
-              </div>
-            </button>
+            <Button variant="plain" size="sm" rightIcon={<ArrowRightIcon size={18} />} className="shrink-0">ทั้งหมด</Button>
           </div>
           {/* Scrollable cards — bleeds to screen edges, drag-to-scroll on desktop */}
           <div
@@ -570,30 +540,21 @@ export function ProductCatalogTab() {
             Investment Solution
           </p>
           <div className="flex flex-col gap-6 items-start relative shrink-0 w-full">
-            <div className="flex gap-4 items-start shrink-0 w-full">
-              <InvestmentCard name="Secure Income"   desc="ความเสี่ยงต่ำ ลงทุนอย่างมั่นคง"       coupon="12%-15%" tenor="12 เดือน" imgSrc={A.imgSecureIncome}   gradient={GRAD_SECURE}   imgLeft={12}  imgTop={20} imgW={72}  imgH={92}  contentLeft={100} crop={{ scaleX: 0.4390, scaleY: 1.0, tx: 0,      ty: 0 }} />
-              <InvestmentCard name="Balanced Growth" desc="ความเสี่ยงปานกลาง ผลตอบแทนคุ้มค่า"  coupon="25%-30%" tenor="9 เดือน"  imgSrc={A.imgBalancedGrowth} gradient={GRAD_BALANCED} imgLeft={12}  imgTop={15} imgW={72}  imgH={103} contentLeft={100} crop={{ scaleX: 0.7006, scaleY: 1.0, tx: 0.1464, ty: 0 }} />
-              <InvestmentCard name="High Conviction"  desc="ความเสี่ยงสูง ผลตอบแทนสูงสุด"       coupon="35%-40%" tenor="6 เดือน"  imgSrc={A.imgHighConvBg}     gradient={GRAD_HIGH_CV}  imgLeft={-67} imgTop={0}  imgW={198} imgH={132} imgRotation={180} contentLeft={146} />
+            <div className="flex flex-col lg:flex-row gap-4 shrink-0 w-full">
+              <InvestmentCard name="Secure Income" desc="ความเสี่ยงต่ำ ลงทุนอย่างมั่นคง" coupon="12%-15%" tenor="12 เดือน" imgSrc={A.imgSecureIncome} gradient={GRAD_SECURE} imgLeft={12} imgW={72} imgH={92} crop={{ scaleX: 0.4390, scaleY: 1.0, tx: 0, ty: 0 }} />
+              <InvestmentCard name="Balanced Growth" desc="ความเสี่ยงปานกลาง ผลตอบแทนคุ้มค่า" coupon="25%-30%" tenor="9 เดือน" imgSrc={A.imgBalancedGrowth} gradient={GRAD_BALANCED} imgLeft={12} imgW={72} imgH={103} crop={{ scaleX: 0.7006, scaleY: 1.0, tx: 0.1464, ty: 0 }} />
+              <InvestmentCard name="High Conviction" desc="ความเสี่ยงสูง ผลตอบแทนสูงสุด" coupon="35%-40%" tenor="6 เดือน" imgSrc={A.imgHighConvBg} gradient={GRAD_HIGH_CV} imgLeft={-67} imgW={198} imgH={132} imgRotation={180} />
             </div>
             {/* Customize Underlying */}
             <div className="flex gap-2 items-center relative shrink-0 w-full"
               style={{ backgroundColor: "white", border: "1px dashed rgba(0,0,0,0.1)", borderRadius: 12, paddingLeft: 32, paddingRight: 32, paddingTop: 16, paddingBottom: 16 }}
             >
-              <div className="relative shrink-0" style={{ width: 24, height: 24 }}>
-                <img alt="" className="absolute inset-0 w-full h-full" src={A.sparkle} />
-              </div>
+              <SparkleIcon size={24} weight="fill" className="shrink-0 text-primary-action" />
               <div className="flex flex-col gap-0.5 items-start flex-1 min-w-0 whitespace-nowrap">
                 <p className="font-bold overflow-hidden text-ellipsis w-full" style={{ color: "#4a5565", fontSize: 16, lineHeight: "24px" }}>Customize Underlying</p>
                 <p className="overflow-hidden text-ellipsis w-full" style={{ color: "#6a7282", fontSize: 14, lineHeight: "20px" }}>ออกแบบสินทรัพย์ด้วยตนเอง</p>
               </div>
-              <button className="flex gap-1 items-center justify-center cursor-pointer shrink-0"
-                style={{ backgroundColor: "white", border: "1px solid rgba(0,0,0,0.1)", borderRadius: 8, paddingLeft: 10, paddingRight: 14, paddingTop: 8, paddingBottom: 8, height: 36 }}
-              >
-                <div className="relative shrink-0" style={{ width: 20, height: 20 }}>
-                  <img alt="" className="absolute inset-0 w-full h-full" src={A.phoneIcon} />
-                </div>
-                <p className="font-bold whitespace-nowrap" style={{ color: "#101828", fontSize: 14, lineHeight: "20px" }}>ติดต่อ</p>
-              </button>
+              <Button variant="outline-black" size="md" leftIcon={<PhoneIcon size={20} />} className="shrink-0">ติดต่อ</Button>
             </div>
           </div>
         </div>
@@ -601,19 +562,13 @@ export function ProductCatalogTab() {
         {/* ── Main Container — bg-white (Top Pick) ─────────────────────────── */}
         <div className="flex flex-col gap-4 items-center relative shrink-0 w-full px-4 lg:px-6" style={{ backgroundColor: "white", paddingTop: 24, paddingBottom: 24 }}>
           <div className="flex gap-1.5 items-center shrink-0 w-full">
-            <div className="relative shrink-0" style={{ width: 24, height: 24 }}>
-              <img alt="" className="absolute inset-0 w-full h-full" src={A.fire} />
-            </div>
+            <FireIcon size={24} weight="fill" color="#f97316" className="shrink-0" />
             <p className="font-bold overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
               Top pick
             </p>
           </div>
-          <div className="flex gap-4 items-start shrink-0 w-full">
-            {TOP_PICKS.map((p, i) => (
-              <div key={i} className="flex-1 min-w-0">
-                <ProductCard {...p} />
-              </div>
-            ))}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0 w-full">
+            {TOP_PICKS.map((p, i) => <ProductCard key={i} {...p} />)}
           </div>
         </div>
 
@@ -624,23 +579,17 @@ export function ProductCatalogTab() {
             <p className="font-bold flex-1 overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
               Structured Product
             </p>
-            <button className="flex items-center cursor-pointer shrink-0"
-              style={{ backgroundColor: "white", border: "1px solid rgba(0,0,0,0.1)", borderRadius: 6, paddingLeft: 8, paddingRight: 10, paddingTop: 6, paddingBottom: 6 }}
-            >
-              <div className="relative shrink-0" style={{ width: 18, height: 18 }}>
-                <img alt="" className="absolute inset-0 w-full h-full" src={A.filterIcon} />
-              </div>
-              <p className="font-bold whitespace-nowrap" style={{ color: "#101828", fontSize: 14, lineHeight: "20px" }}>ตัวกรอง</p>
-            </button>
+            <Button variant="outline-black" size="icon-lg" aria-label="ตัวกรอง" className="shrink-0 lg:hidden">
+              <FunnelSimpleIcon size={18} />
+            </Button>
+            <Button variant="outline-black" size="sm" leftIcon={<FunnelSimpleIcon size={18} />} className="shrink-0 hidden lg:flex">ตัวกรอง</Button>
           </div>
           {/* 3-column grid */}
-          <div className="grid grid-cols-3 gap-4 shrink-0 w-full px-4 lg:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0 w-full px-4 lg:px-6">
             {STRUCTURED_PRODUCTS.map((p, i) => <ProductCard key={i} {...p} />)}
           </div>
           {/* ดูทั้งหมด */}
-          <button className="cursor-pointer shrink-0" style={{ borderRadius: 6, paddingLeft: 10, paddingTop: 6, paddingBottom: 6, background: "none", border: "none" }}>
-            <p className="font-bold whitespace-nowrap" style={{ color: "#0a6ee7", fontSize: 14, lineHeight: "20px" }}>ดูทั้งหมด</p>
-          </button>
+          <Button variant="plain" size="sm" className="shrink-0">ดูทั้งหมด</Button>
         </div>
 
       </div>

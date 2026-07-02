@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "@sarunyu/system-one/styles.css";
-import { Geist } from "next/font/google";
+import { Noto_Sans_Thai } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const notoSansThai = Noto_Sans_Thai({
+  subsets: ["thai", "latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "Yuanta Agent Portal",
@@ -15,7 +19,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={cn("h-full", "font-sans", geist.variable)}>
+    <html lang="th" className={cn("h-full", "font-sans", notoSansThai.variable)}>
       <body className="h-full bg-background antialiased">{children}</body>
     </html>
   );
