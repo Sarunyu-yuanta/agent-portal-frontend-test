@@ -119,6 +119,12 @@ const PRODUCT_TABS = [
   { id: "global-bond", title: "Global Bond", icon: <GlobeHemisphereWestIcon size={18} /> },
 ];
 
+const PRODUCT_TABS_MOBILE = [
+  { id: "structured", title: "Structured Product" },
+  { id: "fixed-income", title: "Fixed Income" },
+  { id: "global-bond", title: "Global Bond" },
+];
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function TopIdeaCard({ sector, icon, sectorImg }: typeof TOP_IDEAS[0]) {
@@ -421,8 +427,16 @@ export function ProductCatalogTab() {
         />
       </div>
 
-      {/* ── Tab bar — each tab has bg-white from the library ─────────────────── */}
-      <div className="px-4 lg:px-6">
+      {/* ── Tab bar — mobile: no icons + full text scrollable / desktop: with icons ─── */}
+      <div className="lg:hidden overflow-x-auto px-4" style={{ scrollbarWidth: "none" }}>
+        <TabGroup
+          items={PRODUCT_TABS_MOBILE}
+          activeId={activeProductTab}
+          onChange={setActiveProductTab}
+          size="md"
+        />
+      </div>
+      <div className="hidden lg:block px-4 lg:px-6">
         <TabGroup
           items={PRODUCT_TABS}
           activeId={activeProductTab}
@@ -434,28 +448,43 @@ export function ProductCatalogTab() {
       {/* ── Section container — no padding, each section owns its own padding ─── */}
       <div className="flex flex-col gap-6 items-center w-full" style={{ paddingTop: 24 }}>
 
-        {/* Toast — bg-[#eff6ff], centered max-w-704px */}
+        {/* Toast — bg-info-light, full-bleed mobile / max-w-[704px] desktop */}
         {showAlert && (
           <div className="px-4 lg:px-6 w-full flex justify-center">
+            {/* Figma: flex items-center gap-2 — single flex row, text wraps naturally inside flex-1 */}
             <div
-              className="flex gap-2 items-center shrink-0 w-full"
+              className="flex gap-2 items-center overflow-hidden shrink-0 w-full"
               style={{
                 backgroundColor: "#eff6ff", borderRadius: 8, padding: 12,
                 boxShadow: "0px 1px 2px 0px rgba(0,0,0,0.1),0px 1px 3px 1px rgba(0,0,0,0.05)",
                 maxWidth: 704,
               }}
             >
+              {/* Content (flex-1): icon + text forced to 2 lines with <br> — matches Figma exactly */}
               <div className="flex gap-2 items-center flex-1 min-w-0 opacity-80">
                 <InfoIcon size={24} weight="fill" color="#2b7fff" className="shrink-0" />
-                <p className="whitespace-nowrap" style={{ color: "#2b7fff", fontSize: 14, lineHeight: "20px" }}>
-                  ผู้ลงทุนในสินทรัพย์นี้ต้องมีคุณสมบัติเป็นนักลงทุนรายใหญ่
+                <p className="flex-1 min-w-0 max-w-40 lg:max-w-none [word-break:break-word]" style={{ color: "#2b7fff", fontSize: 14, lineHeight: "20px" }}>
+                  <span className="lg:hidden">สำหรับนักลงทุนรายใหญ่/ รายใหญ่พิเศษ</span>
+                  <span className="hidden lg:inline">ผู้ลงทุนในสินทรัพย์นี้ต้องมีคุณสมบัติเป็นนักลงทุนรายใหญ่</span>
                 </p>
               </div>
+              {/* Content-R (shrink-0): action link + X */}
               <div className="flex gap-3 items-center shrink-0">
-                <Button variant="plain" size="sm" onClick={() => { }}>อัปเดตสถานะ</Button>
-                <Button variant="plain" size="icon-xs" onClick={() => setShowAlert(false)} aria-label="ปิด">
-                  <XIcon size={18} />
-                </Button>
+                <p
+                  className="underline whitespace-nowrap cursor-pointer"
+                  style={{ color: "#0a6ee7", fontSize: 14, lineHeight: "20px" }}
+                  onClick={() => {}}
+                >
+                  อัปเดตสถานะ
+                </p>
+                <button
+                  onClick={() => setShowAlert(false)}
+                  className="relative shrink-0 cursor-pointer"
+                  style={{ width: 18, height: 18, background: "none", border: "none", padding: 0 }}
+                  aria-label="ปิด"
+                >
+                  <XIcon size={18} color="#2b7fff" />
+                </button>
               </div>
             </div>
           </div>
