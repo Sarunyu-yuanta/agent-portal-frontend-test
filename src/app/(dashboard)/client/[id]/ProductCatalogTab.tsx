@@ -131,7 +131,7 @@ function TopIdeaCard({ sector, icon, sectorImg }: typeof TOP_IDEAS[0]) {
   const theme = TOP_IDEA_THEMES[sector] ?? "";
   return (
     <div
-      className="shrink-0 relative overflow-hidden rounded-[8px] w-[171px] lg:w-[200px]"
+      className="shrink-0 relative overflow-hidden rounded-[8px] w-[171px] md:w-[200px]"
       style={{
         height: 98,
         backgroundColor: "#f3f4f6",
@@ -227,17 +227,18 @@ function TopIdeaCard({ sector, icon, sectorImg }: typeof TOP_IDEAS[0]) {
 }
 
 function ProductCard({ underlying, coupon, tenor, ko, strike, ki, tags, logos }: StockProduct) {
+  const stats = [{ label: "Tenor", value: tenor }, { label: "KO", value: ko }, { label: "Strike", value: strike }, { label: "KI", value: ki }];
   return (
     <div
-      className="flex flex-col gap-4 items-center overflow-hidden p-4 relative rounded-[12px] w-full"
+      className="flex flex-col md:flex-row lg:flex-col gap-4 md:gap-4 md:h-[100px] md:items-start lg:items-center overflow-hidden p-4 relative rounded-[12px] w-full"
       style={{
         backgroundColor: "white",
         border: "1px solid rgba(0,0,0,0.1)",
         boxShadow: "0px 1px 3px 0px rgba(0,0,0,0.1),0px 1px 2px -1px rgba(0,0,0,0.1)",
       }}
     >
-      {/* Header */}
-      <div className="flex flex-col gap-2 items-start shrink-0 w-full">
+      {/* Header — left column on tablet */}
+      <div className="flex flex-col gap-2 items-start shrink-0 w-full md:flex-1 md:min-w-0 lg:w-full">
         {/* Logos + tags */}
         <div className="flex gap-2 items-center shrink-0 w-full">
           <div className="flex gap-1 items-center flex-1 min-w-0">
@@ -274,19 +275,21 @@ function ProductCard({ underlying, coupon, tenor, ko, strike, ki, tags, logos }:
           </div>
         </div>
       </div>
-      {/* Stats */}
-      <div className="flex items-start justify-center shrink-0 text-center w-full"
-        style={{ backgroundColor: "#f9fafb", borderRadius: 8, paddingTop: 6, paddingBottom: 6 }}
+      {/* Stats — right column on tablet */}
+      <div
+        className="flex items-start md:items-center justify-center shrink-0 text-center w-full md:flex-1 md:h-full md:min-w-0 lg:w-full py-1.5 md:py-3"
+        style={{ backgroundColor: "#f9fafb", borderRadius: 8 }}
       >
-        {[{ label: "Tenor", value: tenor }, { label: "KO", value: ko }, { label: "Strike", value: strike }, { label: "KI", value: ki }]
-          .map((s, i) => (
-            <div key={s.label} className="flex flex-col gap-0.5 items-center flex-1 min-w-0"
-              style={i < 3 ? { borderRight: "1px solid rgba(0,0,0,0.1)" } : {}}
-            >
-              <p style={{ color: "#6a7282", fontSize: 9, lineHeight: "14px" }}>{s.label}</p>
-              <p className="font-semibold" style={{ color: "#4a5565", fontSize: 12, lineHeight: "16px" }}>{s.value}</p>
-            </div>
-          ))}
+        {stats.map((s, i) => (
+          <div
+            key={s.label}
+            className="flex flex-col gap-0.5 items-center justify-center flex-1 min-w-0 md:h-full"
+            style={i < stats.length - 1 ? { borderRight: "1px solid rgba(0,0,0,0.1)" } : {}}
+          >
+            <p style={{ color: "#6a7282", fontSize: 9, lineHeight: "14px" }}>{s.label}</p>
+            <p className="font-semibold" style={{ color: "#4a5565", fontSize: 12, lineHeight: "16px" }}>{s.value}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -304,7 +307,10 @@ function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, 
   const isHighConviction = imgRotation === 180;
   return (
     <div
-      className={`relative overflow-hidden rounded-xl flex gap-4 p-3 flex-1 ${isHighConviction ? "items-center justify-end" : "items-center"}`}
+      className={`relative overflow-hidden rounded-xl flex gap-4 p-3 flex-1
+        md:flex-none md:w-full md:h-30 md:gap-6 md:px-8 md:py-3
+        lg:flex-1 lg:h-auto lg:gap-4 lg:p-3
+        items-center`}
       style={{ backgroundImage: gradient, boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1),0px 2px 4px -2px rgba(0,0,0,0.1)" }}
     >
       {/* Secure Income / Balanced Growth: image in fixed container on left */}
@@ -320,9 +326,13 @@ function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, 
           />
         </div>
       )}
-      {/* High Conviction: image absolutely positioned, extends past left edge */}
+      {/* High Conviction: invisible spacer — aligns content with other cards' 72px image slot */}
       {isHighConviction && (
-        <div className="absolute flex items-center justify-center pointer-events-none"
+        <div className="shrink-0 relative z-10" style={{ width: 72 }} aria-hidden />
+      )}
+      {/* High Conviction: absolute image behind content */}
+      {isHighConviction && (
+        <div className="absolute z-0 flex items-center justify-center pointer-events-none"
           style={{ left: imgLeft, top: 0, width: imgW, height: imgH }}
         >
           <div style={{ transform: "rotate(180deg)", flexShrink: 0 }}>
@@ -330,21 +340,28 @@ function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, 
           </div>
         </div>
       )}
-      {/* Content */}
-      <div
-        className="flex flex-col gap-3 items-start min-w-0"
-        style={isHighConviction ? { width: 231 } : { flex: "1 0 0" }}
-      >
-        <div className="flex gap-2 items-center shrink-0 w-full">
+      {/* Content — mobile/desktop: flex-col; tablet (md): flex-row */}
+      <div className={`flex flex-col gap-3 items-start min-w-0 flex-1
+        ${isHighConviction ? "relative z-10" : ""}
+        md:flex-row md:gap-6 md:items-center
+        lg:flex-col lg:gap-3 lg:items-start`}>
+        {/* Name + Desc — mobile/desktop: row with button; tablet: col without button */}
+        <div className="flex gap-2 items-center shrink-0 w-full
+          md:flex-col md:items-start md:gap-0 md:flex-1 md:min-w-0 md:w-auto md:shrink-0
+          lg:flex-row lg:gap-2 lg:items-center lg:w-full lg:shrink-0">
           <div className="flex flex-col flex-1 min-w-0 whitespace-nowrap">
             <p className="font-bold truncate" style={{ color: "#101828", fontSize: 16, lineHeight: "24px" }}>{name}</p>
             <p className="truncate" style={{ color: "#6a7282", fontSize: 12, lineHeight: "16px" }}>{desc}</p>
           </div>
-          <Button variant="outline" size="icon-xs" aria-label="ดูรายละเอียด">
+          {/* Mobile + Desktop only button (hidden on tablet) */}
+          <Button variant="outline" size="icon-xs" aria-label="ดูรายละเอียด" className="md:hidden lg:flex">
             <ArrowRightIcon size={16} />
           </Button>
         </div>
-        <div className="flex gap-4 items-start justify-center shrink-0 w-full"
+        {/* Stats — mobile/desktop: full-width below; tablet: flex-1 beside name */}
+        <div className="flex gap-4 items-start justify-center shrink-0 w-full
+          md:flex-1 md:w-auto md:shrink
+          lg:shrink-0 lg:w-full"
           style={{ backgroundColor: "rgba(255,255,255,0.5)", borderRadius: 8, padding: 8 }}
         >
           <div className="flex flex-col items-center flex-1 min-w-0 text-center">
@@ -357,6 +374,10 @@ function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, 
             <p className="font-bold" style={{ color: "#101828", fontSize: 16, lineHeight: "24px" }}>{tenor}</p>
           </div>
         </div>
+        {/* Tablet-only button (after stats) */}
+        <Button variant="outline" size="icon-xs" aria-label="ดูรายละเอียด" className="hidden md:flex lg:hidden shrink-0">
+          <ArrowRightIcon size={16} />
+        </Button>
       </div>
     </div>
   );
@@ -481,9 +502,9 @@ export function ProductCatalogTab() {
               {/* Content (flex-1): icon + text forced to 2 lines with <br> — matches Figma exactly */}
               <div className="flex gap-2 items-center flex-1 min-w-0 opacity-80">
                 <InfoIcon size={24} weight="fill" color="#2b7fff" className="shrink-0" />
-                <p className="flex-1 min-w-0 max-w-40 lg:max-w-none [word-break:break-word]" style={{ color: "#2b7fff", fontSize: 14, lineHeight: "20px" }}>
-                  <span className="lg:hidden">สำหรับนักลงทุนรายใหญ่/ รายใหญ่พิเศษ</span>
-                  <span className="hidden lg:inline">ผู้ลงทุนในสินทรัพย์นี้ต้องมีคุณสมบัติเป็นนักลงทุนรายใหญ่</span>
+                <p className="flex-1 min-w-0 max-w-40 md:max-w-none [word-break:break-word]" style={{ color: "#2b7fff", fontSize: 14, lineHeight: "20px" }}>
+                  <span className="md:hidden">สำหรับนักลงทุนรายใหญ่/ รายใหญ่พิเศษ</span>
+                  <span className="hidden md:inline">ผู้ลงทุนในสินทรัพย์นี้ต้องมีคุณสมบัติเป็นนักลงทุนรายใหญ่</span>
                 </p>
               </div>
               {/* Content-R (shrink-0): action link + X */}
@@ -533,10 +554,10 @@ export function ProductCatalogTab() {
                 );
               })}
             </div>
-            <Button variant="outline-black" size="icon-xl" aria-label="รายการคำสั่ง" className="rounded-full shrink-0 lg:hidden">
+            <Button variant="outline-black" size="icon-xl" aria-label="รายการคำสั่ง" className="rounded-full shrink-0 md:hidden">
               <ClockCounterClockwiseIcon size={20} />
             </Button>
-            <Button variant="outline-black" size="xl" leftIcon={<ClockCounterClockwiseIcon size={20} className="-scale-x-100" />} className="rounded-full shrink-0 hidden lg:flex">
+            <Button variant="outline-black" size="xl" leftIcon={<ClockCounterClockwiseIcon size={20} className="-scale-x-100" />} className="rounded-full shrink-0 hidden md:flex">
               รายการคำสั่ง
             </Button>
           </div>
@@ -581,7 +602,7 @@ export function ProductCatalogTab() {
         </div>
 
         {/* ── Investment Solution — no explicit bg + imgRecommend overlay ─────── */}
-        <div className="flex flex-col gap-4 items-start relative shrink-0 w-full px-4 lg:px-6" style={{ paddingTop: 24, paddingBottom: 24 }}>
+        <div className="flex flex-col gap-4 items-start relative shrink-0 w-full px-4 md:px-8 lg:px-6" style={{ paddingTop: 24, paddingBottom: 24 }}>
           <img alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" src={A.recommendBg} />
           <p className="font-bold relative shrink-0 overflow-hidden text-ellipsis w-full whitespace-nowrap" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
             Investment Solution
@@ -607,14 +628,15 @@ export function ProductCatalogTab() {
         </div>
 
         {/* ── Main Container — bg-white (Top Pick) ─────────────────────────── */}
-        <div className="flex flex-col gap-4 items-center relative shrink-0 w-full px-4 lg:px-6" style={{ backgroundColor: "white", paddingTop: 24, paddingBottom: 24 }}>
-          <div className="flex gap-1.5 items-center shrink-0 w-full">
-            <FireIcon size={24} weight="fill" color="#f97316" className="shrink-0" />
-            <p className="font-bold overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
+        <div className="flex flex-col gap-4 items-center relative shrink-0 w-full px-4 md:px-8 lg:px-6" style={{ backgroundColor: "white", paddingTop: 24, paddingBottom: 24 }}>
+          <div className="flex gap-1 items-center shrink-0 w-full">
+            <FireIcon size={24} weight="fill" color="#f97316" className="shrink-0 md:hidden lg:block" />
+            <FireIcon size={20} weight="fill" color="#f97316" className="shrink-0 hidden md:block lg:hidden" />
+            <p className="font-bold overflow-hidden text-ellipsis whitespace-nowrap text-xl leading-[30px] md:text-lg md:leading-6 lg:text-xl lg:leading-[30px]" style={{ color: "#101828" }}>
               Top pick
             </p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0 w-full">
+          <div className="grid grid-cols-1 md:flex md:flex-col lg:grid lg:grid-cols-3 gap-4 shrink-0 w-full">
             {TOP_PICKS.map((p, i) => <ProductCard key={i} {...p} />)}
           </div>
         </div>
@@ -626,10 +648,10 @@ export function ProductCatalogTab() {
             <p className="font-bold flex-1 overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
               Structured Product
             </p>
-            <Button variant="outline-black" size="icon-lg" aria-label="ตัวกรอง" className="shrink-0 lg:hidden">
+            <Button variant="outline-black" size="icon-lg" aria-label="ตัวกรอง" className="shrink-0 md:hidden">
               <FunnelSimpleIcon size={18} />
             </Button>
-            <Button variant="outline-black" size="md" leftIcon={<FunnelSimpleIcon size={18} />} className="shrink-0 hidden lg:flex">ตัวกรอง</Button>
+            <Button variant="outline-black" size="md" leftIcon={<FunnelSimpleIcon size={18} />} className="shrink-0 hidden md:flex">ตัวกรอง</Button>
           </div>
           {/* 3-column grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0 w-full px-4 lg:px-6">
