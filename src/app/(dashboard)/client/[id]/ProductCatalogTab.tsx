@@ -131,9 +131,9 @@ function TopIdeaCard({ sector, icon, sectorImg }: typeof TOP_IDEAS[0]) {
   const theme = TOP_IDEA_THEMES[sector] ?? "";
   return (
     <div
-      className="shrink-0 relative overflow-hidden rounded-[8px]"
+      className="shrink-0 relative overflow-hidden rounded-[8px] w-[171px] lg:w-[200px]"
       style={{
-        width: 200, height: 98,
+        height: 98,
         backgroundColor: "#f3f4f6",
         boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1),0px 2px 4px -2px rgba(0,0,0,0.1)",
       }}
@@ -209,7 +209,7 @@ function TopIdeaCard({ sector, icon, sectorImg }: typeof TOP_IDEAS[0]) {
       <div
         className="absolute flex flex-col justify-between"
         style={{
-          left: 2, top: 20, width: 196, height: 76,
+          left: 2, right: 2, top: 20, height: 76,
           backgroundColor: "white", borderRadius: 6,
           paddingTop: 4, paddingRight: 8, paddingBottom: 4, paddingLeft: 8,
         }}
@@ -414,9 +414,37 @@ export function ProductCatalogTab() {
     // Root: full-bleed — negative margin + matching width expansion
     <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6" style={{ backgroundColor: "white" }}>
 
-      {/* ── Search section — bg-gradient-to-t from-[#f7f7f7] to-white ────────── */}
+      {/* ── Mobile: gray rect + abs search + gray sticky tab bar (Figma pixel-perfect) ── */}
+      <div className="lg:hidden">
+        {/* Gray background rect h=127px — search is absolutely positioned inside */}
+        <div className="relative shrink-0 w-full" style={{ backgroundColor: "#f3f4f6", height: 96 }}>
+          <div className="absolute left-4 right-4" style={{ top: 24 }}>
+            <SearchInput
+              value={searchValue}
+              onChange={setSearchValue}
+              placeholder="Discover your next investment"
+              className="w-full"
+            />
+          </div>
+        </div>
+        {/* Tab bar — sticky top-0, text-only + scrollable
+            --background overridden to transparent so Tab's bg-background shows gray parent */}
+        <div
+          className="sticky top-0 z-10 overflow-x-auto"
+          style={{ backgroundColor: "#f3f4f6", scrollbarWidth: "none", ["--bg-default-primary" as string]: "transparent" }}
+        >
+          <TabGroup
+            items={PRODUCT_TABS_MOBILE}
+            activeId={activeProductTab}
+            onChange={setActiveProductTab}
+            size="md"
+          />
+        </div>
+      </div>
+
+      {/* ── Desktop: gradient search section + tab bar with icons ────────────── */}
       <div
-        className="flex flex-col items-center justify-center shrink-0 w-full bg-gradient-to-t from-[#f7f7f7] to-white px-4 lg:px-6"
+        className="hidden lg:flex flex-col items-center justify-center shrink-0 w-full bg-gradient-to-t from-[#f7f7f7] to-white px-6"
         style={{ height: 120, paddingTop: 32, paddingBottom: 24 }}
       >
         <SearchInput
@@ -424,16 +452,6 @@ export function ProductCatalogTab() {
           onChange={setSearchValue}
           placeholder="Discover your next investment"
           className="w-full max-w-[792px]"
-        />
-      </div>
-
-      {/* ── Tab bar — mobile: no icons + full text scrollable / desktop: with icons ─── */}
-      <div className="lg:hidden overflow-x-auto px-4" style={{ scrollbarWidth: "none" }}>
-        <TabGroup
-          items={PRODUCT_TABS_MOBILE}
-          activeId={activeProductTab}
-          onChange={setActiveProductTab}
-          size="md"
         />
       </div>
       <div className="hidden lg:block px-4 lg:px-6">
@@ -473,7 +491,7 @@ export function ProductCatalogTab() {
                 <p
                   className="underline whitespace-nowrap cursor-pointer"
                   style={{ color: "#0a6ee7", fontSize: 14, lineHeight: "20px" }}
-                  onClick={() => {}}
+                  onClick={() => { }}
                 >
                   อัปเดตสถานะ
                 </p>
@@ -533,7 +551,7 @@ export function ProductCatalogTab() {
               <p className="font-bold" style={{ color: "#101828", fontSize: 14, lineHeight: "20px" }}>รอดำเนินการ 2 รายการ</p>
               <p style={{ color: "#4a5565", fontSize: 12, lineHeight: "16px" }}>จำนวนเงิน 300,000 USD</p>
             </div>
-            <Button variant="outline-black" size="sm" className="shrink-0">ดูรายการ</Button>
+            <Button variant="outline-black" size="lg" className="shrink-0">ดูรายการ</Button>
           </div>
         </div>
 
@@ -583,7 +601,7 @@ export function ProductCatalogTab() {
                 <p className="font-bold overflow-hidden text-ellipsis w-full" style={{ color: "#4a5565", fontSize: 16, lineHeight: "24px" }}>Customize Underlying</p>
                 <p className="overflow-hidden text-ellipsis w-full" style={{ color: "#6a7282", fontSize: 14, lineHeight: "20px" }}>ออกแบบสินทรัพย์ด้วยตนเอง</p>
               </div>
-              <Button variant="outline-black" size="md" leftIcon={<PhoneIcon size={20} />} className="shrink-0">ติดต่อ</Button>
+              <Button variant="outline-black" size="lg" leftIcon={<PhoneIcon size={20} />} className="shrink-0">ติดต่อ</Button>
             </div>
           </div>
         </div>
@@ -611,7 +629,7 @@ export function ProductCatalogTab() {
             <Button variant="outline-black" size="icon-lg" aria-label="ตัวกรอง" className="shrink-0 lg:hidden">
               <FunnelSimpleIcon size={18} />
             </Button>
-            <Button variant="outline-black" size="sm" leftIcon={<FunnelSimpleIcon size={18} />} className="shrink-0 hidden lg:flex">ตัวกรอง</Button>
+            <Button variant="outline-black" size="md" leftIcon={<FunnelSimpleIcon size={18} />} className="shrink-0 hidden lg:flex">ตัวกรอง</Button>
           </div>
           {/* 3-column grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0 w-full px-4 lg:px-6">
