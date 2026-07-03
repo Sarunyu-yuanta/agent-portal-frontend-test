@@ -1,0 +1,175 @@
+"use client";
+
+import { useEffect } from "react";
+import { Button } from "@sarunyu/system-one";
+import { ArrowLeftIcon, ShieldCheckIcon } from "@phosphor-icons/react";
+import type { StructuredProduct } from "./structured-product-data";
+
+const BORDER_COLOR = "rgba(0,0,0,0.1)";
+
+type DetailRow = {
+  label: string;
+  value: string;
+  link?: boolean;
+  multiline?: string[];
+};
+
+function DetailTable({ rows }: { rows: DetailRow[] }) {
+  return (
+    <div
+      className="flex flex-col w-full rounded-md overflow-hidden"
+      style={{ border: `1px solid ${BORDER_COLOR}` }}
+    >
+      {rows.map((row, i) => (
+        <div
+          key={row.label}
+          className={`flex gap-3 items-start px-4 py-2 w-full text-base leading-5 ${
+            i % 2 === 0 ? "bg-[#f9fafb]" : "bg-white"
+          }`}
+        >
+          <span className="flex-1 min-w-0 text-[#4a5565]">{row.label}</span>
+          {row.multiline ? (
+            <div className="flex flex-1 min-w-0 flex-col gap-3 items-start text-[#101828]">
+              {row.multiline.map((line) => (
+                <span key={line} className="whitespace-nowrap">
+                  {line}
+                </span>
+              ))}
+            </div>
+          ) : row.link ? (
+            <button
+              type="button"
+              className="flex-1 min-w-0 text-left text-[#0a6ee7] underline border-none bg-transparent p-0 cursor-pointer text-base leading-5"
+            >
+              {row.value}
+            </button>
+          ) : (
+            <span className="flex-1 min-w-0 text-[#101828]">{row.value}</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function StructuredProductDetail({
+  product,
+  onBack,
+}: {
+  product: StructuredProduct;
+  onBack: () => void;
+}) {
+  const showPrincipalTag =
+    product.tags.includes("รับประกันเงินต้น") || product.id === "aapl-amzn-nflx";
+
+  useEffect(() => {
+    const main = document.querySelector("main");
+    if (main) {
+      main.scrollTop = 0;
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [product.id]);
+
+  const detailRows: DetailRow[] = [
+    { label: "อัตราดอกเบี้ย (Coupon)", value: product.coupon },
+    { label: "วันเสนอขาย", value: product.offerDate },
+    { label: "งวดดอกเบี้ย", value: product.couponPeriod },
+    { label: "ระยะเวลาการลงทุน (Tenor)", value: product.detailTenor },
+    { label: "ผลิตภัณฑ์", value: product.productName, link: true },
+    { label: "ประเภท", value: product.productType },
+    { label: "สกุลเงินลงทุน", value: product.currency },
+    { label: "ลงทุนขั้นต่ำ", value: product.minInvestment },
+    {
+      label: "ข้อมูลเพิ่มเติม",
+      value: "",
+      multiline: [
+        `KO: ${product.ko}`,
+        `Strike: ${product.strike}`,
+        `KI: ${product.ki}`,
+      ],
+    },
+  ];
+
+  return (
+    <div
+      className="flex flex-col items-center w-full pt-6 pb-20 px-4 md:px-8 lg:px-[221px]"
+      style={{ backgroundColor: "#f9fafb" }}
+    >
+      {/* Header — back + title */}
+      <div className="flex gap-2 items-center h-[46px] py-2 w-full max-w-[998px]">
+        <Button variant="plain" size="icon-sm" onClick={onBack} aria-label="กลับ" className="shrink-0">
+          <ArrowLeftIcon size={20} />
+        </Button>
+        <h1 className="flex-1 min-w-0 text-lg font-bold leading-[26px] text-[#101828] truncate">
+          {product.underlying}
+        </h1>
+      </div>
+
+      {/* White card */}
+      <div
+        className="flex flex-col gap-14 items-center w-full max-w-[998px] px-6 py-8 md:px-10 lg:px-14 lg:py-8 rounded-xl bg-white"
+        style={{ boxShadow: "0px 0px 4px rgba(0,0,0,0.02)" }}
+      >
+        {/* Symbol + summary */}
+        <div className="flex flex-col gap-4 w-full">
+          <div className="flex flex-col gap-2 w-full">
+            <div className="flex gap-2 items-center w-full">
+              <div className="flex flex-1 min-w-0 gap-1 items-center">
+                {product.logos.map((src, i) => (
+                  <div
+                    key={i}
+                    className="relative shrink-0 size-6 rounded overflow-hidden"
+                    style={{ border: "1px solid rgba(0,0,0,0.08)" }}
+                  >
+                    <img alt="" className="absolute inset-0 size-full object-cover" src={src} />
+                  </div>
+                ))}
+              </div>
+              {showPrincipalTag && (
+                <span className="inline-flex items-center gap-0.5 shrink-0 rounded px-2 py-1 bg-[#eff6ff]">
+                  <ShieldCheckIcon size={14} weight="fill" color="#2b7fff" className="shrink-0" />
+                  <span className="text-xs leading-4 text-[#074ea4] whitespace-nowrap">
+                    รับประกันเงินต้น
+                  </span>
+                </span>
+              )}
+            </div>
+
+            <div className="flex gap-2 items-center w-full">
+              <div className="flex flex-1 min-w-0 flex-col gap-0.5">
+                <p className="text-base font-bold leading-6 text-[#101828] truncate w-full">
+                  {product.underlying}
+                </p>
+                <p className="text-xs leading-4 text-[#4a5565]">Underlying</p>
+              </div>
+              <div className="flex flex-col gap-0.5 items-end shrink-0">
+                <p className="text-base font-bold leading-6 text-[#101828] whitespace-nowrap">
+                  {product.coupon}
+                </p>
+                <p className="text-xs leading-4 text-[#4a5565]">Coupon</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 items-center w-full">
+            <DetailTable rows={detailRows} />
+            <p className="text-xs leading-4 text-[#6a7282] text-center whitespace-nowrap">
+              อัปเดตล่าสุด {product.updatedAt}
+            </p>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="flex flex-col gap-3 items-center w-full">
+          <p className="w-full text-sm leading-5 text-[#6a7282] text-center">
+            การแจ้งความสนใจยังไม่ถือเป็นการลงทุนจริง โดยเจ้าหน้าที่จะติดต่อกลับเพื่อยืนยันรายละเอียดการลงทุน
+          </p>
+          <Button variant="primary" size="xl" className="w-full max-w-[343px]">
+            สนใจลงทุน
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
