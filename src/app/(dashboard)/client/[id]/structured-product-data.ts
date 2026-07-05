@@ -227,6 +227,7 @@ export const TOP_IDEA_DETAIL_PRODUCTS: StructuredProduct[] = [
 
 export const ALL_STRUCTURED_PRODUCTS_COUNT = 328;
 export const ALL_STRUCTURED_PRODUCTS_UPDATED_AT = "25 August 2026 - 09:00";
+export const ALL_STRUCTURED_PRODUCTS_UPDATED_AT_TABLET = "25 Aug 2026 - 09:00";
 
 /** Grid on All Structured Products page — Figma 34079:504558 */
 export const ALL_STRUCTURED_PRODUCTS: StructuredProduct[] = [

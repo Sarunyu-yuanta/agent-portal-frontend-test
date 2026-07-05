@@ -18,6 +18,7 @@ import {
   TOP_IDEA_SUBTITLES,
   TOP_IDEA_MAX_COUPON,
   TOP_IDEA_UPDATED_AT,
+  TOP_IDEA_UPDATED_AT_MOBILE,
   type TopIdeaSector,
 } from "./top-idea-data";
 
@@ -55,33 +56,37 @@ const BANNER_SHADOW =
 function SectorHeroIcon({ sector }: { sector: TopIdeaSector }) {
   if (sector === "Energy") {
     return (
-      <div className="relative shrink-0 size-10">
+      <div className="relative shrink-0 size-6 md:size-8 lg:size-10">
         <img alt="" className="block max-w-none size-full" src={ASSETS.heroLightning} />
       </div>
     );
   }
 
-  const iconProps = { size: 20 as const, color: "white", weight: "fill" as const };
-  let icon;
+  const iconSm = { size: 12 as const, color: "white", weight: "fill" as const };
+  const iconMd = { size: 16 as const, color: "white", weight: "fill" as const };
+  const iconLg = { size: 20 as const, color: "white", weight: "fill" as const };
+  let Icon;
   switch (sector) {
     case "Material":
-      icon = <WallIcon {...iconProps} />;
+      Icon = WallIcon;
       break;
     case "Industrials":
-      icon = <FactoryIcon {...iconProps} />;
+      Icon = FactoryIcon;
       break;
     case "Consumer Discretionary":
-      icon = <BasketIcon {...iconProps} />;
+      Icon = BasketIcon;
       break;
     case "Consumer Staples":
-      icon = <ShirtFoldedIcon {...iconProps} />;
+      Icon = ShirtFoldedIcon;
       break;
     default:
-      icon = <LightningIcon {...iconProps} />;
+      Icon = LightningIcon;
   }
   return (
-    <div className="flex items-center justify-center size-10 rounded-full bg-[#101828] shrink-0">
-      {icon}
+    <div className="flex items-center justify-center size-6 md:size-8 lg:size-10 rounded-full bg-[#101828] shrink-0">
+      <Icon {...iconSm} className="md:hidden" />
+      <Icon {...iconMd} className="hidden md:block lg:hidden" />
+      <Icon {...iconLg} className="hidden lg:block" />
     </div>
   );
 }
@@ -89,9 +94,10 @@ function SectorHeroIcon({ sector }: { sector: TopIdeaSector }) {
 function EnergyHeroGlow() {
   return (
     <div
-      className="absolute pointer-events-none -translate-x-1/2 h-[118px] w-[115.839px]
-        max-md:left-[58%] max-md:bottom-[40px]
-        md:left-[calc(50%-329.08px)] md:bottom-[75px]"
+      className="absolute pointer-events-none -translate-x-1/2
+        max-md:left-[calc(50%+42.5px)] max-md:bottom-[40px] max-md:h-[82px] max-md:w-[80px]
+        md:max-lg:left-[calc(50%+6.42px)] md:max-lg:bottom-[30px] md:max-lg:h-[118px] md:max-lg:w-[115.839px]
+        lg:left-[calc(50%-329.08px)] lg:bottom-[75px] lg:h-[118px] lg:w-[115.839px]"
       aria-hidden
     >
       <div className="absolute inset-0 overflow-hidden">
@@ -108,19 +114,34 @@ function EnergyHeroGlow() {
 
 function DetailHeroWave() {
   return (
-    <div
-      className="absolute flex h-[93.968px] items-center justify-center pointer-events-none"
-      style={{ left: -5.63, top: -14.22, width: 552.711 }}
-      aria-hidden
-    >
-      <div className="flex-none rotate-[178.69deg]">
-        <div className="relative h-[81.39px] w-[550.994px]">
-          <div className="absolute inset-[-24.57%_-4.36%_-34.4%_-4.36%]">
-            <img alt="" className="block max-w-none size-full" src={ASSETS.detailWave} />
+    <>
+      <div
+        className="absolute flex items-center justify-center pointer-events-none md:hidden"
+        style={{ left: -4.79, top: -12, width: 381.418, height: 79.998 }}
+        aria-hidden
+      >
+        <div className="flex-none rotate-[178.69deg]">
+          <div className="relative h-[71.33px] w-[379.886px]">
+            <div className="absolute inset-[-28.04%_-6.32%_-39.25%_-6.32%]">
+              <img alt="" className="block max-w-none size-full" src={ASSETS.detailWave} />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      <div
+        className="absolute hidden md:flex h-[93.968px] items-center justify-center pointer-events-none"
+        style={{ left: -5.63, top: -14.22, width: 552.711 }}
+        aria-hidden
+      >
+        <div className="flex-none rotate-[178.69deg]">
+          <div className="relative h-[81.39px] w-[550.994px]">
+            <div className="absolute inset-[-24.57%_-4.36%_-34.4%_-4.36%]">
+              <img alt="" className="block max-w-none size-full" src={ASSETS.detailWave} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -130,7 +151,7 @@ function TopIdeaHeroBanner({ sector }: { sector: TopIdeaSector }) {
 
   return (
     <div
-      className="relative flex w-full items-center -mb-6 min-h-[155px] pt-8 pb-14"
+      className="relative flex w-full items-center -mb-6 min-h-[100px] pt-3 pb-10 md:pt-4 md:pb-10 lg:min-h-[155px] lg:pt-8 lg:pb-14"
       style={{ backgroundColor: "#f3f4f6", boxShadow: BANNER_SHADOW }}
     >
       <div className="absolute inset-0 pointer-events-none" aria-hidden>
@@ -184,21 +205,25 @@ function TopIdeaHeroBanner({ sector }: { sector: TopIdeaSector }) {
         )}
       </div>
 
-      {/* Content — Figma flex row */}
-      <div className="relative z-[1] flex flex-1 gap-4 items-center w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-20">
-        <div className="flex flex-1 gap-4 items-center min-w-0">
+      {/* Content — mobile/tablet: 16px/12px; desktop lg: 18px/14px, coupon 20px */}
+      <div className="relative z-[1] flex flex-1 gap-2 lg:gap-4 items-center w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-20">
+        <div className="flex flex-1 gap-2 lg:gap-4 items-center min-w-0">
           <SectorHeroIcon sector={sector} />
-          <div className="flex flex-1 flex-col gap-2 items-start justify-center min-w-[141px]">
-            <p className="font-bold text-lg leading-6 text-[#101828] truncate w-full">{theme}</p>
-            <p className="text-sm leading-5 text-[#6a7282] truncate w-full">{subtitle}</p>
+          <div className="flex flex-1 flex-col gap-0.5 md:gap-1 lg:gap-2 items-start justify-center min-w-[141px] max-md:max-w-[210px]">
+            <p className="font-bold text-base leading-6 lg:text-lg lg:leading-6 text-[#101828] truncate w-full">
+              {theme}
+            </p>
+            <p className="text-xs leading-4 lg:text-sm lg:leading-5 text-[#6a7282] truncate w-full">{subtitle}</p>
           </div>
         </div>
-        <div className="relative flex flex-col gap-2 items-end justify-center shrink-0">
-          <div className="flex items-center gap-1 px-1 rounded-md bg-white">
-            <span className="text-sm leading-5 text-[#6a7282]">up to</span>
-            <span className="font-bold text-xl leading-[30px] text-[#008236]">{TOP_IDEA_MAX_COUPON}</span>
+        <div className="relative flex flex-col gap-0.5 lg:gap-2 items-end justify-center shrink-0">
+          <div className="flex items-center gap-0.5 lg:gap-1 px-1 rounded-md bg-white">
+            <span className="text-xs leading-4 lg:text-sm lg:leading-5 text-[#6a7282]">up to</span>
+            <span className="font-bold text-lg leading-6 lg:text-xl lg:leading-[30px] text-[#008236]">
+              {TOP_IDEA_MAX_COUPON}
+            </span>
           </div>
-          <span className="text-sm leading-5 text-[#6a7282]">Coupon</span>
+          <span className="text-xs leading-4 lg:text-sm lg:leading-5 text-[#6a7282]">Coupon</span>
         </div>
       </div>
     </div>
@@ -227,37 +252,53 @@ export function TopIdeaDetail({
   }, [sector]);
 
   return (
-    <div className="flex flex-col gap-2 w-full bg-white pt-6">
+    <div className="flex flex-col gap-2 w-full bg-white pt-4 md:pt-6">
       <div className="flex gap-2 items-center h-[46px] py-2 w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-20">
         <Button variant="plain" size="icon-sm" onClick={onBack} aria-label="กลับ" className="shrink-0">
           <ArrowLeftIcon size={20} />
         </Button>
-        <h1 className="flex-1 min-w-0 text-lg font-bold leading-[26px] text-[#101828] truncate">{theme}</h1>
+        <h1 className="flex-1 min-w-0 text-base font-bold leading-6 text-[#101828] truncate lg:text-lg lg:leading-[26px]">
+          {theme}
+        </h1>
       </div>
 
       <TopIdeaHeroBanner sector={sector} />
 
-      <div className="relative z-10 w-full bg-white rounded-t-[24px] pt-6 pb-10">
+      <div className="relative z-10 w-full bg-white rounded-t-[24px] pt-4 pb-10 lg:pt-6">
         <div className="flex flex-col gap-2 items-center w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-20">
           <div className="flex gap-3 items-center w-full">
-            <p className="flex-1 min-w-0 text-base leading-5 text-[#4a5565]">{products.length} รายการ</p>
+            <p className="flex-1 min-w-0 text-sm leading-5 lg:text-base lg:leading-5 text-[#4a5565]">
+              {products.length} รายการ
+            </p>
+            <Button
+              variant="outline-black"
+              size="icon-sm"
+              aria-label="ตัวกรอง"
+              className="shrink-0 md:hidden"
+            >
+              <FunnelSimpleIcon size={18} />
+            </Button>
             <Button
               variant="outline-black"
               size="sm"
               leftIcon={<FunnelSimpleIcon size={18} />}
-              className="shrink-0"
+              className="shrink-0 hidden md:inline-flex"
             >
               ตัวกรอง
             </Button>
           </div>
-          <p className="w-full text-xs leading-4 text-[#6a7282]">อัปเดตล่าสุด {TOP_IDEA_UPDATED_AT}</p>
+          <p className="w-full text-[9px] leading-[14px] lg:text-xs lg:leading-4 text-[#6a7282]">
+            <span className="lg:hidden">อัปเดตล่าสุด {TOP_IDEA_UPDATED_AT_MOBILE}</span>
+            <span className="hidden lg:inline">อัปเดตล่าสุด {TOP_IDEA_UPDATED_AT}</span>
+          </p>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+          {/* mobile/tablet: single-col horizontal cards; desktop: 3-col vertical grid cards */}
+          <div className="flex flex-col gap-3 lg:grid lg:grid-cols-3 lg:gap-3 w-full">
             {products.map((product) => (
               <StructuredProductCard
                 key={product.id}
                 {...product}
-                variant="grid"
+                variant="catalog"
                 onClick={() => onProductSelect(product)}
               />
             ))}

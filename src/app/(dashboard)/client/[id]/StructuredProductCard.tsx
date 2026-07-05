@@ -45,7 +45,7 @@ export function StructuredProductCard({
       className={`flex gap-4 overflow-hidden p-4 relative rounded-[12px] w-full${
         isGrid
           ? " flex-col items-center"
-          : " flex-col md:flex-row lg:flex-col md:h-[100px] md:items-start lg:items-center"
+          : " flex-col md:max-lg:flex-row md:max-lg:h-[100px] md:max-lg:items-start lg:flex-col lg:items-center"
       }${onClick ? " cursor-pointer" : ""}`}
       style={{
         backgroundColor: "white",
@@ -55,7 +55,7 @@ export function StructuredProductCard({
     >
       <div
         className={`flex flex-col gap-2 items-start shrink-0 w-full ${
-          isGrid ? "" : "md:flex-1 md:min-w-0 lg:w-full"
+          isGrid ? "" : "md:max-lg:flex-1 md:max-lg:min-w-0 lg:w-full"
         }`}
       >
         <div className="flex gap-2 items-center shrink-0 w-full">
@@ -118,7 +118,7 @@ export function StructuredProductCard({
       </div>
       <div
         className={`flex items-start justify-center shrink-0 text-center w-full py-1.5 ${
-          isGrid ? "" : "md:items-center md:flex-1 md:h-full md:min-w-0 lg:w-full md:py-3"
+          isGrid ? "" : "md:max-lg:items-center md:max-lg:flex-1 md:max-lg:h-full md:max-lg:min-w-0 lg:w-full md:max-lg:py-3 lg:py-1.5"
         }`}
         style={{ backgroundColor: "#f9fafb", borderRadius: 8 }}
       >
@@ -126,7 +126,7 @@ export function StructuredProductCard({
           <div
             key={s.label}
             className={`flex flex-col gap-0.5 items-center justify-center flex-1 min-w-0 ${
-              isGrid ? "" : "md:h-full"
+              isGrid ? "" : "md:max-lg:h-full"
             }`}
             style={i < stats.length - 1 ? { borderRight: "1px solid rgba(0,0,0,0.1)" } : {}}
           >

@@ -25,6 +25,8 @@ export const TOP_IDEA_MAX_COUPON = "30.5%";
 
 export const TOP_IDEA_UPDATED_AT = "10 September 2026 - 09:00";
 
+export const TOP_IDEA_UPDATED_AT_MOBILE = "10 Sep 2026 - 09:00";
+
 /** Horizontal scroll strip on catalog home */
 export const TOP_IDEAS: { sector: TopIdeaSector }[] = [
   { sector: "Energy" },
