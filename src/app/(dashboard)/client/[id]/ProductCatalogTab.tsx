@@ -3,15 +3,27 @@
 import { useState, useRef, useCallback } from "react";
 import { Button, SearchInput, TabGroup } from "@sarunyu/system-one";
 import { FixedIncomeTab } from "./FixedIncomeTab";
+import { FixedIncomeDetail } from "./FixedIncomeDetail";
+import { FixedIncomeCompanyDetail } from "./FixedIncomeCompanyDetail";
+import type { FixedIncomeBond } from "./fixed-income-data";
 import { GlobalBondTab } from "./GlobalBondTab";
+import { GlobalBondDetail } from "./GlobalBondDetail";
+import { GlobalBondAllPage } from "./GlobalBondAllPage";
+import type { GlobalBondIssuerId } from "./global-bond-data";
 import { StructuredProductDetail } from "./StructuredProductDetail";
 import { StructuredProductAllPage } from "./StructuredProductAllPage";
 import { StructuredProductCard } from "./StructuredProductCard";
 import { TopIdeaAllPage } from "./TopIdeaAllPage";
 import { TopIdeaDetail } from "./TopIdeaDetail";
 import { TopIdeaCard } from "./TopIdeaCard";
+import { InvestmentSolutionDetail } from "./InvestmentSolutionDetail";
 import { TOP_IDEAS, type TopIdeaSector } from "./top-idea-data";
 import { TOP_PICKS, STRUCTURED_PRODUCTS, type StructuredProduct } from "./structured-product-data";
+import {
+  INVESTMENT_SOLUTIONS,
+  getInvestmentSolution,
+  type InvestmentSolutionId,
+} from "./investment-solution-data";
 import {
   ShapesIcon, CertificateIcon, GlobeHemisphereWestIcon,
   InfoIcon, XIcon, ClockCounterClockwiseIcon, HourglassHighIcon,
@@ -68,20 +80,34 @@ const PRODUCT_TABS_MOBILE = [
 
 type CropTransform = { scaleX: number; scaleY: number; tx: number; ty: number };
 
-function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, imgW, imgH, imgRotation, crop }: {
+function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, imgW, imgH, imgRotation, crop, onClick }: {
   name: string; desc: string; coupon: string; tenor: string;
   imgSrc: string; gradient: string;
   imgLeft: number; imgW: number; imgH: number;
   imgRotation?: number;
   crop?: CropTransform;
+  onClick?: () => void;
 }) {
   const isHighConviction = imgRotation === 180;
   return (
     <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
       className={`relative overflow-hidden rounded-xl flex gap-4 p-3 flex-1
         md:flex-none md:w-full md:h-30 md:gap-6 md:px-8 md:py-3
         lg:flex-1 lg:h-auto lg:gap-4 lg:p-3
-        items-center`}
+        items-center${onClick ? " cursor-pointer" : ""}`}
       style={{ backgroundImage: gradient, boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1),0px 2px 4px -2px rgba(0,0,0,0.1)" }}
     >
       {/* Secure Income / Balanced Growth: image in fixed container on left */}
@@ -125,7 +151,7 @@ function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, 
             <p className="truncate" style={{ color: "#6a7282", fontSize: 12, lineHeight: "16px" }}>{desc}</p>
           </div>
           {/* Mobile + Desktop only button (hidden on tablet) */}
-          <Button variant="outline" size="icon-xs" aria-label="ดูรายละเอียด" className="md:hidden lg:flex">
+          <Button variant="outline" size="icon-xs" aria-label="ดูรายละเอียด" className="md:hidden lg:flex" onClick={(e) => { e.stopPropagation(); onClick?.(); }}>
             <ArrowRightIcon size={16} />
           </Button>
         </div>
@@ -146,7 +172,7 @@ function InvestmentCard({ name, desc, coupon, tenor, imgSrc, gradient, imgLeft, 
           </div>
         </div>
         {/* Tablet-only button (after stats) */}
-        <Button variant="outline" size="icon-xs" aria-label="ดูรายละเอียด" className="hidden md:flex lg:hidden shrink-0">
+        <Button variant="outline" size="icon-xs" aria-label="ดูรายละเอียด" className="hidden md:flex lg:hidden shrink-0" onClick={(e) => { e.stopPropagation(); onClick?.(); }}>
           <ArrowRightIcon size={16} />
         </Button>
       </div>
@@ -197,14 +223,90 @@ function useDragScroll() {
 
 export function ProductCatalogTab() {
   const [activeProductTab, setActiveProductTab] = useState("structured");
+  const [selectedFixedIncomeBond, setSelectedFixedIncomeBond] = useState<FixedIncomeBond | null>(null);
+  const [selectedFixedIncomeCompany, setSelectedFixedIncomeCompany] = useState<string | null>(null);
+  const [fixedIncomeView, setFixedIncomeView] = useState<"bond" | "company" | null>(null);
+  const [selectedGlobalBondIssuer, setSelectedGlobalBondIssuer] = useState<GlobalBondIssuerId | null>(null);
+  const [showAllGlobalBonds, setShowAllGlobalBonds] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<StructuredProduct | null>(null);
   const [selectedTopIdea, setSelectedTopIdea] = useState<TopIdeaSector | null>(null);
+  const [selectedInvestmentSolution, setSelectedInvestmentSolution] = useState<InvestmentSolutionId | null>(null);
   const [showAllTopIdeas, setShowAllTopIdeas] = useState(false);
   const [showAllStructuredProducts, setShowAllStructuredProducts] = useState(false);
   const [globalOrThai, setGlobalOrThai] = useState<"Global" | "Thai">("Global");
   const [showAlert, setShowAlert] = useState(true);
   const [searchValue, setSearchValue] = useState("");
   const topIdeaDrag = useDragScroll();
+
+  const resetFixedIncomeNav = () => {
+    setSelectedFixedIncomeBond(null);
+    setSelectedFixedIncomeCompany(null);
+    setFixedIncomeView(null);
+  };
+
+  if (showAllGlobalBonds) {
+    return (
+      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+        <GlobalBondAllPage onBack={() => setShowAllGlobalBonds(false)} />
+      </div>
+    );
+  }
+
+  if (selectedGlobalBondIssuer) {
+    return (
+      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+        <GlobalBondDetail
+          issuerId={selectedGlobalBondIssuer}
+          onBack={() => setSelectedGlobalBondIssuer(null)}
+          onIssuerSelect={setSelectedGlobalBondIssuer}
+        />
+      </div>
+    );
+  }
+
+  if (fixedIncomeView === "bond" && selectedFixedIncomeBond) {
+    return (
+      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+        <FixedIncomeDetail
+          bond={selectedFixedIncomeBond}
+          onBack={() => {
+            if (selectedFixedIncomeCompany) {
+              setSelectedFixedIncomeBond(null);
+              setFixedIncomeView("company");
+            } else {
+              resetFixedIncomeNav();
+            }
+          }}
+          onCompanySelect={(companyId) => {
+            setSelectedFixedIncomeCompany(companyId);
+            setFixedIncomeView("company");
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (fixedIncomeView === "company" && selectedFixedIncomeCompany) {
+    return (
+      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+        <FixedIncomeCompanyDetail
+          companyId={selectedFixedIncomeCompany}
+          onBack={() => {
+            if (selectedFixedIncomeBond) {
+              setSelectedFixedIncomeCompany(null);
+              setFixedIncomeView("bond");
+            } else {
+              resetFixedIncomeNav();
+            }
+          }}
+          onBondSelect={(bond) => {
+            setSelectedFixedIncomeBond(bond);
+            setFixedIncomeView("bond");
+          }}
+        />
+      </div>
+    );
+  }
 
   if (selectedProduct) {
     return (
@@ -223,6 +325,18 @@ export function ProductCatalogTab() {
         <TopIdeaDetail
           sector={selectedTopIdea}
           onBack={() => setSelectedTopIdea(null)}
+          onProductSelect={(product) => setSelectedProduct(product)}
+        />
+      </div>
+    );
+  }
+
+  if (selectedInvestmentSolution) {
+    return (
+      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+        <InvestmentSolutionDetail
+          solution={getInvestmentSolution(selectedInvestmentSolution)}
+          onBack={() => setSelectedInvestmentSolution(null)}
           onProductSelect={(product) => setSelectedProduct(product)}
         />
       </div>
@@ -277,7 +391,7 @@ export function ProductCatalogTab() {
           <TabGroup
             items={PRODUCT_TABS_MOBILE}
             activeId={activeProductTab}
-            onChange={(id) => { setActiveProductTab(id); setSelectedProduct(null); setShowAllTopIdeas(false); setSelectedTopIdea(null); setShowAllStructuredProducts(false); }}
+            onChange={(id) => { setActiveProductTab(id); setSelectedProduct(null); setShowAllTopIdeas(false); setSelectedTopIdea(null); setSelectedInvestmentSolution(null); setShowAllStructuredProducts(false); resetFixedIncomeNav(); setSelectedGlobalBondIssuer(null); setShowAllGlobalBonds(false); }}
             size="md"
           />
         </div>
@@ -299,15 +413,27 @@ export function ProductCatalogTab() {
         <TabGroup
           items={PRODUCT_TABS}
           activeId={activeProductTab}
-          onChange={(id) => { setActiveProductTab(id); setSelectedProduct(null); setShowAllTopIdeas(false); setSelectedTopIdea(null); }}
+          onChange={(id) => { setActiveProductTab(id); setSelectedProduct(null); setShowAllTopIdeas(false); setSelectedTopIdea(null); setSelectedInvestmentSolution(null); setShowAllStructuredProducts(false); resetFixedIncomeNav(); setSelectedGlobalBondIssuer(null); setShowAllGlobalBonds(false); }}
           size="md"
         />
       </div>
 
       {/* ── Tab content ─────────────────────────────────────────────────────── */}
-      {activeProductTab === "fixed-income" && <FixedIncomeTab />}
+      {activeProductTab === "fixed-income" && (
+        <FixedIncomeTab
+          onBondSelect={(bond) => {
+            setSelectedFixedIncomeBond(bond);
+            setFixedIncomeView("bond");
+          }}
+        />
+      )}
 
-      {activeProductTab === "global-bond" && <GlobalBondTab />}
+      {activeProductTab === "global-bond" && (
+        <GlobalBondTab
+          onIssuerSelect={setSelectedGlobalBondIssuer}
+          onViewAll={() => setShowAllGlobalBonds(true)}
+        />
+      )}
 
       {activeProductTab === "structured" && (
       <div className="flex flex-col gap-6 items-center w-full" style={{ paddingTop: 24 }}>
@@ -436,9 +562,32 @@ export function ProductCatalogTab() {
           </p>
           <div className="flex flex-col gap-6 items-start relative shrink-0 w-full">
             <div className="flex flex-col lg:flex-row gap-4 shrink-0 w-full">
-              <InvestmentCard name="Secure Income" desc="ความเสี่ยงต่ำ ลงทุนอย่างมั่นคง" coupon="12%-15%" tenor="12 เดือน" imgSrc={A.imgSecureIncome} gradient={GRAD_SECURE} imgLeft={12} imgW={72} imgH={92} crop={{ scaleX: 0.4390, scaleY: 1.0, tx: 0, ty: 0 }} />
-              <InvestmentCard name="Balanced Growth" desc="ความเสี่ยงปานกลาง ผลตอบแทนคุ้มค่า" coupon="25%-30%" tenor="9 เดือน" imgSrc={A.imgBalancedGrowth} gradient={GRAD_BALANCED} imgLeft={12} imgW={72} imgH={103} crop={{ scaleX: 0.7006, scaleY: 1.0, tx: 0.1464, ty: 0 }} />
-              <InvestmentCard name="High Conviction" desc="ความเสี่ยงสูง ผลตอบแทนสูงสุด" coupon="35%-40%" tenor="6 เดือน" imgSrc={A.imgHighConvBg} gradient={GRAD_HIGH_CV} imgLeft={-67} imgW={198} imgH={132} imgRotation={180} />
+              {INVESTMENT_SOLUTIONS.map((solution) => {
+                const isHighConviction = solution.id === "high-conviction";
+                const isBalanced = solution.id === "balanced-growth";
+                return (
+                  <InvestmentCard
+                    key={solution.id}
+                    name={solution.name}
+                    desc={solution.desc}
+                    coupon={solution.couponRange}
+                    tenor={solution.tenor}
+                    imgSrc={isHighConviction ? A.imgHighConvBg : isBalanced ? A.imgBalancedGrowth : A.imgSecureIncome}
+                    gradient={isHighConviction ? GRAD_HIGH_CV : isBalanced ? GRAD_BALANCED : GRAD_SECURE}
+                    imgLeft={isHighConviction ? -67 : 12}
+                    imgW={isHighConviction ? 198 : 72}
+                    imgH={isHighConviction ? 132 : isBalanced ? 103 : 92}
+                    imgRotation={isHighConviction ? 180 : undefined}
+                    crop={!isHighConviction ? {
+                      scaleX: isBalanced ? 0.7006 : 0.4390,
+                      scaleY: 1.0,
+                      tx: isBalanced ? 0.1464 : 0,
+                      ty: 0,
+                    } : undefined}
+                    onClick={() => setSelectedInvestmentSolution(solution.id)}
+                  />
+                );
+              })}
             </div>
             {/* Customize Underlying */}
             <div className="flex gap-2 items-center relative shrink-0 w-full"

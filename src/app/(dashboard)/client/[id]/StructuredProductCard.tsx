@@ -6,6 +6,99 @@ type CardProduct = Pick<
   "underlying" | "coupon" | "tenor" | "ko" | "strike" | "ki" | "tags" | "logos"
 >;
 
+const CARD_SHADOW =
+  "0px 1px 3px 0px rgba(0,0,0,0.1), 0px 1px 2px -1px rgba(0,0,0,0.1)";
+
+function LogoRow({ logos, tags }: { logos: string[]; tags: string[] }) {
+  return (
+    <div className="flex gap-2 items-center w-full shrink-0">
+      <div className="flex gap-1 items-center flex-1 min-w-0">
+        {logos.map((src, i) => (
+          <div
+            key={i}
+            className="relative shrink-0 size-5 rounded overflow-hidden"
+            style={{ border: "1px solid rgba(0,0,0,0.08)" }}
+          >
+            <img alt="" className="absolute inset-0 size-full object-cover" src={src} />
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-1 items-center shrink-0">
+        {tags.includes("ใกล้เต็ม") && (
+          <div
+            className="flex gap-0.5 items-center overflow-hidden px-1 py-0.5 rounded shrink-0"
+            style={{ backgroundColor: "#fdefe6" }}
+          >
+            <FireIcon size={14} weight="fill" color="#f97316" />
+            <p className="whitespace-nowrap text-[9px] leading-[14px] text-[#101828]">ใกล้เต็ม</p>
+          </div>
+        )}
+        {tags.includes("รับประกันเงินต้น") && (
+          <div
+            className="flex gap-0.5 items-center overflow-hidden px-1 py-0.5 rounded shrink-0"
+            style={{ backgroundColor: "#eff6ff" }}
+          >
+            <ShieldCheckIcon size={14} weight="fill" color="#2b7fff" />
+            <p className="whitespace-nowrap text-[9px] leading-[14px] text-[#101828]">รับประกันเงินต้น</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UnderlyingCouponRow({ underlying, coupon }: { underlying: string; coupon: string }) {
+  return (
+    <div className="flex gap-2 items-center w-full shrink-0">
+      <div className="flex flex-col flex-1 min-w-0">
+        <p className="font-bold text-[16px] leading-6 text-[#101828] truncate w-full">{underlying}</p>
+        <p className="text-[12px] leading-4 text-[#6a7282]">Underlying</p>
+      </div>
+      <div className="flex flex-col items-end shrink-0 whitespace-nowrap">
+        <p className="font-bold text-[16px] leading-6 text-[#101828]">{coupon}</p>
+        <p className="text-[12px] leading-4 text-[#6a7282]">Coupon</p>
+      </div>
+    </div>
+  );
+}
+
+function StatsGrid({
+  stats,
+  className = "",
+  layout = "default",
+}: {
+  stats: { label: string; value: string }[];
+  className?: string;
+  layout?: "default" | "tablet";
+}) {
+  return (
+    <div
+      className={`flex items-center justify-center text-center bg-[#f9fafb] rounded-lg ${className}`}
+    >
+      {stats.map((s, i) => (
+        <div
+          key={s.label}
+          className="flex flex-col gap-0.5 items-center justify-center flex-1 min-w-0 h-full"
+          style={i < stats.length - 1 ? { borderRight: "1px solid rgba(0,0,0,0.1)" } : {}}
+        >
+          <p className="text-[9px] leading-[14px] text-[#6a7282] w-full">{s.label}</p>
+          <p
+            className={`text-[12px] leading-4 text-[#4a5565] w-full ${
+              layout === "tablet"
+                ? s.label === "Tenor"
+                  ? "font-bold"
+                  : "font-normal"
+                : "font-semibold"
+            }`}
+          >
+            {s.value}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function StructuredProductCard({
   underlying,
   coupon,
@@ -27,116 +120,83 @@ export function StructuredProductCard({
 
   const isGrid = variant === "grid";
 
-  return (
-    <div
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={
-        onClick
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onClick();
-              }
-            }
-          : undefined
+  const interactiveProps = onClick
+    ? {
+        role: "button" as const,
+        tabIndex: 0,
+        onClick,
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        },
+        className: "cursor-pointer",
       }
-      className={`flex gap-4 overflow-hidden p-4 relative rounded-[12px] w-full${
-        isGrid
-          ? " flex-col items-center"
-          : " flex-col md:max-lg:flex-row md:max-lg:h-[100px] md:max-lg:items-start lg:flex-col lg:items-center"
-      }${onClick ? " cursor-pointer" : ""}`}
-      style={{
-        backgroundColor: "white",
-        border: "1px solid rgba(0,0,0,0.1)",
-        boxShadow: "0px 1px 3px 0px rgba(0,0,0,0.1),0px 1px 2px -1px rgba(0,0,0,0.1)",
-      }}
-    >
+    : {};
+
+  const cardStyle = {
+    backgroundColor: "white",
+    border: "1px solid rgba(0,0,0,0.1)",
+    boxShadow: CARD_SHADOW,
+  };
+
+  if (isGrid) {
+    return (
       <div
-        className={`flex flex-col gap-2 items-start shrink-0 w-full ${
-          isGrid ? "" : "md:max-lg:flex-1 md:max-lg:min-w-0 lg:w-full"
-        }`}
+        {...interactiveProps}
+        className={`flex flex-col items-center gap-4 overflow-hidden p-4 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
+        style={cardStyle}
       >
-        <div className="flex gap-2 items-center shrink-0 w-full">
-          <div className="flex gap-1 items-center flex-1 min-w-0">
-            {logos.map((src, i) => (
-              <div
-                key={i}
-                className="relative shrink-0"
-                style={{
-                  width: 20,
-                  height: 20,
-                  border: "1px solid rgba(0,0,0,0.1)",
-                  borderRadius: 4,
-                  overflow: "hidden",
-                }}
-              >
-                <img alt="" className="absolute inset-0 w-full h-full object-cover" src={src} />
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-1 items-center shrink-0">
-            {tags.includes("ใกล้เต็ม") && (
-              <div
-                className="flex gap-0.5 items-center overflow-hidden px-1 py-0.5 rounded shrink-0"
-                style={{ backgroundColor: "#fdefe6" }}
-              >
-                <FireIcon size={12} weight="fill" color="#f97316" />
-                <p className="whitespace-nowrap" style={{ color: "#101828", fontSize: 9, lineHeight: "14px" }}>
-                  ใกล้เต็ม
-                </p>
-              </div>
-            )}
-            {tags.includes("รับประกันเงินต้น") && (
-              <div
-                className="flex gap-0.5 items-center overflow-hidden px-1 py-0.5 rounded shrink-0"
-                style={{ backgroundColor: "#eff6ff" }}
-              >
-                <ShieldCheckIcon size={12} weight="fill" color="#2b7fff" />
-                <p className="whitespace-nowrap" style={{ color: "#101828", fontSize: 9, lineHeight: "14px" }}>
-                  รับประกันเงินต้น
-                </p>
-              </div>
-            )}
-          </div>
+        <div className="flex flex-col gap-2 items-start w-full">
+          <LogoRow logos={logos} tags={tags} />
+          <UnderlyingCouponRow underlying={underlying} coupon={coupon} />
         </div>
-        <div className="flex gap-2 items-center shrink-0 w-full">
-          <div className="flex flex-col flex-1 min-w-0">
-            <p className="font-bold w-full truncate" style={{ color: "#101828", fontSize: 16, lineHeight: "24px" }}>
-              {underlying}
-            </p>
-            <p style={{ color: "#6a7282", fontSize: 12, lineHeight: "16px" }}>Underlying</p>
-          </div>
-          <div className="flex flex-col items-end shrink-0 whitespace-nowrap">
-            <p className="font-bold" style={{ color: "#101828", fontSize: 16, lineHeight: "24px" }}>
-              {coupon}
-            </p>
-            <p style={{ color: "#6a7282", fontSize: 12, lineHeight: "16px" }}>Coupon</p>
-          </div>
-        </div>
+        <StatsGrid stats={stats} className="w-full py-1.5" />
       </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Mobile — vertical stack */}
       <div
-        className={`flex items-start justify-center shrink-0 text-center w-full py-1.5 ${
-          isGrid ? "" : "md:max-lg:items-center md:max-lg:flex-1 md:max-lg:h-full md:max-lg:min-w-0 lg:w-full md:max-lg:py-3 lg:py-1.5"
-        }`}
-        style={{ backgroundColor: "#f9fafb", borderRadius: 8 }}
+        {...interactiveProps}
+        className={`flex md:hidden flex-col items-center gap-4 overflow-hidden p-4 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
+        style={cardStyle}
       >
-        {stats.map((s, i) => (
-          <div
-            key={s.label}
-            className={`flex flex-col gap-0.5 items-center justify-center flex-1 min-w-0 ${
-              isGrid ? "" : "md:max-lg:h-full"
-            }`}
-            style={i < stats.length - 1 ? { borderRight: "1px solid rgba(0,0,0,0.1)" } : {}}
-          >
-            <p style={{ color: "#6a7282", fontSize: 9, lineHeight: "14px" }}>{s.label}</p>
-            <p className="font-semibold" style={{ color: "#4a5565", fontSize: 12, lineHeight: "16px" }}>
-              {s.value}
-            </p>
-          </div>
-        ))}
+        <div className="flex flex-col gap-2 items-start w-full">
+          <LogoRow logos={logos} tags={tags} />
+          <UnderlyingCouponRow underlying={underlying} coupon={coupon} />
+        </div>
+        <StatsGrid stats={stats} className="w-full py-1.5" />
       </div>
-    </div>
+
+      {/* Tablet — Figma 33964:144147 horizontal h-[100px] */}
+      <div
+        {...interactiveProps}
+        className={`hidden md:flex lg:hidden h-[100px] box-border items-start gap-4 overflow-hidden p-4 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
+        style={cardStyle}
+      >
+        <div className="flex flex-1 flex-col gap-2 items-start min-w-0">
+          <LogoRow logos={logos} tags={tags} />
+          <UnderlyingCouponRow underlying={underlying} coupon={coupon} />
+        </div>
+        <StatsGrid stats={stats} className="flex-1 h-full min-w-0 py-3" layout="tablet" />
+      </div>
+
+      {/* Desktop — vertical grid card */}
+      <div
+        {...interactiveProps}
+        className={`hidden lg:flex flex-col items-center gap-4 overflow-hidden p-4 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
+        style={cardStyle}
+      >
+        <div className="flex flex-col gap-2 items-start w-full">
+          <LogoRow logos={logos} tags={tags} />
+          <UnderlyingCouponRow underlying={underlying} coupon={coupon} />
+        </div>
+        <StatsGrid stats={stats} className="w-full py-1.5" />
+      </div>
+    </>
   );
 }

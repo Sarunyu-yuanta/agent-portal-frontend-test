@@ -9,6 +9,12 @@ import {
   CaretDownIcon,
   CaretUpIcon,
 } from "@phosphor-icons/react";
+import {
+  GLOBAL_BOND_ISSUERS,
+  RECOMMENDED_ISSUERS,
+  TOP_PICK_ROWS,
+  type GlobalBondIssuerId,
+} from "./global-bond-data";
 
 const BORDER_COLOR = "rgba(0,0,0,0.1)";
 const TABLE_SHADOW = "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
@@ -24,9 +30,11 @@ const BANNER_ASSETS = {
 
 const BANNER_SHADOW = "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
 
+const SHOW_YSINVEST_BANNER = false;
+
 function BannerYSinvest() {
   const [visible, setVisible] = useState(true);
-  if (!visible) return null;
+  if (!SHOW_YSINVEST_BANNER || !visible) return null;
 
   return (
     <div
@@ -109,64 +117,32 @@ function BannerAds() {
   );
 }
 
-const LOGOS = {
-  apple: "https://www.figma.com/api/mcp/asset/1c662d40-3f83-48b7-9616-360251500a2e",
-  microsoft: "https://www.figma.com/api/mcp/asset/1d843e2c-a5ac-4536-b5f2-783583ada653",
-  meta: "https://www.figma.com/api/mcp/asset/8f038722-f9d3-4ba0-954e-d633eb600783",
-  amazon: "https://www.figma.com/api/mcp/asset/4684f79e-a3af-4fee-8669-1346abbb3259",
-  coke: "https://www.figma.com/api/mcp/asset/32a12a51-e30c-47c0-abeb-875c96b76824",
-  amex: "https://www.figma.com/api/mcp/asset/306606b4-150e-4e6c-b9b0-5807dd657934",
-  nvidia: "https://www.figma.com/api/mcp/asset/4103f123-bedc-4e97-bbf5-043e1ebb97f5",
-  walmart: "https://www.figma.com/api/mcp/asset/a9b69a79-0e8e-435e-baf0-badedfcd5408",
-};
+const RECOMMENDED_ROWS = RECOMMENDED_ISSUERS.map((id, i) => {
+  const issuer = GLOBAL_BOND_ISSUERS[id];
+  return {
+    id,
+    issuer: issuer.fullName,
+    logo: issuer.logo,
+    couponRate: issuer.couponRateRange,
+    maturity: issuer.maturityRange,
+    sp: issuer.sp,
+    moodys: issuer.moodys,
+    fitch: issuer.fitch,
+    estimatedYield: issuer.estimatedYield,
+    alt: i % 2 === 0,
+  };
+});
 
-type TopPickRow = {
-  name: string;
-  logo: string;
-  isin: string;
-  currency: string;
-  couponRate: string;
-  price: string;
-  yieldPct: string;
-  maturity: string;
-  duration: string;
-};
+type RecommendedRow = (typeof RECOMMENDED_ROWS)[number];
 
-const TOP_PICK_ROWS: TopPickRow[] = [
-  { name: "Apple Inc 4.45% 2035", logo: LOGOS.apple, isin: "US037833CF61", currency: "USD", couponRate: "1.375%", price: "98.45", yieldPct: "2.05%", maturity: "05/05/2026", duration: "1.7" },
-  { name: "COCA-COLA CO/THE 5.18% 2045", logo: LOGOS.coke, isin: "US037833DG77", currency: "USD", couponRate: "1.65%", price: "96.20", yieldPct: "2.40%", maturity: "15/08/2027", duration: "2.6" },
-  { name: "NVIDIA CORP 4.75% 2060", logo: LOGOS.nvidia, isin: "US037833DU16", currency: "USD", couponRate: "3.05%", price: "93.60", yieldPct: "3.45%", maturity: "05/06/2032", duration: "6.1" },
-  { name: "Apple Inc 4.45% 2035", logo: LOGOS.apple, isin: "US037833DV98", currency: "USD", couponRate: "4.45%", price: "101.20", yieldPct: "4.35%", maturity: "01/02/2035", duration: "8.7" },
-  { name: "AMERICAN EXPRESS 1.37% 2026", logo: LOGOS.amex, isin: "US037833DW70", currency: "USD", couponRate: "4.65%", price: "99.10", yieldPct: "4.70%", maturity: "15/12/2041", duration: "12.5" },
-];
-
-type RecommendedRow = {
-  issuer: string;
-  logo: string;
-  couponRate: string;
-  maturity: string;
-  sp: string;
-  moodys: string;
-  fitch: string;
-  estimatedYield: string;
-  alt?: boolean;
-};
-
-const RECOMMENDED_ROWS: RecommendedRow[] = [
-  { issuer: "Apple Inc.", logo: LOGOS.apple, couponRate: "3.0-4.3%", maturity: "2027–2032", sp: "AA+", moodys: "Aaa", fitch: "A1", estimatedYield: "3.2-4.1%", alt: true },
-  { issuer: "Microsoft Corp.", logo: LOGOS.microsoft, couponRate: "2.1-5.4%", maturity: "2026–2035", sp: "AAA", moodys: "A2", fitch: "AA-", estimatedYield: "2.5-4.8%" },
-  { issuer: "Meta Platforms Inc.", logo: LOGOS.meta, couponRate: "2.2-4.3%", maturity: "2027–2034", sp: "AA+", moodys: "A3", fitch: "AA-", estimatedYield: "2.8-4.0%" },
-  { issuer: "Amazon.com Inc.", logo: LOGOS.amazon, couponRate: "3.5-5.8%", maturity: "2026–2033", sp: "AAA", moodys: "Aaa", fitch: "A1", estimatedYield: "3.8-5.2%" },
-  { issuer: "COCA-COLA CO/THE", logo: LOGOS.coke, couponRate: "3.0-5.1%", maturity: "2028–2035", sp: "AAA", moodys: "Aaa", fitch: "AA-", estimatedYield: "3.3-4.7%" },
-  { issuer: "AMERICAN EXPRESS CO", logo: LOGOS.amex, couponRate: "4.1-6.2%", maturity: "2025–2032", sp: "AA2", moodys: "A1", fitch: "-", estimatedYield: "4.5-5.8%" },
-  { issuer: "NVIDIA CORP", logo: LOGOS.nvidia, couponRate: "3.2-5.5%", maturity: "2027–2034", sp: "AA+", moodys: "Aaa", fitch: "WD", estimatedYield: "3.6-5.0%" },
-  { issuer: "WALMART INC", logo: LOGOS.walmart, couponRate: "2.9-4.7%", maturity: "2023–2030", sp: "AAA", moodys: "A2", fitch: "A3", estimatedYield: "3.1-4.3%" },
-];
-
-const cellBorder = (opts?: { right?: boolean; bottom?: boolean; left?: boolean }) => ({
-  borderBottom: opts?.bottom === false ? undefined : `1px solid ${BORDER_COLOR}`,
+const headerBorder = (opts?: { right?: boolean; left?: boolean }) => ({
+  borderBottom: `1px solid ${BORDER_COLOR}`,
   borderRight: opts?.right === false ? undefined : `1px solid ${BORDER_COLOR}`,
   borderLeft: opts?.left ? `1px solid ${BORDER_COLOR}` : undefined,
+});
+
+const cellBorder = (opts?: { bottom?: boolean }) => ({
+  borderBottom: opts?.bottom === false ? undefined : `1px solid ${BORDER_COLOR}`,
 });
 
 const HEADER_CLS = "text-sm leading-5 text-[#6a7282]";
@@ -260,7 +236,7 @@ function TopPickAccordionList() {
   );
 }
 
-function RecommendedAccordionList() {
+function RecommendedAccordionList({ onIssuerSelect }: { onIssuerSelect?: (id: GlobalBondIssuerId) => void }) {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(0);
 
   return (
@@ -316,7 +292,7 @@ function RecommendedAccordionList() {
                     <hr className="w-full border-0 m-0" style={{ borderTop: `1px solid ${BORDER_COLOR}` }} />
                     <DetailRow label="ผลตอบแทนโดยประมาณ" value={row.estimatedYield} />
                   </div>
-                  <ViewInfoButton fullWidth />
+                  <ViewInfoButton fullWidth onClick={() => onIssuerSelect?.(row.id)} />
                 </div>
               )}
             </div>
@@ -330,7 +306,7 @@ function RecommendedAccordionList() {
 function TopPickTag({ small }: { small?: boolean }) {
   return (
     <span
-      className={`inline-flex items-center justify-center rounded bg-[#fff7ed] text-[#f54a00] whitespace-nowrap ${
+      className={`inline-flex shrink-0 items-center justify-center rounded bg-[#fff7ed] text-[#f54a00] whitespace-nowrap ${
         small ? "px-1 py-0.5 text-[9px] leading-[14px]" : "px-1 py-0.5 text-xs leading-4"
       }`}
     >
@@ -352,16 +328,16 @@ function FactsheetButton() {
   );
 }
 
-function ViewInfoButton({ fullWidth }: { fullWidth?: boolean }) {
+function ViewInfoButton({ fullWidth, onClick }: { fullWidth?: boolean; onClick?: () => void }) {
   if (fullWidth) {
     return (
-      <Button variant="outline" size="xl" className="w-full max-w-[343px]">
+      <Button variant="outline" size="xl" className="w-full max-w-[343px]" onClick={onClick}>
         ดูข้อมูล
       </Button>
     );
   }
   return (
-    <Button variant="outline" size="xs" className="whitespace-nowrap">
+    <Button variant="outline" size="xs" className="whitespace-nowrap" onClick={onClick}>
       ดูข้อมูล
     </Button>
   );
@@ -386,34 +362,54 @@ function TopPickTable() {
   return (
     <div
       className="w-full rounded-xl overflow-hidden bg-white"
-      style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW }}
+      style={{ boxShadow: TABLE_SHADOW }}
     >
       <div className="overflow-x-auto hide-scrollbar" style={{ scrollbarWidth: "none" }}>
         <div className="flex items-stretch min-w-[1152px]">
           {/* Bond name */}
           <div className="flex flex-col flex-1 min-w-0">
-            <div className="flex h-11 items-center px-4" style={cellBorder({ left: true })}>
+            <div
+              className="flex h-11 items-center px-4"
+              style={headerBorder({ left: true, right: false })}
+            >
               <span className={`${HEADER_CLS} whitespace-nowrap`}>Top pick</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden" style={cellBorder({ left: true, bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div
+                key={i}
+                className="flex items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden"
+                style={cellBorder({
+                  bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined,
+                })}
+              >
                 <IssuerLogo src={row.logo} />
-                <span className="flex-1 min-w-0 text-sm leading-5 text-[#101828] truncate">{row.name}</span>
+                <span className="flex-1 min-w-0 truncate text-sm leading-5 text-[#101828]">
+                  {row.name}
+                </span>
               </div>
             ))}
           </div>
           {/* Top Pick tag column */}
           <div className="flex flex-col w-[70px] shrink-0">
-            <div className="flex h-11 items-center justify-center px-4" style={cellBorder()} />
+            <div
+              className="flex h-11 items-center justify-center px-4"
+              style={headerBorder()}
+            />
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-center px-4 py-3 min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div
+                key={i}
+                className="flex flex-1 items-center justify-center px-4 py-3 min-h-[52px]"
+                style={cellBorder({
+                  bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined,
+                })}
+              >
                 <TopPickTag />
               </div>
             ))}
           </div>
           {/* ISIN */}
           <div className="flex flex-col w-[154px] shrink-0">
-            <div className="flex h-11 items-center px-4" style={cellBorder()}>
+            <div className="flex h-11 items-center px-4" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>ISIN</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
@@ -424,7 +420,7 @@ function TopPickTable() {
           </div>
           {/* Currency */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-4" style={cellBorder()}>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>Currency</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
@@ -435,7 +431,7 @@ function TopPickTable() {
           </div>
           {/* Coupon Rate */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={cellBorder()}>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>Coupon Rate</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
@@ -446,7 +442,7 @@ function TopPickTable() {
           </div>
           {/* Price */}
           <div className="flex flex-col w-[81px] shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={cellBorder()}>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>Price</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
@@ -457,7 +453,7 @@ function TopPickTable() {
           </div>
           {/* Yield */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={cellBorder()}>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>ผลตอบแทน</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
@@ -468,7 +464,7 @@ function TopPickTable() {
           </div>
           {/* Maturity */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={cellBorder()}>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
@@ -479,7 +475,7 @@ function TopPickTable() {
           </div>
           {/* Duration */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={cellBorder()}>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>ระยะเวลา (ปี)</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
@@ -490,7 +486,7 @@ function TopPickTable() {
           </div>
           {/* Factsheet */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-3" style={cellBorder()}>
+            <div className="flex h-11 items-center justify-center px-3" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>เอกสาร</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
@@ -501,9 +497,9 @@ function TopPickTable() {
           </div>
           {/* Action */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center px-4" style={cellBorder({ right: false })} />
+            <div className="flex h-11 items-center px-4" style={headerBorder({ right: false })} />
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-center px-4 py-[11px] min-h-[52px]" style={cellBorder({ right: false, bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className="flex flex-1 items-center justify-center px-4 py-[11px] min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
                 <InvestButton />
               </div>
             ))}
@@ -514,7 +510,7 @@ function TopPickTable() {
   );
 }
 
-function RecommendedBondsTable() {
+function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: GlobalBondIssuerId) => void }) {
   return (
     <div
       className="w-full rounded-xl overflow-hidden bg-white"
@@ -524,7 +520,7 @@ function RecommendedBondsTable() {
         <div className="flex items-stretch min-w-[1152px]">
           {/* Issuer */}
           <div className="flex flex-col w-[296px] shrink-0">
-            <div className="flex h-11 items-center px-4" style={cellBorder({ left: true })}>
+            <div className="flex h-11 items-center px-4" style={headerBorder({ left: true })}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>ผู้ออกตราสาร</span>
             </div>
             {RECOMMENDED_ROWS.map((row, i) => (
@@ -532,7 +528,7 @@ function RecommendedBondsTable() {
                 key={i}
                 className="flex flex-1 items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden"
                 style={{
-                  ...cellBorder({ left: true, bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
+                  ...cellBorder({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
                   backgroundColor: row.alt ? "#f9fafb" : "white",
                 }}
               >
@@ -543,7 +539,7 @@ function RecommendedBondsTable() {
           </div>
           {/* Coupon Rate */}
           <div className="flex flex-col flex-1 min-w-[100px]">
-            <div className="flex h-11 items-center justify-center px-4" style={cellBorder()}>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>Coupon Rate</span>
             </div>
             {RECOMMENDED_ROWS.map((row, i) => (
@@ -561,7 +557,7 @@ function RecommendedBondsTable() {
           </div>
           {/* Maturity */}
           <div className="flex flex-col flex-1 min-w-[100px]">
-            <div className="flex h-11 items-center justify-center px-4" style={cellBorder()}>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
             </div>
             {RECOMMENDED_ROWS.map((row, i) => (
@@ -579,7 +575,7 @@ function RecommendedBondsTable() {
           </div>
           {/* Credit Rating — nested header */}
           <div className="flex flex-col w-[210px] shrink-0">
-            <div className="flex flex-col h-11 overflow-hidden" style={cellBorder()}>
+            <div className="flex flex-col h-11 overflow-hidden" style={headerBorder()}>
               <div className="flex flex-1 items-center justify-center px-4" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
                 <span className={`${HEADER_CLS} whitespace-nowrap`}>Credit Rating</span>
               </div>
@@ -604,10 +600,10 @@ function RecommendedBondsTable() {
                   backgroundColor: row.alt ? "#f9fafb" : "white",
                 }}
               >
-                <div className="flex flex-1 items-center justify-center px-4 py-3.5" style={{ borderRight: `1px solid ${BORDER_COLOR}` }}>
+                <div className="flex flex-1 items-center justify-center px-4 py-3.5">
                   <span className="text-sm leading-5 text-[#101828] text-center">{row.sp}</span>
                 </div>
-                <div className="flex flex-1 items-center justify-center px-4 py-3.5" style={{ borderRight: `1px solid ${BORDER_COLOR}` }}>
+                <div className="flex flex-1 items-center justify-center px-4 py-3.5">
                   <span className="text-sm leading-5 text-[#101828] text-center">{row.moodys}</span>
                 </div>
                 <div className="flex flex-1 items-center justify-center px-4 py-3.5">
@@ -618,7 +614,7 @@ function RecommendedBondsTable() {
           </div>
           {/* Yield */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-4" style={cellBorder()}>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorder()}>
               <span className={`${HEADER_CLS} whitespace-nowrap`}>ผลตอบแทนโดยประมาณ</span>
             </div>
             {RECOMMENDED_ROWS.map((row, i) => (
@@ -636,17 +632,17 @@ function RecommendedBondsTable() {
           </div>
           {/* View info */}
           <div className="flex flex-col w-[129px] shrink-0">
-            <div className="flex h-11 items-center px-4" style={cellBorder({ right: false })} />
+            <div className="flex h-11 items-center px-4" style={headerBorder({ right: false })} />
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
                 className="flex flex-1 items-center justify-center px-4 py-3 min-h-[52px]"
                 style={{
-                  ...cellBorder({ right: false, bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
+                  ...cellBorder({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
                   backgroundColor: row.alt ? "#f9fafb" : "white",
                 }}
               >
-                <ViewInfoButton />
+                <ViewInfoButton onClick={() => onIssuerSelect?.(row.id)} />
               </div>
             ))}
           </div>
@@ -656,14 +652,22 @@ function RecommendedBondsTable() {
   );
 }
 
-export function GlobalBondTab() {
+export function GlobalBondTab({
+  onIssuerSelect,
+  onViewAll,
+}: {
+  onIssuerSelect?: (issuerId: GlobalBondIssuerId) => void;
+  onViewAll?: () => void;
+}) {
   return (
     <>
       {/* Tablet + mobile — accordion cards on white warp (Figma 768px) */}
       <div className="lg:hidden flex flex-col items-center w-full gap-8 pt-8 pb-10 bg-white">
-        <div className="flex h-[152px] items-center justify-center w-full">
-          <BannerYSinvest />
-        </div>
+        {SHOW_YSINVEST_BANNER && (
+          <div className="flex h-[152px] items-center justify-center w-full">
+            <BannerYSinvest />
+          </div>
+        )}
         <div className="flex flex-col gap-6 items-center w-full px-8 py-3">
           <div className="flex flex-col items-start w-full">
             <h2 className="w-full text-lg font-bold leading-6 text-[#101828]">
@@ -671,12 +675,13 @@ export function GlobalBondTab() {
             </h2>
           </div>
           <TopPickAccordionList />
-          <RecommendedAccordionList />
+          <RecommendedAccordionList onIssuerSelect={onIssuerSelect} />
           <Button
             variant="primary"
             size="lg"
             rightIcon={<ArrowRightIcon size={20} weight="bold" />}
             className="shrink-0 self-center max-w-[343px] font-semibold"
+            onClick={onViewAll}
           >
             ดูทั้งหมด
           </Button>
@@ -685,9 +690,9 @@ export function GlobalBondTab() {
 
       {/* Desktop — tables in gray card */}
       <div className="hidden lg:flex flex-col items-center w-full gap-8 pt-8 bg-gradient-to-b from-white from-[43.451%] to-transparent">
-        <BannerYSinvest />
+        {SHOW_YSINVEST_BANNER && <BannerYSinvest />}
         <div
-          className="w-full flex flex-col items-center pb-10 pt-6 px-6"
+          className="w-full flex flex-col items-center pb-10 pt-6 px-6 lg:px-[120px] lg:pb-10 lg:pt-6"
           style={{ backgroundColor: "#f9fafb" }}
         >
           <div
@@ -711,9 +716,9 @@ export function GlobalBondTab() {
                   อัปเดตล่าสุด 25 August 2026 - 09.00
                 </span>
               </div>
-              <RecommendedBondsTable />
+              <RecommendedBondsTable onIssuerSelect={onIssuerSelect} />
             </div>
-            <Button variant="primary" size="lg" rightIcon={<ArrowRightIcon size={20} />}>
+            <Button variant="primary" size="lg" rightIcon={<ArrowRightIcon size={20} />} onClick={onViewAll}>
               ดูทั้งหมด
             </Button>
           </div>
