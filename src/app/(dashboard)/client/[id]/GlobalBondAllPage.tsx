@@ -552,8 +552,8 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
   }, []);
 
   return (
-    <div className="flex flex-col items-center w-full pb-8 md:pb-8 lg:pb-20 bg-gradient-to-b from-white from-[43.451%] to-transparent">
-      <div className="flex md:hidden w-full items-center gap-2 border-b border-[rgba(0,0,0,0.1)] px-4 py-3">
+    <div className="flex flex-col items-stretch w-full pt-4 pb-10 px-4 md:pt-6 md:pb-20 md:px-8 lg:px-20 bg-gradient-to-b from-white from-[43.451%] to-transparent">
+      <div className="flex md:hidden w-full items-center gap-2 border-b border-[rgba(0,0,0,0.1)] -mx-4 px-4 py-3 mb-4">
         <Button variant="plain" size="icon-sm" onClick={onBack} aria-label="กลับ" className="shrink-0">
           <ArrowLeftIcon size={24} />
         </Button>
@@ -563,24 +563,24 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
         <div className="size-6 shrink-0" aria-hidden />
       </div>
 
-      <div className="flex flex-col gap-4 w-full max-w-[1280px] px-4 pt-4 md:gap-8 md:px-8 md:pt-6 lg:px-20">
-        <div className="hidden md:flex gap-2 items-center h-[46px] py-2">
-          <Button variant="plain" size="icon-sm" onClick={onBack} aria-label="กลับ" className="shrink-0">
-            <ArrowLeftIcon size={20} />
-          </Button>
-          <h1 className="flex-1 min-w-0 text-lg font-bold leading-[26px] text-[#101828] truncate">
-            All Overseas Bonds
-          </h1>
-        </div>
+      <div className="hidden md:flex gap-2 items-center h-[46px] py-2 w-full max-w-[1280px] mx-auto">
+        <Button variant="plain" size="icon-sm" onClick={onBack} aria-label="กลับ" className="shrink-0">
+          <ArrowLeftIcon size={20} />
+        </Button>
+        <h1 className="flex-1 min-w-0 text-lg font-bold leading-[26px] text-[#101828] truncate">
+          All Overseas Bonds
+        </h1>
+      </div>
 
-        <div className="relative flex w-full flex-col gap-4 overflow-hidden rounded-xl p-4 lg:gap-6 lg:p-8">
+      <div className="flex flex-col gap-4 md:gap-8 lg:gap-8 w-full max-w-[1280px] mx-auto">
+        <div className="relative flex w-full flex-col gap-4 overflow-hidden rounded-xl px-4 py-6 md:gap-6 md:p-8">
           <img
             alt=""
             aria-hidden
             className="absolute inset-0 size-full max-w-none object-cover pointer-events-none rounded-xl"
             src="/global-bond-all-hero.png"
           />
-          <div className="relative z-[1] flex w-full flex-col gap-4 lg:gap-6">
+          <div className="relative z-[1] flex w-full flex-col gap-4 md:gap-6">
             {/* Mobile banner — stacked: title → subtitle → filter button */}
             <div className="flex w-full flex-col items-start gap-4 md:hidden">
               <div className="flex w-full flex-col gap-2">
@@ -640,34 +640,36 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
                 />
               </div>
             )}
-            {/* Desktop banner title */}
-            <div className="hidden lg:flex w-full flex-col gap-2">
-              <p className="text-[32px] font-bold leading-[48px] text-[rgba(0,0,0,0.85)]">
-                All Overseas Bonds
-              </p>
-              <p className="text-base font-semibold leading-6 text-[rgba(0,0,0,0.75)]">
-                รวม Overseas bonds ทั้งหมด ที่สามารถทำการซื้อขายได้
-              </p>
-            </div>
-            <div className="hidden w-full flex-nowrap items-center gap-4 lg:flex">
-              <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-3">
-                <FilterDropdown value={tickerFilter} options={TICKER_OPTIONS} onChange={setTickerFilter} />
-                <FilterDropdown value={couponFilter} options={COUPON_OPTIONS} onChange={setCouponFilter} />
-                <FilterDropdown value={yieldFilter} options={YIELD_OPTIONS} onChange={setYieldFilter} />
-                <FilterDropdown value={maturityFilter} options={MATURITY_OPTIONS} onChange={setMaturityFilter} />
+            {/* Desktop banner — title + filters in one block */}
+            <div className="hidden lg:flex w-full flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <p className="text-[32px] font-bold leading-[48px] text-[rgba(0,0,0,0.85)]">
+                  All Overseas Bonds
+                </p>
+                <p className="text-base font-semibold leading-6 text-[rgba(0,0,0,0.75)]">
+                  รวม Overseas bonds ทั้งหมด ที่สามารถทำการซื้อขายได้
+                </p>
               </div>
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="shrink-0 cursor-pointer rounded-lg border border-[rgba(0,0,0,0.08)] bg-white px-3.5 py-2 text-sm font-medium leading-[22px] text-[#0a6ee7] whitespace-nowrap"
-              >
-                ล้างตัวเลือกทั้งหมด
-              </button>
+              <div className="flex w-full flex-nowrap items-center gap-3">
+                <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-3">
+                  <FilterDropdown value={tickerFilter} options={TICKER_OPTIONS} onChange={setTickerFilter} />
+                  <FilterDropdown value={couponFilter} options={COUPON_OPTIONS} onChange={setCouponFilter} />
+                  <FilterDropdown value={yieldFilter} options={YIELD_OPTIONS} onChange={setYieldFilter} />
+                  <FilterDropdown value={maturityFilter} options={MATURITY_OPTIONS} onChange={setMaturityFilter} />
+                </div>
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="shrink-0 cursor-pointer rounded-lg border border-[rgba(0,0,0,0.08)] bg-white px-3.5 py-2 text-sm font-medium leading-[22px] text-[#0a6ee7] whitespace-nowrap"
+                >
+                  ล้างตัวเลือกทั้งหมด
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 w-full items-center md:gap-3 lg:gap-4">
+        <div className="flex flex-col gap-3 w-full items-center lg:gap-4">
           <div className="flex items-center justify-between w-full gap-3">
             <p className="text-sm font-bold leading-5 text-[#101828] md:text-base md:leading-6">
               จำนวน {displayCount} รายการ
