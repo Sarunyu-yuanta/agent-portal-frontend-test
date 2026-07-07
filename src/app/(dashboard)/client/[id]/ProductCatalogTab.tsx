@@ -26,8 +26,7 @@ import {
 } from "./investment-solution-data";
 import {
   ShapesIcon, CertificateIcon, GlobeHemisphereWestIcon,
-  InfoIcon, XIcon, ClockCounterClockwiseIcon, HourglassHighIcon,
-  ArrowRightIcon, FunnelSimpleIcon, SparkleIcon, PhoneIcon,
+  ArrowRightIcon,
   FireIcon,
 } from "@phosphor-icons/react";
 const A = {
@@ -234,7 +233,7 @@ export function ProductCatalogTab() {
   const [showAllTopIdeas, setShowAllTopIdeas] = useState(false);
   const [showAllStructuredProducts, setShowAllStructuredProducts] = useState(false);
   const [globalOrThai, setGlobalOrThai] = useState<"Global" | "Thai">("Global");
-  const [showAlert, setShowAlert] = useState(true);
+
   const [searchValue, setSearchValue] = useState("");
   const topIdeaDrag = useDragScroll();
 
@@ -246,7 +245,7 @@ export function ProductCatalogTab() {
 
   if (showAllGlobalBonds) {
     return (
-      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+      <div className="flex flex-col w-full">
         <GlobalBondAllPage onBack={() => setShowAllGlobalBonds(false)} />
       </div>
     );
@@ -254,7 +253,7 @@ export function ProductCatalogTab() {
 
   if (selectedGlobalBondIssuer) {
     return (
-      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+      <div className="flex flex-col w-full">
         <GlobalBondDetail
           issuerId={selectedGlobalBondIssuer}
           onBack={() => setSelectedGlobalBondIssuer(null)}
@@ -266,7 +265,7 @@ export function ProductCatalogTab() {
 
   if (fixedIncomeView === "bond" && selectedFixedIncomeBond) {
     return (
-      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+      <div className="flex flex-col w-full">
         <FixedIncomeDetail
           bond={selectedFixedIncomeBond}
           onBack={() => {
@@ -288,7 +287,7 @@ export function ProductCatalogTab() {
 
   if (fixedIncomeView === "company" && selectedFixedIncomeCompany) {
     return (
-      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+      <div className="flex flex-col w-full">
         <FixedIncomeCompanyDetail
           companyId={selectedFixedIncomeCompany}
           onBack={() => {
@@ -310,7 +309,7 @@ export function ProductCatalogTab() {
 
   if (selectedProduct) {
     return (
-      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+      <div className="flex flex-col w-full">
         <StructuredProductDetail
           product={selectedProduct}
           onBack={() => setSelectedProduct(null)}
@@ -321,7 +320,7 @@ export function ProductCatalogTab() {
 
   if (selectedTopIdea) {
     return (
-      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+      <div className="flex flex-col w-full">
         <TopIdeaDetail
           sector={selectedTopIdea}
           onBack={() => setSelectedTopIdea(null)}
@@ -333,7 +332,7 @@ export function ProductCatalogTab() {
 
   if (selectedInvestmentSolution) {
     return (
-      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+      <div className="flex flex-col w-full">
         <InvestmentSolutionDetail
           solution={getInvestmentSolution(selectedInvestmentSolution)}
           onBack={() => setSelectedInvestmentSolution(null)}
@@ -345,7 +344,7 @@ export function ProductCatalogTab() {
 
   if (showAllTopIdeas) {
     return (
-      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+      <div className="flex flex-col w-full">
         <TopIdeaAllPage
           onBack={() => setShowAllTopIdeas(false)}
           onSelect={(sector) => setSelectedTopIdea(sector)}
@@ -356,7 +355,7 @@ export function ProductCatalogTab() {
 
   if (showAllStructuredProducts) {
     return (
-      <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6">
+      <div className="flex flex-col w-full">
         <StructuredProductAllPage
           onBack={() => setShowAllStructuredProducts(false)}
           onProductSelect={(product) => setSelectedProduct(product)}
@@ -367,11 +366,10 @@ export function ProductCatalogTab() {
 
   return (
     // Root: full-bleed — negative margin + matching width expansion
-    <div className="flex flex-col w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -m-4 lg:-m-6" style={{ backgroundColor: "white" }}>
+    <div className="flex flex-col w-full" style={{ backgroundColor: "white" }}>
 
-      {/* ── Mobile: gray rect + abs search + gray sticky tab bar (Figma pixel-perfect) ── */}
+      {/* ── Mobile: gray rect + abs search ── */}
       <div className="lg:hidden">
-        {/* Gray background rect h=127px — search is absolutely positioned inside */}
         <div className="relative shrink-0 w-full" style={{ backgroundColor: "#f3f4f6", height: 96 }}>
           <div className="absolute left-4 right-4" style={{ top: 24 }}>
             <SearchInput
@@ -382,19 +380,18 @@ export function ProductCatalogTab() {
             />
           </div>
         </div>
-        {/* Tab bar — sticky top-0, text-only + scrollable
-            --background overridden to transparent so Tab's bg-background shows gray parent */}
-        <div
-          className="sticky top-0 z-10 overflow-x-auto"
-          style={{ backgroundColor: "#f3f4f6", scrollbarWidth: "none", ["--bg-default-primary" as string]: "transparent" }}
-        >
-          <TabGroup
-            items={PRODUCT_TABS_MOBILE}
-            activeId={activeProductTab}
-            onChange={(id) => { setActiveProductTab(id); setSelectedProduct(null); setShowAllTopIdeas(false); setSelectedTopIdea(null); setSelectedInvestmentSolution(null); setShowAllStructuredProducts(false); resetFixedIncomeNav(); setSelectedGlobalBondIssuer(null); setShowAllGlobalBonds(false); }}
-            size="md"
-          />
-        </div>
+      </div>
+      {/* ── Mobile/Tablet: sticky tab bar — sibling of root so containing block = full page height ── */}
+      <div
+        className="sticky top-0 z-10 overflow-x-auto lg:hidden"
+        style={{ backgroundColor: "#f3f4f6", scrollbarWidth: "none", ["--bg-default-primary" as string]: "transparent" }}
+      >
+        <TabGroup
+          items={PRODUCT_TABS_MOBILE}
+          activeId={activeProductTab}
+          onChange={(id) => { setActiveProductTab(id); setSelectedProduct(null); setShowAllTopIdeas(false); setSelectedTopIdea(null); setSelectedInvestmentSolution(null); setShowAllStructuredProducts(false); resetFixedIncomeNav(); setSelectedGlobalBondIssuer(null); setShowAllGlobalBonds(false); }}
+          size="md"
+        />
       </div>
 
       {/* ── Desktop: gradient search section + tab bar with icons ────────────── */}
@@ -409,13 +406,15 @@ export function ProductCatalogTab() {
           className="w-full max-w-[792px]"
         />
       </div>
-      <div className="hidden lg:block px-4 lg:px-6">
+      <div className="hidden lg:block">
+        <div className="max-w-[1280px] mx-auto px-4 lg:px-6">
         <TabGroup
           items={PRODUCT_TABS}
           activeId={activeProductTab}
           onChange={(id) => { setActiveProductTab(id); setSelectedProduct(null); setShowAllTopIdeas(false); setSelectedTopIdea(null); setSelectedInvestmentSolution(null); setShowAllStructuredProducts(false); resetFixedIncomeNav(); setSelectedGlobalBondIssuer(null); setShowAllGlobalBonds(false); }}
           size="md"
         />
+        </div>
       </div>
 
       {/* ── Tab content ─────────────────────────────────────────────────────── */}
@@ -438,50 +437,10 @@ export function ProductCatalogTab() {
       {activeProductTab === "structured" && (
       <div className="flex flex-col gap-6 items-center w-full" style={{ paddingTop: 24 }}>
 
-        {/* Toast — bg-info-light, full-bleed mobile / max-w-[704px] desktop */}
-        {showAlert && (
-          <div className="px-4 lg:px-6 w-full flex justify-center">
-            {/* Figma: flex items-center gap-2 — single flex row, text wraps naturally inside flex-1 */}
-            <div
-              className="flex gap-2 items-center overflow-hidden shrink-0 w-full"
-              style={{
-                backgroundColor: "#eff6ff", borderRadius: 8, padding: 12,
-                boxShadow: "0px 1px 2px 0px rgba(0,0,0,0.1),0px 1px 3px 1px rgba(0,0,0,0.05)",
-                maxWidth: 704,
-              }}
-            >
-              {/* Content (flex-1): icon + text forced to 2 lines with <br> — matches Figma exactly */}
-              <div className="flex gap-2 items-center flex-1 min-w-0 opacity-80">
-                <InfoIcon size={24} weight="fill" color="#2b7fff" className="shrink-0" />
-                <p className="flex-1 min-w-0 max-w-40 md:max-w-none [word-break:break-word]" style={{ color: "#2b7fff", fontSize: 14, lineHeight: "20px" }}>
-                  <span className="md:hidden">สำหรับนักลงทุนรายใหญ่/ รายใหญ่พิเศษ</span>
-                  <span className="hidden md:inline">ผู้ลงทุนในสินทรัพย์นี้ต้องมีคุณสมบัติเป็นนักลงทุนรายใหญ่</span>
-                </p>
-              </div>
-              {/* Content-R (shrink-0): action link + X */}
-              <div className="flex gap-3 items-center shrink-0">
-                <p
-                  className="underline whitespace-nowrap cursor-pointer"
-                  style={{ color: "#0a6ee7", fontSize: 14, lineHeight: "20px" }}
-                  onClick={() => { }}
-                >
-                  อัปเดตสถานะ
-                </p>
-                <button
-                  onClick={() => setShowAlert(false)}
-                  className="relative shrink-0 cursor-pointer"
-                  style={{ width: 18, height: 18, background: "none", border: "none", padding: 0 }}
-                  aria-label="ปิด"
-                >
-                  <XIcon size={18} color="#2b7fff" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* ── Recommend 1 — bg-white (Switch + Waiting) ─────────────────────── */}
-        <div className="flex flex-col gap-4 items-center shrink-0 w-full px-4 lg:px-6" style={{ backgroundColor: "white" }}>
+        <div className="flex flex-col items-center shrink-0 w-full" style={{ backgroundColor: "white" }}>
+        <div className="flex flex-col gap-4 items-center shrink-0 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
           {/* Global/Thai + รายการคำสั่ง */}
           <div className="flex gap-4 items-center shrink-0 w-full">
             <div className="flex gap-1 items-center justify-center overflow-hidden flex-1"
@@ -505,48 +464,30 @@ export function ProductCatalogTab() {
                 );
               })}
             </div>
-            <Button variant="outline-black" size="icon-xl" aria-label="รายการคำสั่ง" className="rounded-full shrink-0 md:hidden">
-              <ClockCounterClockwiseIcon size={20} />
-            </Button>
-            <Button variant="outline-black" size="xl" leftIcon={<ClockCounterClockwiseIcon size={20} className="-scale-x-100" />} className="rounded-full shrink-0 hidden md:flex">
-              รายการคำสั่ง
-            </Button>
           </div>
-          {/* Waiting banner */}
-          <div className="flex gap-2 items-center relative shrink-0 w-full"
-            style={{ backgroundColor: "#fefce8", border: "1px solid #fff085", borderRadius: 8, padding: 12 }}
-          >
-            <div className="flex items-center p-1 shrink-0" style={{ backgroundColor: "#fef9c2", borderRadius: 4 }}>
-              <HourglassHighIcon size={20} weight="fill" color="#ca8a04" />
-            </div>
-            <div className="flex flex-col gap-0.5 items-start justify-center flex-1 min-w-0">
-              <p className="font-bold" style={{ color: "#101828", fontSize: 14, lineHeight: "20px" }}>รอดำเนินการ 2 รายการ</p>
-              <p style={{ color: "#4a5565", fontSize: 12, lineHeight: "16px" }}>จำนวนเงิน 300,000 USD</p>
-            </div>
-            <Button variant="outline-black" size="lg" className="shrink-0">ดูรายการ</Button>
-          </div>
+        </div>
         </div>
 
         {/* ── Recommend 2 — bg-white (Top Idea) ────────────────────────────── */}
         <div className="flex flex-col gap-4 items-start shrink-0 w-full" style={{ backgroundColor: "white", paddingTop: 16, paddingBottom: 16 }}>
           {/* Header — with side padding */}
-          <div className="flex gap-2 items-center shrink-0 w-full px-4 lg:px-6">
+          <div className="flex gap-2 items-center shrink-0 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
             <p className="font-bold flex-1 overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
               Top idea
             </p>
             <Button variant="plain" size="sm" rightIcon={<ArrowRightIcon size={18} />} className="shrink-0" onClick={() => setShowAllTopIdeas(true)}>ทั้งหมด</Button>
           </div>
-          {/* Scrollable cards — bleeds to screen edges, drag-to-scroll on desktop */}
+          {/* Scrollable cards — starts aligned with header, overflows right */}
           <div
             ref={topIdeaDrag.ref}
             className="overflow-x-auto w-full pb-3 hide-scrollbar"
-            style={{ scrollbarWidth: "none", cursor: "grab" }}
+            style={{ scrollbarWidth: "none", cursor: "grab", paddingLeft: "max(1rem, calc((100% - 1280px) / 2 + 1.5rem))" }}
             onMouseDown={topIdeaDrag.onMouseDown}
             onMouseMove={topIdeaDrag.onMouseMove}
             onMouseUp={topIdeaDrag.onMouseUp}
             onMouseLeave={topIdeaDrag.onMouseLeave}
           >
-            <div className="flex gap-3.5 min-w-max px-4 lg:px-6">
+            <div className="flex gap-3.5 min-w-max pr-4 lg:pr-6">
               {TOP_IDEAS.map((idea, i) => (
                 <TopIdeaCard key={i} sector={idea.sector} onClick={() => setSelectedTopIdea(idea.sector)} />
               ))}
@@ -555,8 +496,9 @@ export function ProductCatalogTab() {
         </div>
 
         {/* ── Investment Solution — no explicit bg + imgRecommend overlay ─────── */}
-        <div className="flex flex-col gap-4 items-start relative shrink-0 w-full px-4 md:px-8 lg:px-6" style={{ paddingTop: 24, paddingBottom: 24 }}>
+        <div className="relative shrink-0 w-full" style={{ paddingTop: 24, paddingBottom: 24 }}>
           <img alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" src={A.recommendBg} />
+          <div className="flex flex-col gap-4 items-start shrink-0 w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-6">
           <p className="font-bold relative shrink-0 overflow-hidden text-ellipsis w-full whitespace-nowrap" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
             Investment Solution
           </p>
@@ -589,22 +531,14 @@ export function ProductCatalogTab() {
                 );
               })}
             </div>
-            {/* Customize Underlying */}
-            <div className="flex gap-2 items-center relative shrink-0 w-full"
-              style={{ backgroundColor: "white", border: "1px dashed rgba(0,0,0,0.1)", borderRadius: 12, paddingLeft: 32, paddingRight: 32, paddingTop: 16, paddingBottom: 16 }}
-            >
-              <SparkleIcon size={24} weight="fill" className="shrink-0 text-primary-action" />
-              <div className="flex flex-col gap-0.5 items-start flex-1 min-w-0 whitespace-nowrap">
-                <p className="font-bold overflow-hidden text-ellipsis w-full" style={{ color: "#4a5565", fontSize: 16, lineHeight: "24px" }}>Customize Underlying</p>
-                <p className="overflow-hidden text-ellipsis w-full" style={{ color: "#6a7282", fontSize: 14, lineHeight: "20px" }}>ออกแบบสินทรัพย์ด้วยตนเอง</p>
-              </div>
-              <Button variant="outline-black" size="lg" leftIcon={<PhoneIcon size={20} />} className="shrink-0">ติดต่อ</Button>
-            </div>
+{/* Customize Underlying — hidden */}
+          </div>
           </div>
         </div>
 
         {/* ── Main Container — bg-white (Top Pick) ─────────────────────────── */}
-        <div className="flex flex-col gap-4 items-center relative shrink-0 w-full px-4 md:px-8 lg:px-6" style={{ backgroundColor: "white", paddingTop: 24, paddingBottom: 24 }}>
+        <div className="w-full" style={{ backgroundColor: "white", paddingTop: 24, paddingBottom: 24 }}>
+        <div className="flex flex-col gap-4 items-center shrink-0 w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-6">
           <div className="flex gap-1 items-center shrink-0 w-full">
             <FireIcon size={24} weight="fill" color="#f97316" className="shrink-0 md:hidden lg:block" />
             <FireIcon size={20} weight="fill" color="#f97316" className="shrink-0 hidden md:block lg:hidden" />
@@ -618,21 +552,18 @@ export function ProductCatalogTab() {
             ))}
           </div>
         </div>
+        </div>
 
         {/* ── Main Container — bg-[#f9fafb] (Structured Product) full-bleed ─── */}
         <div className="flex flex-col gap-4 items-center relative shrink-0 w-full" style={{ backgroundColor: "#f9fafb", paddingTop: 24, paddingBottom: 24 }}>
           {/* Header */}
-          <div className="flex gap-2 items-center shrink-0 w-full px-4 lg:px-6">
+          <div className="flex gap-2 items-center shrink-0 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
             <p className="font-bold flex-1 overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
               Structured Product
             </p>
-            <Button variant="outline-black" size="icon-lg" aria-label="ตัวกรอง" className="shrink-0 md:hidden">
-              <FunnelSimpleIcon size={18} />
-            </Button>
-            <Button variant="outline-black" size="md" leftIcon={<FunnelSimpleIcon size={18} />} className="shrink-0 hidden md:flex">ตัวกรอง</Button>
           </div>
           {/* 3-column grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0 w-full px-4 lg:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
             {STRUCTURED_PRODUCTS.map((p) => (
               <StructuredProductCard key={p.id} {...p} onClick={() => setSelectedProduct(p)} />
             ))}

@@ -25,6 +25,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/performance": "Performance & Targets",
   "/compliance": "Compliance & Risk",
   "/house-view": "House View & Strategy",
+  "/product-catalog": "Product Catalog",
 };
 
 function MarketOpenBadge() {
@@ -45,6 +46,7 @@ type PageInfo = {
   isCommandCenter: boolean;
   isHouseView: boolean;
   isPerformance: boolean;
+  isFullWidth: boolean;
 };
 
 function usePageInfo(): PageInfo {
@@ -64,6 +66,7 @@ function usePageInfo(): PageInfo {
       isCommandCenter: false,
       isHouseView: false,
       isPerformance: false,
+      isFullWidth: false,
     };
   }
 
@@ -74,13 +77,14 @@ function usePageInfo(): PageInfo {
     isCommandCenter: pathname.startsWith("/command-center"),
     isHouseView: pathname.startsWith("/house-view"),
     isPerformance: pathname.startsWith("/performance"),
+    isFullWidth: pathname.startsWith("/product-catalog"),
   };
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const { title: pageTitle, clientBreadcrumb, isCommandCenter, isHouseView, isPerformance } = usePageInfo();
+  const { title: pageTitle, clientBreadcrumb, isCommandCenter, isHouseView, isPerformance, isFullWidth } = usePageInfo();
 
   return (
     <>
@@ -163,10 +167,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         )}
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 bg-[var(--bg-default-secondary)]">
-          <div className="max-w-[1280px] mx-auto flex flex-col gap-6">
+        <main className={`flex-1 overflow-y-auto overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 lg:p-6"}`}>
+          <div className={`${isFullWidth ? "w-full" : "max-w-[1280px] mx-auto"} flex flex-col gap-6`}>
             {/* Title in content — mobile only */}
-            {!clientBreadcrumb && (pageTitle || isCommandCenter || isHouseView) && (
+            {!clientBreadcrumb && !isFullWidth && (pageTitle || isCommandCenter || isHouseView) && (
               <div className="flex items-center justify-between gap-3 lg:hidden">
                 <div className="flex items-center gap-3">
                   {pageTitle && <h1 className="type-h5 text-foreground">{pageTitle}</h1>}

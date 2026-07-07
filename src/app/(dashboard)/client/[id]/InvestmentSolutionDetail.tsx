@@ -279,38 +279,40 @@ function SolutionHeroBannerDesktop({ solution }: { solution: InvestmentSolution 
 
   return (
     <div
-      className="relative hidden lg:flex w-full h-[146px] shrink-0 box-border items-center gap-4 pt-4 pb-10 pr-8 -mb-6 overflow-hidden"
+      className="relative hidden lg:flex w-full h-[146px] shrink-0 box-border -mb-6 overflow-hidden"
       style={{ backgroundImage: solution.heroGradient }}
     >
-      <div
-        className="absolute pointer-events-none z-0 overflow-hidden"
-        style={imageStyle}
-        aria-hidden
-      >
-        <HeroImageContent
-          src={solution.heroImage}
-          width={img.containerWidth}
-          height={img.containerHeight}
-          objectCover={img.objectCover}
-          imgLeft={img.imgLeft}
-          imgWidth={img.imgWidth}
-          rotation={img.rotation}
-        />
-      </div>
-
-      <div className="relative z-10 flex flex-1 flex-col gap-2 items-start justify-center min-w-[141px] pl-[120px]">
-        <p className="font-bold text-lg leading-6 text-[#101828] truncate w-full">{solution.name}</p>
-        <p className="text-sm leading-5 text-[#6a7282] truncate w-full">{solution.desc}</p>
-      </div>
-
-      {solution.showCoupon && (
-        <div className="relative z-10 flex flex-col gap-2 items-end justify-center shrink-0">
-          <div className="flex items-center px-1 rounded-md bg-white">
-            <span className="font-bold text-xl leading-[30px] text-[#008236]">{solution.couponRange}</span>
-          </div>
-          <span className="text-xs leading-4 text-[#6a7282]">Coupon</span>
+      <div className="relative flex items-center gap-4 w-full max-w-[1280px] mx-auto h-full pt-4 pb-10 pr-8">
+        <div
+          className="absolute pointer-events-none z-0 overflow-hidden"
+          style={imageStyle}
+          aria-hidden
+        >
+          <HeroImageContent
+            src={solution.heroImage}
+            width={img.containerWidth}
+            height={img.containerHeight}
+            objectCover={img.objectCover}
+            imgLeft={img.imgLeft}
+            imgWidth={img.imgWidth}
+            rotation={img.rotation}
+          />
         </div>
-      )}
+
+        <div className="relative z-10 flex flex-1 flex-col gap-2 items-start justify-center min-w-[141px] pl-[120px]">
+          <p className="font-bold text-lg leading-6 text-[#101828] truncate w-full">{solution.name}</p>
+          <p className="text-sm leading-5 text-[#6a7282] truncate w-full">{solution.desc}</p>
+        </div>
+
+        {solution.showCoupon && (
+          <div className="relative z-10 flex flex-col gap-2 items-end justify-center shrink-0">
+            <div className="flex items-center px-1 rounded-md bg-white">
+              <span className="font-bold text-xl leading-[30px] text-[#008236]">{solution.couponRange}</span>
+            </div>
+            <span className="text-xs leading-4 text-[#6a7282]">Coupon</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

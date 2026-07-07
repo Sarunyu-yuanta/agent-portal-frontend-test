@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { Button } from "@sarunyu/system-one";
-import { ArrowLeftIcon, CaretDownIcon, CircleNotchIcon } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
+import { Button, Chip } from "@sarunyu/system-one";
+import { ArrowLeftIcon, CircleNotchIcon } from "@phosphor-icons/react";
 import { StructuredProductCard } from "./StructuredProductCard";
 import {
   ALL_STRUCTURED_PRODUCTS,
@@ -12,19 +12,15 @@ import {
   type StructuredProduct,
 } from "./structured-product-data";
 
-const FILTER_CHIPS = ["Coupon", "Type", "Currency", "จำนวน Underlying"] as const;
+const COUPON_FILTERS = [
+  { key: "all", label: "ALL" },
+  { key: "low", label: "Low Coupon [0-15%]" },
+  { key: "medium", label: "Medium Coupon [15-30%]" },
+  { key: "high", label: "High Coupon [30-40%]" },
+  { key: "ultra", label: "Ultra High Coupon [40% ++]" },
+] as const;
 
-function FilterChip({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      className="inline-flex items-center gap-1 shrink-0 rounded-full border border-[rgba(0,0,0,0.1)] bg-white pl-2.5 pr-1.5 py-1.5 cursor-pointer"
-    >
-      <span className="text-xs leading-4 text-[#4a5565] whitespace-nowrap">{label}</span>
-      <CaretDownIcon size={16} className="shrink-0 text-[#4a5565]" />
-    </button>
-  );
-}
+type CouponFilter = typeof COUPON_FILTERS[number]["key"];
 
 export function StructuredProductAllPage({
   onBack,
@@ -33,6 +29,8 @@ export function StructuredProductAllPage({
   onBack: () => void;
   onProductSelect: (product: StructuredProduct) => void;
 }) {
+  const [couponFilter, setCouponFilter] = useState<CouponFilter>("all");
+
   useEffect(() => {
     const main = document.querySelector("main");
     if (main) {
@@ -41,6 +39,15 @@ export function StructuredProductAllPage({
       window.scrollTo(0, 0);
     }
   }, []);
+
+  const filteredProducts = ALL_STRUCTURED_PRODUCTS.filter((p) => {
+    if (couponFilter === "all") return true;
+    const pct = parseFloat(p.coupon.replace("%", ""));
+    if (couponFilter === "low") return pct < 15;
+    if (couponFilter === "medium") return pct >= 15 && pct < 30;
+    if (couponFilter === "high") return pct >= 30 && pct < 40;
+    return pct >= 40;
+  });
 
   return (
     <div className="flex flex-col items-center w-full pt-4 pb-10 md:pt-4 md:pb-10 lg:pt-6 lg:pb-20 bg-gradient-to-b from-white from-[43.451%] to-transparent">
@@ -74,10 +81,18 @@ export function StructuredProductAllPage({
         </div>
 
         {/* Filter chips */}
-        <div className="flex flex-wrap gap-2">
-          {FILTER_CHIPS.map((label) => (
-            <FilterChip key={label} label={label} />
-          ))}
+        <div className="-mx-4 md:-mx-8 lg:mx-0 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+          <div className="flex gap-2 min-w-max pl-4 md:pl-8 lg:pl-0 pr-4 md:pr-8 lg:pr-0">
+            {COUPON_FILTERS.map(({ key, label }) => (
+              <Chip
+                key={key}
+                label={label}
+                size="medium"
+                selected={couponFilter === key}
+                onClick={() => setCouponFilter(key)}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Product list — mobile/tablet: single-col vertical cards; desktop: 3-col grid */}
@@ -91,7 +106,7 @@ export function StructuredProductAllPage({
           </div>
 
           <div className="flex flex-col gap-3 lg:grid lg:grid-cols-3 lg:gap-4 w-full">
-            {ALL_STRUCTURED_PRODUCTS.map((product) => (
+            {filteredProducts.map((product) => (
               <StructuredProductCard
                 key={product.id}
                 {...product}

@@ -1,3 +1,5 @@
+import fixedIncomeRaw from "@/data/fixed-income.json";
+
 export type FixedIncomeStatus = "open" | "upcoming" | "soon";
 export type FixedIncomeAction = "invest" | "follow" | "followed";
 
@@ -32,366 +34,6 @@ export type FixedIncomeBond = {
   action: FixedIncomeAction;
 };
 
-const COMPANY_NAMES: Record<string, string> = {
-  MQDC: "บริษัท แมกโนเลีย ควอลิตี้ ดีเวล็อปเม้นต์ คอร์ปอเรชั่น จำกัด",
-  JMT: "บริษัท เจ เอ็มที เน็ตเวอร์ค เซอร์วิสเซส (ประเทศไทย) จำกัด (มหาชน)",
-  TMN: "บริษัท ทรู มูฟ เอช ยูนิเวอร์แซล คอมมิวนิเคชั่น จำกัด (มหาชน)",
-  NOBLE: "บริษัท โนเบิล ดีเวลลอปเม้นท์ จำกัด (มหาชน)",
-  DTP: "บริษัท ดีทีซี เอ็นเตอร์ไ_prises จำกัด (มหาชน)",
-  TTA: "บริษัท ทีทีเอ จำกัด (มหาชน)",
-  TRUE: "บริษัท ทรู คอร์poration จำกัด (มหาชน)",
-  PTTGC: "บริษัท พีทีที โกลบอล เคมิคัล จำกัด (มหาชน)",
-};
-
-const DEFAULT_DOCUMENTS: FixedIncomeDocument[] = [
-  { label: "Fund Fact Sheet" },
-  { label: "Presentation" },
-];
-
-function bond(
-  id: string,
-  row: Omit<FixedIncomeBond, "id" | "fullCompanyName" | "documents" | "updatedAt"> & {
-    fullCompanyName?: string;
-    documents?: FixedIncomeDocument[];
-    updatedAt?: string;
-  },
-): FixedIncomeBond {
-  return {
-    ...row,
-    id,
-    fullCompanyName: row.fullCompanyName ?? COMPANY_NAMES[row.companyName] ?? row.companyName,
-    documents: row.documents ?? DEFAULT_DOCUMENTS,
-    updatedAt: row.updatedAt ?? "10 ก.ย. 2568 - 09:00",
-  };
-}
-
-export const FIXED_INCOME_BONDS: FixedIncomeBond[] = [
-  bond("mqdc482b-0", {
-    symbol: "MQDC482B",
-    companyName: "MQDC",
-    logoIdx: 0,
-    status: "open",
-    statusLabel: "เปิดจอง",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "6.75%",
-    couponRate: "5.14 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "1 ปี 6 เดือน 24 วัน",
-    maturity: "10 Feb 2029",
-    companyRating: "BBB+/Stable",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "PO/HNW",
-    subscriptionPeriod: "16 - 18 มี.ค. 2026",
-    action: "invest",
-  }),
-  bond("jmt127a-0", {
-    symbol: "JMT127A",
-    companyName: "JMT",
-    logoIdx: 1,
-    status: "open",
-    statusLabel: "เปิดจอง",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "4.25%",
-    couponRate: "4.00 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "2 ปี 3 เดือน 10 วัน",
-    maturity: "25 เม.ย. 2574",
-    companyRating: "AA-",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "ไม่มีประกัน",
-    offerType: "PO/HNW",
-    subscriptionPeriod: "16 - 18 ก.ค. 2026",
-    action: "invest",
-  }),
-  bond("tmn934b-0", {
-    symbol: "TMN934B",
-    companyName: "TMN",
-    logoIdx: 2,
-    status: "upcoming",
-    statusLabel: "อีก 4 วัน",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "4.50%",
-    couponRate: "4.25 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "1 ปี 7 เดือน 15 วัน",
-    maturity: "15 มี.ค. 2573",
-    companyRating: "CCC+",
-    bondRating: "BB+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "PO",
-    subscriptionPeriod: "13 - 15 มิ.ย. 2026",
-    action: "follow",
-  }),
-  bond("mqdc482a-0", {
-    symbol: "MQDC482A",
-    companyName: "MQDC",
-    logoIdx: 0,
-    status: "upcoming",
-    statusLabel: "อีก 15 วัน",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "6.10%",
-    couponRate: "5.80 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "3 ปี 5 เดือน 8 วัน",
-    maturity: "30 มิ.ย. 2575",
-    companyRating: "BBB+/Stable",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "PO/HNW",
-    subscriptionPeriod: "19 - 21 ส.ค. 2026",
-    action: "follow",
-  }),
-  bond("mqdc482b-1", {
-    symbol: "MQDC482B",
-    companyName: "MQDC",
-    logoIdx: 0,
-    status: "soon",
-    statusLabel: "เร็ว ๆ นี้",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "6.75%",
-    couponRate: "5.14 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "1 ปี 6 เดือน 24 วัน",
-    maturity: "10 Feb 2029",
-    companyRating: "BBB+/Stable",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "HNW/UHNW",
-    subscriptionPeriod: "10 - 12 พ.ค. 2026",
-    action: "followed",
-  }),
-  bond("jmt127a-1", {
-    symbol: "JMT127A",
-    companyName: "JMT",
-    logoIdx: 1,
-    status: "soon",
-    statusLabel: "เร็ว ๆ นี้",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "4.25%",
-    couponRate: "4.00 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "2 ปี 3 เดือน 10 วัน",
-    maturity: "25 เม.ย. 2574",
-    companyRating: "AA-",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "ไม่มีประกัน",
-    offerType: "PO/HNW",
-    subscriptionPeriod: "16 - 18 ก.ค. 2026",
-    action: "follow",
-  }),
-  bond("tmn934b-1", {
-    symbol: "TMN934B",
-    companyName: "TMN",
-    logoIdx: 2,
-    status: "soon",
-    statusLabel: "เร็ว ๆ นี้",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "4.50%",
-    couponRate: "4.25 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "1 ปี 7 เดือน 15 วัน",
-    maturity: "15 มี.ค. 2573",
-    companyRating: "CCC+",
-    bondRating: "BB+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "PO",
-    subscriptionPeriod: "13 - 15 มิ.ย. 2026",
-    action: "follow",
-  }),
-  bond("mqdc482a-1", {
-    symbol: "MQDC482A",
-    companyName: "MQDC",
-    logoIdx: 0,
-    status: "soon",
-    statusLabel: "เร็ว ๆ นี้",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "6.10%",
-    couponRate: "5.80 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "3 ปี 5 เดือน 8 วัน",
-    maturity: "30 มิ.ย. 2575",
-    companyRating: "BBB+/Stable",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "PO/HNW",
-    subscriptionPeriod: "19 - 21 ส.ค. 2026",
-    action: "followed",
-  }),
-  bond("noble278a-0", {
-    symbol: "NOBLE278A",
-    companyName: "NOBLE",
-    logoIdx: 3,
-    status: "soon",
-    statusLabel: "เร็ว ๆ นี้",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "4.25%",
-    couponRate: "4.10 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "4 ปี 2 เดือน 20 วัน",
-    maturity: "12 Aug 2576",
-    companyRating: "BBB",
-    bondRating: "AA",
-    risk: "ระดับ 5",
-    guarantee: "ไม่มีประกัน",
-    offerType: "PO/HNW",
-    subscriptionPeriod: "22 - 24 ก.ย. 2026",
-    action: "follow",
-  }),
-  bond("dtp286b-0", {
-    symbol: "DTP286B",
-    companyName: "DTP",
-    logoIdx: 4,
-    logoCrop: true,
-    status: "soon",
-    statusLabel: "เร็ว ๆ นี้",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "2.90%",
-    couponRate: "2.75 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "5 ปี 1 เดือน 5 วัน",
-    maturity: "1 Sep 2577",
-    companyRating: "BBB+/Stable",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "HNW/UHNW",
-    subscriptionPeriod: "25 - 27 ต.ค. 2026",
-    action: "follow",
-  }),
-  bond("tta287a-0", {
-    symbol: "TTA287A",
-    companyName: "TTA",
-    logoIdx: 5,
-    status: "soon",
-    statusLabel: "เร็ว ๆ นี้",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "5.10%",
-    couponRate: "4.95 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "6 ปี 4 เดือน 12 วัน",
-    maturity: "20 ต.ค. 2578",
-    companyRating: "BB",
-    bondRating: "BBB+",
-    risk: "ระดับ 5",
-    guarantee: "ไม่มีประกัน",
-    offerType: "PO",
-    subscriptionPeriod: "28 - 30 พ.ย. 2026",
-    action: "follow",
-  }),
-  bond("true341a-0", {
-    symbol: "TRUE341A",
-    companyName: "TRUE",
-    logoIdx: 6,
-    status: "soon",
-    statusLabel: "เร็ว ๆ นี้",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "3.00%",
-    couponRate: "2.85 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "7 ปี 3 เดือน 25 วัน",
-    maturity: "8 พ.ย. 2579",
-    companyRating: "BBB+/Stable",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "PO/HNW",
-    subscriptionPeriod: "1 - 3 ธ.ค. 2026",
-    action: "follow",
-  }),
-  bond("pttgc24pa-0", {
-    symbol: "PTTGC24PA",
-    companyName: "PTTGC",
-    logoIdx: 7,
-    status: "soon",
-    statusLabel: "เร็ว ๆ นี้",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "6.50%",
-    couponRate: "6.25 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "9 ปี 2 เดือน 18 วัน",
-    maturity: "15 Dec 2580",
-    companyRating: "BBB+",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "PO",
-    subscriptionPeriod: "4 - 6 ม.ค. 2027",
-    action: "follow",
-  }),
-  bond("pttgc24pb-0", {
-    symbol: "PTTGC24PB",
-    companyName: "PTTGC",
-    logoIdx: 7,
-    status: "soon",
-    statusLabel: "เร็ว ๆ นี้",
-    bondCategory: "หุ้นกู้ตลาดแรก",
-    ytm: "7.25%",
-    couponRate: "7.00 %",
-    couponPeriod: "ทุก 3 เดือน",
-    tenor: "10 ปี 1 เดือน 1 วัน",
-    maturity: "5 Jan2581",
-    companyRating: "AAA",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "PO",
-    subscriptionPeriod: "7 - 9 ก.พ. 2027",
-    action: "follow",
-  }),
-];
-
-const COMPANY_ONLY_BONDS: FixedIncomeBond[] = [
-  bond("mqdc482b-sec-0", {
-    symbol: "MQDC481A",
-    companyName: "MQDC",
-    logoIdx: 0,
-    status: "open",
-    statusLabel: "เปิดจอง",
-    bondCategory: "หุ้นกู้ตลาดรอง",
-    ytm: "7.50%",
-    couponRate: "6.25 %",
-    couponPeriod: "ทุก 6 เดือน",
-    tenor: "2 ปี 4 เดือน",
-    maturity: "15 Mar 2028",
-    companyRating: "BBB+/Stable",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "HNW/UHNW",
-    subscriptionPeriod: "ตลอดเวลา",
-    action: "invest",
-  }),
-  bond("mqdc482a-sec-0", {
-    symbol: "MQDC480B",
-    companyName: "MQDC",
-    logoIdx: 0,
-    status: "open",
-    statusLabel: "เปิดจอง",
-    bondCategory: "หุ้นกู้ตลาดรอง",
-    ytm: "8.25%",
-    couponRate: "7.00 %",
-    couponPeriod: "ทุก 6 เดือน",
-    tenor: "3 ปี 2 เดือน",
-    maturity: "20 Jun 2029",
-    companyRating: "BBB+/Stable",
-    bondRating: "AA+",
-    risk: "ระดับ 5",
-    guarantee: "มีประกัน",
-    offerType: "PO/HNW",
-    subscriptionPeriod: "ตลอดเวลา",
-    action: "invest",
-  }),
-];
-
 export type FixedIncomeCompany = {
   id: string;
   fullName: string;
@@ -403,39 +45,13 @@ export type FixedIncomeCompany = {
   updatedAt: string;
 };
 
-const FIXED_INCOME_COMPANIES: FixedIncomeCompany[] = [
-  {
-    id: "MQDC",
-    fullName: COMPANY_NAMES.MQDC,
-    logoIdx: 0,
-    description:
-      "หุ้นกู้เสี่ยงสูงมีประกัน โดยมีผู้ค้ำประกันของบริษัท แมกโนเลีย ควอลิตี้ ดีเวล็อปเม้นต์ คอร์ปอเรชั่น จำกัด ครั้งที่ 5/2026",
-    ticker: "MQDC",
-    offeringType: "PO, II/HNW",
-    minSubscription: "100,000 บาท | ทวีคูณครั้งละ 100,000 บาท",
-    updatedAt: "10 กันยายน 2026 - 09:00",
-  },
-  {
-    id: "JMT",
-    fullName: COMPANY_NAMES.JMT,
-    logoIdx: 1,
-    description: "หุ้นกู้ของบริษัท เจ เอ็มที เน็ตเวอร์ค เซอร์วิสเซส (ประเทศไทย) จำกัด (มหาชน)",
-    ticker: "JMT",
-    offeringType: "PO/HNW",
-    minSubscription: "100,000 บาท | ทวีคูณครั้งละ 100,000 บาท",
-    updatedAt: "10 กันยายน 2026 - 09:00",
-  },
-  {
-    id: "TMN",
-    fullName: COMPANY_NAMES.TMN,
-    logoIdx: 2,
-    description: "หุ้นกู้ของบริษัท ทรู มูฟ เอช ยูนิเวอร์แซล คอมมิวนิเคชั่น จำกัด (มหาชน)",
-    ticker: "TMN",
-    offeringType: "PO",
-    minSubscription: "100,000 บาท | ทวีคูณครั้งละ 100,000 บาท",
-    updatedAt: "10 กันยายน 2026 - 09:00",
-  },
-];
+export const BOND_LOGOS: string[] = fixedIncomeRaw.logos;
+
+export const FIXED_INCOME_BONDS = fixedIncomeRaw.bonds as FixedIncomeBond[];
+
+const COMPANY_ONLY_BONDS = fixedIncomeRaw.secondaryMarketBonds as FixedIncomeBond[];
+const FIXED_INCOME_COMPANIES = fixedIncomeRaw.companies as FixedIncomeCompany[];
+const FIXED_INCOME_COMPANY_ORDER: string[] = fixedIncomeRaw.companyOrder;
 
 function allBonds(): FixedIncomeBond[] {
   return [...FIXED_INCOME_BONDS, ...COMPANY_ONLY_BONDS];
@@ -490,13 +106,231 @@ export function getRiskNumber(risk: string): string {
   return risk.replace("ระดับ ", "");
 }
 
-export const BOND_LOGOS = [
-  "https://www.figma.com/api/mcp/asset/a5f05391-6db4-4331-8aef-ef94906f3c62",
-  "https://www.figma.com/api/mcp/asset/421a208c-5a27-4d6e-8da6-7fc9f6274002",
-  "https://www.figma.com/api/mcp/asset/b5eb430c-1593-4e1f-97bf-c372874a0de9",
-  "https://www.figma.com/api/mcp/asset/394969de-3f1d-491f-a01e-d762b900434e",
-  "https://www.figma.com/api/mcp/asset/81b9a35e-2fbd-42d3-bd07-29549a0ebab2",
-  "https://www.figma.com/api/mcp/asset/fc024e02-b5f6-4f55-aadd-8660f197d433",
-  "https://www.figma.com/api/mcp/asset/b034589d-7f5d-4869-a6f9-075b424c900d",
-  "https://www.figma.com/api/mcp/asset/75efc54f-3be6-4cef-a9b4-b98d357f57b8",
-];
+export type FixedIncomeCouponFilter = "lt2" | "2to4" | "5to7" | "gt7";
+export type FixedIncomeOfferFilter = "po" | "ii-hnw" | "iuihnw";
+export type FixedIncomeRiskFilter = "lt3" | "4to5" | "6to7" | "8";
+
+export type FixedIncomeFilters = {
+  companies: string[];
+  coupon: FixedIncomeCouponFilter | null;
+  offerType: FixedIncomeOfferFilter | null;
+  risks: FixedIncomeRiskFilter[];
+};
+
+export const EMPTY_FIXED_INCOME_FILTERS: FixedIncomeFilters = {
+  companies: [],
+  coupon: null,
+  offerType: null,
+  risks: [],
+};
+
+export const FIXED_INCOME_COUPON_FILTERS = fixedIncomeRaw.filters.coupon as {
+  id: FixedIncomeCouponFilter;
+  label: string;
+}[];
+
+export const FIXED_INCOME_OFFER_FILTERS = fixedIncomeRaw.filters.offerType as {
+  id: FixedIncomeOfferFilter;
+  label: string;
+}[];
+
+export const FIXED_INCOME_RISK_FILTERS = fixedIncomeRaw.filters.risk as {
+  id: FixedIncomeRiskFilter;
+  label: string;
+}[];
+
+export function countFixedIncomeFilters(filters: FixedIncomeFilters): number {
+  return (
+    filters.companies.length +
+    (filters.coupon ? 1 : 0) +
+    (filters.offerType ? 1 : 0) +
+    filters.risks.length
+  );
+}
+
+export type FixedIncomeFilterChipCategory = "company" | "coupon" | "offerType" | "risk";
+
+export type FixedIncomeFilterChip = {
+  id: string;
+  label: string;
+  category: FixedIncomeFilterChipCategory;
+  value: string;
+};
+
+function getCouponChipLabel(id: FixedIncomeCouponFilter): string {
+  switch (id) {
+    case "lt2":
+      return "ดอกเบี้ย น้อยกว่า 2%";
+    case "2to4":
+      return "ดอกเบี้ย 2 - 4%";
+    case "5to7":
+      return "ดอกเบี้ย 5 - 7%";
+    case "gt7":
+      return "ดอกเบี้ย มากกว่า 7%";
+  }
+}
+
+function getRiskChipLabel(id: FixedIncomeRiskFilter): string {
+  const option = FIXED_INCOME_RISK_FILTERS.find((item) => item.id === id);
+  return option ? `ความเสี่ยง ${option.label}` : id;
+}
+
+export function getFixedIncomeFilterChips(filters: FixedIncomeFilters): FixedIncomeFilterChip[] {
+  const chips: FixedIncomeFilterChip[] = [];
+
+  for (const companyId of filters.companies) {
+    chips.push({
+      id: `company:${companyId}`,
+      label: companyId,
+      category: "company",
+      value: companyId,
+    });
+  }
+
+  if (filters.coupon) {
+    chips.push({
+      id: `coupon:${filters.coupon}`,
+      label: getCouponChipLabel(filters.coupon),
+      category: "coupon",
+      value: filters.coupon,
+    });
+  }
+
+  if (filters.offerType) {
+    const option = FIXED_INCOME_OFFER_FILTERS.find((item) => item.id === filters.offerType);
+    chips.push({
+      id: `offerType:${filters.offerType}`,
+      label: option?.label ?? filters.offerType,
+      category: "offerType",
+      value: filters.offerType,
+    });
+  }
+
+  for (const riskId of filters.risks) {
+    chips.push({
+      id: `risk:${riskId}`,
+      label: getRiskChipLabel(riskId),
+      category: "risk",
+      value: riskId,
+    });
+  }
+
+  return chips;
+}
+
+export function removeFixedIncomeFilterChip(
+  filters: FixedIncomeFilters,
+  chip: FixedIncomeFilterChip,
+): FixedIncomeFilters {
+  switch (chip.category) {
+    case "company":
+      return {
+        ...filters,
+        companies: filters.companies.filter((companyId) => companyId !== chip.value),
+      };
+    case "coupon":
+      return { ...filters, coupon: null };
+    case "offerType":
+      return { ...filters, offerType: null };
+    case "risk":
+      return {
+        ...filters,
+        risks: filters.risks.filter((riskId) => riskId !== chip.value),
+      };
+  }
+}
+
+export type FixedIncomeFilterCompany = {
+  id: string;
+  name: string;
+  logoIdx: number;
+  logoCrop?: boolean;
+};
+
+export function getFixedIncomeFilterCompanies(): FixedIncomeFilterCompany[] {
+  const byId = new Map<string, FixedIncomeFilterCompany>();
+  for (const bond of FIXED_INCOME_BONDS) {
+    if (!byId.has(bond.companyName)) {
+      byId.set(bond.companyName, {
+        id: bond.companyName,
+        name: bond.companyName,
+        logoIdx: bond.logoIdx,
+        logoCrop: bond.logoCrop,
+      });
+    }
+  }
+  return FIXED_INCOME_COMPANY_ORDER.filter((id) => byId.has(id)).map((id) => byId.get(id)!);
+}
+
+function parseCouponPercent(couponRate: string): number {
+  return parseFloat(couponRate.replace(/[^\d.]/g, ""));
+}
+
+function parseRiskLevel(risk: string): number {
+  return parseInt(risk.replace(/\D/g, ""), 10);
+}
+
+function matchesCouponFilter(couponRate: string, filter: FixedIncomeCouponFilter): boolean {
+  const rate = parseCouponPercent(couponRate);
+  switch (filter) {
+    case "lt2":
+      return rate < 2;
+    case "2to4":
+      return rate >= 2 && rate <= 4;
+    case "5to7":
+      return rate >= 5 && rate <= 7;
+    case "gt7":
+      return rate > 7;
+  }
+}
+
+function matchesOfferFilter(offerType: string, filter: FixedIncomeOfferFilter): boolean {
+  switch (filter) {
+    case "po":
+      return offerType === "PO";
+    case "ii-hnw":
+      return offerType === "PO/HNW";
+    case "iuihnw":
+      return offerType === "HNW/UHNW";
+  }
+}
+
+function matchesRiskFilter(risk: string, filter: FixedIncomeRiskFilter): boolean {
+  const level = parseRiskLevel(risk);
+  switch (filter) {
+    case "lt3":
+      return level < 3;
+    case "4to5":
+      return level >= 4 && level <= 5;
+    case "6to7":
+      return level >= 6 && level <= 7;
+    case "8":
+      return level === 8;
+  }
+}
+
+export function filterFixedIncomeBonds(
+  bonds: FixedIncomeBond[],
+  filters: FixedIncomeFilters,
+): FixedIncomeBond[] {
+  if (countFixedIncomeFilters(filters) === 0) return bonds;
+
+  return bonds.filter((bond) => {
+    if (filters.companies.length > 0 && !filters.companies.includes(bond.companyName)) {
+      return false;
+    }
+    if (filters.coupon && !matchesCouponFilter(bond.couponRate, filters.coupon)) {
+      return false;
+    }
+    if (filters.offerType && !matchesOfferFilter(bond.offerType, filters.offerType)) {
+      return false;
+    }
+    if (
+      filters.risks.length > 0 &&
+      !filters.risks.some((risk) => matchesRiskFilter(bond.risk, risk))
+    ) {
+      return false;
+    }
+    return true;
+  });
+}

@@ -14,6 +14,29 @@ type DetailRow = {
   multiline?: string[];
 };
 
+function isFull(value: string): boolean {
+  const parts = value.split("/").map((s) => Number(s.trim().replace(/,/g, "")));
+  return parts.length === 2 && parts[0] === parts[1];
+}
+
+function AllocationSummary({ requestNotionalSize, confirmedRequest }: { requestNotionalSize: string; confirmedRequest: string }) {
+  return (
+    <div
+      className="grid grid-cols-2 w-full rounded-md overflow-hidden"
+      style={{ border: `1px solid ${BORDER_COLOR}` }}
+    >
+      <div className="flex flex-col gap-1 px-4 py-3 bg-[#f9fafb] items-center text-center" style={{ borderRight: `1px solid ${BORDER_COLOR}` }}>
+        <span className="text-xs leading-4 font-bold text-[#6a7282]">Request / Notional Size</span>
+        <span className={`text-base leading-6 font-semibold ${isFull(requestNotionalSize) ? "text-[#0a6ee7]" : "text-[#101828]"}`}>{requestNotionalSize}</span>
+      </div>
+      <div className="flex flex-col gap-1 px-4 py-3 bg-[#f9fafb] items-center text-center">
+        <span className="text-xs leading-4 font-bold text-[#6a7282]">Confirmed / Request</span>
+        <span className={`text-base leading-6 font-semibold ${isFull(confirmedRequest) ? "text-[#008236]" : "text-[#101828]"}`}>{confirmedRequest}</span>
+      </div>
+    </div>
+  );
+}
+
 function DetailTable({ rows }: { rows: DetailRow[] }) {
   return (
     <div
@@ -154,6 +177,12 @@ export function StructuredProductDetail({
 
           <div className="flex flex-col gap-3 items-center w-full">
             <DetailTable rows={detailRows} />
+            {product.requestNotionalSize != null && product.confirmedRequest != null && (
+              <AllocationSummary
+                requestNotionalSize={product.requestNotionalSize}
+                confirmedRequest={product.confirmedRequest}
+              />
+            )}
             <p className="text-xs leading-4 text-[#6a7282] text-center whitespace-nowrap">
               อัปเดตล่าสุด {product.updatedAt}
             </p>
@@ -162,11 +191,8 @@ export function StructuredProductDetail({
 
         {/* CTA */}
         <div className="flex flex-col gap-3 items-center w-full">
-          <p className="w-full text-sm leading-5 text-[#6a7282] text-center">
-            การแจ้งความสนใจยังไม่ถือเป็นการลงทุนจริง โดยเจ้าหน้าที่จะติดต่อกลับเพื่อยืนยันรายละเอียดการลงทุน
-          </p>
           <Button variant="primary" size="xl" className="w-full max-w-[343px]">
-            สนใจลงทุน
+            Download PDF
           </Button>
         </div>
       </div>
