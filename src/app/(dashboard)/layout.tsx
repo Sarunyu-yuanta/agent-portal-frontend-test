@@ -168,8 +168,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )}
 
         <main className={`flex-1 overflow-y-auto overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 lg:p-6"}`}>
-          <div className={`${isFullWidth ? "w-full" : "max-w-[1280px] mx-auto"} flex flex-col gap-6`}>
-            {/* Title in content — mobile only */}
+          <div
+            className={`${
+              isFullWidth ? "w-full" : "max-w-[1280px] mx-auto"
+            } flex flex-col gap-6`}
+          >
             {!clientBreadcrumb && !isFullWidth && (pageTitle || isCommandCenter || isHouseView) && (
               <div className="flex items-center justify-between gap-3 lg:hidden">
                 <div className="flex items-center gap-3">

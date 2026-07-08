@@ -16,10 +16,8 @@ import {
   Pagination,
   SearchInput,
   Tooltip,
-  type CheckboxChecked,
 } from "@sarunyu/system-one";
 import {
-  PlusIcon,
   PhoneIcon,
   ChatCircleIcon,
   UserIcon,
@@ -31,6 +29,7 @@ import {
 import { mockClients } from "@/lib/mock-data";
 import { useClients, usePipelineDeals, useNBAActions } from "@/hooks/use-api";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { AssetSummarySection, type AssetHeroSummary } from "@/components/AssetSummarySection";
 
 type Client = (typeof mockClients)[number];
 type InsightCategory = "opportunity" | "risk" | "stable" | "match";
@@ -347,6 +346,89 @@ function computeCashAmount(aum: string, pct: number): string {
     : `฿ ${(cashM * 1000).toFixed(0)}k`;
 }
 
+const LINE_AVAILABLE_RATIO = 320_000 / 9_400_000;
+
+function parseAumToThb(aum: string): number {
+  const match = aum.match(/([\d.]+)/);
+  if (!match) return 0;
+  return parseFloat(match[1]) * 1_000_000;
+}
+
+function parsePlYtdPct(plYtd: string): number {
+  const match = plYtd.match(/([+-]?[\d.]+)/);
+  return match ? Math.abs(parseFloat(match[1])) : 0;
+}
+
+function formatThbAmount(amount: number, withSign = false): string {
+  const formatted = Math.abs(amount).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  if (!withSign) return formatted;
+  return `${amount >= 0 ? "+" : "-"}${formatted}`;
+}
+
+function formatThaiUpdatedAt(now: Date): { date: string; time: string } {
+  return {
+    date: now.toLocaleDateString("th-TH", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }),
+    time: now.toLocaleTimeString("th-TH", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }),
+  };
+}
+
+function buildHeroSummaryFromClients(clients: Client[]): AssetHeroSummary {
+  const updatedAt = formatThaiUpdatedAt(new Date());
+
+  if (clients.length === 0) {
+    return {
+      netValue: "0.00",
+      changeAmount: "+0.00",
+      changePercent: "0.00",
+      changePositive: true,
+      lineAvailable: "0.00",
+      cash: "0.00",
+      lastUpdatedDate: updatedAt.date,
+      lastUpdatedTime: updatedAt.time,
+    };
+  }
+
+  let netValue = 0;
+  let cash = 0;
+  let lineAvailable = 0;
+  let plChange = 0;
+
+  for (const client of clients) {
+    const aumThb = parseAumToThb(client.aum);
+    netValue += aumThb;
+    cash += aumThb * (client.cashIdlePct / 100);
+    lineAvailable += aumThb * LINE_AVAILABLE_RATIO;
+
+    const pct = parsePlYtdPct(client.plYtd);
+    const sign = client.plPositive ? 1 : -1;
+    plChange += aumThb * (pct / 100) * sign;
+  }
+
+  const changePercent = netValue > 0 ? (plChange / netValue) * 100 : 0;
+
+  return {
+    netValue: formatThbAmount(netValue),
+    changeAmount: formatThbAmount(plChange, true),
+    changePercent: Math.abs(changePercent).toFixed(2),
+    changePositive: plChange >= 0,
+    lineAvailable: formatThbAmount(lineAvailable),
+    cash: formatThbAmount(cash),
+    lastUpdatedDate: updatedAt.date,
+    lastUpdatedTime: updatedAt.time,
+  };
+}
+
 // ─── AI Score Badge ───────────────────────────────────────────────────────────
 
 function AiScoreBadge({
@@ -656,7 +738,7 @@ type SortKey =
   | "status"
   | null;
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export default function ClientHubPage() {
   const router = useRouter();
@@ -667,7 +749,6 @@ export default function ClientHubPage() {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDir, setSortDir] = useState<SortDir>("none");
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
 
   const tabItems = [
@@ -736,6 +817,11 @@ export default function ClientHubPage() {
   const safePage = Math.min(currentPage, totalPages);
   const paged = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
+  const heroSummary = useMemo(() => {
+    const visible = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+    return buildHeroSummaryFromClients(visible);
+  }, [sorted, safePage]);
+
   function openClient(client: Client) {
     setSelectedClient(client);
     setDrawerOpen(true);
@@ -744,24 +830,24 @@ export default function ClientHubPage() {
   return (
     <>
       <div className="flex flex-col gap-6">
-        {/* Toolbar — stacks on mobile, side-by-side on desktop */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-0">
-          {/* Tabs — scrollable on mobile, flex-1 on desktop */}
-          <div className="scrollable-tabs sm:overflow-visible sm:flex-1 sm:min-w-0 transparent-tabs">
-            <TabGroup
-              items={tabItems}
-              activeId={activeTab}
-              onChange={(id) => {
-                setActiveTab(id);
-                setCurrentPage(1);
-              }}
-              size="md"
-            />
-          </div>
+        {/* Tabs — hidden for now */}
+        <div className="hidden">
+          <TabGroup
+            items={tabItems}
+            activeId={activeTab}
+            onChange={(id) => {
+              setActiveTab(id);
+              setCurrentPage(1);
+            }}
+            size="md"
+          />
+        </div>
 
-          {/* Search + Add */}
-          <div className="flex items-center gap-2 sm:shrink-0 sm:pb-2">
-            <div className="flex-1 min-w-0 sm:flex-none sm:w-56">
+        <AssetSummarySection heroSummary={heroSummary} />
+
+        <section className="-mx-4 lg:-mx-6 -mb-4 lg:-mb-6 px-4 lg:px-6 flex flex-col gap-3 pt-4 lg:pt-6 pb-6 bg-white rounded-t-[16px] lg:rounded-t-2xl">
+          <div className="flex justify-end lg:justify-end">
+            <div className="w-full lg:w-56 lg:max-w-none">
               <SearchInput
                 placeholder="Search clients…"
                 value={search}
@@ -776,36 +862,13 @@ export default function ClientHubPage() {
                 size="sm"
               />
             </div>
-            <Button
-              variant="primary"
-              size="lg"
-              leftIcon={<PlusIcon size={15} />}
-            >
-              Add Client
-            </Button>
           </div>
-        </div>
 
         {/* Table */}
-        <div className="rounded-xl border border-[var(--border-default)] overflow-hidden overflow-x-auto">
+        <div className="overflow-hidden overflow-x-auto rounded-lg border border-[var(--border-default)]">
           <Table className="table-fixed min-w-[700px]">
             <TableHead>
               <TableRow>
-                <TableHeaderCell
-                  type="check"
-                  checkState={
-                    selectedIds.size === 0
-                      ? false
-                      : paged.every((c) => selectedIds.has(c.id))
-                        ? true
-                        : "indeterminate"
-                  }
-                  onCheckChange={(next) =>
-                    setSelectedIds(
-                      next ? new Set(paged.map((c) => c.id)) : new Set(),
-                    )
-                  }
-                />
                 <TableHeaderCell
                   className="w-[20%]"
                   sortDirection={dirFor("name")}
@@ -850,7 +913,6 @@ export default function ClientHubPage() {
                   client.cashIdlePct,
                 );
                 const cashHighlight = client.cashIdlePct > 20;
-                const isChecked = selectedIds.has(client.id);
 
                 return (
                   <Tooltip
@@ -861,20 +923,9 @@ export default function ClientHubPage() {
                   >
                     <TableRow
                       className="cursor-pointer"
-                      selected={isChecked}
-                      onSelectedChange={(next) =>
-                        setSelectedIds((prev) => {
-                          const s = new Set(prev);
-                          next ? s.add(client.id) : s.delete(client.id);
-                          return s;
-                        })
-                      }
                       hoverable
                       onClick={() => openClient(client)}
                     >
-                      {/* Checkbox cell */}
-                      <TableCell type="checkbox" selected={isChecked} />
-
                       {/* CLIENT & SEGMENT */}
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -1011,6 +1062,7 @@ export default function ClientHubPage() {
             onPageChange={setCurrentPage}
           />
         </div>
+        </section>
       </div>
 
       {/* Client Detail Drawer */}

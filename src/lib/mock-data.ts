@@ -87,10 +87,23 @@ export const mockPerformanceData = performanceRaw as typeof performanceRaw & {
 
 type AllocationSlice = { name: string; value: number; fill: string };
 type AllocationKpi   = { label: string; value: string; ytd: string; ytdPositive: boolean; warning?: string };
+type AssetAllocationSlice = { label: string; percent: number; statusIcon: string };
+type AssetSummary    = {
+  netValue: string;
+  changeAmount: string;
+  changePercent: string;
+  changePositive: boolean;
+  lineAvailable: string;
+  cash: string;
+  lastUpdatedDate: string;
+  lastUpdatedTime: string;
+  allocationSlices: AssetAllocationSlice[];
+};
 type Holding         = { asset: string; value: string; pnl: string; pnlPct: string; positive: boolean; pct: string };
 type AIAlert         = { title: string; message: string; primaryAction: string; secondaryAction: string };
 
 export type ClientDetail = {
+  assetSummary?:     AssetSummary;
   allocationData:    AllocationSlice[];
   allocationBreakdown: AllocationKpi[];
   topHoldings:       Holding[];

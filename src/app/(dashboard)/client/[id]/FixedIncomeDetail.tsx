@@ -4,14 +4,7 @@ import { useEffect } from "react";
 import { Button } from "@sarunyu/system-one";
 import { ArrowLeftIcon, CaretDoubleRightIcon, FileTextIcon } from "@phosphor-icons/react";
 import { BOND_LOGOS, type FixedIncomeBond } from "./fixed-income-data";
-
-const BORDER_COLOR = "rgba(0,0,0,0.1)";
-
-const ACTION_LABELS = {
-  invest: "สนใจลงทุน",
-  follow: "ติดตาม",
-  followed: "ติดตามแล้ว",
-} as const;
+import { BORDER_COLOR, ACTION_LABELS, StatusTag, BondLogo } from "./fixed-income-shared";
 
 function DetailTable({ bond }: { bond: FixedIncomeBond }) {
   const rows: {
@@ -76,38 +69,6 @@ function DetailTable({ bond }: { bond: FixedIncomeBond }) {
   );
 }
 
-function BondLogo({ bond, size = "lg" }: { bond: FixedIncomeBond; size?: "sm" | "lg" }) {
-  const src = BOND_LOGOS[bond.logoIdx];
-  const dim = size === "lg" ? "size-12" : "size-5";
-  return (
-    <div
-      className={`relative shrink-0 ${dim} rounded-md overflow-hidden`}
-      style={{ border: `1px solid ${BORDER_COLOR}` }}
-    >
-      {bond.logoCrop ? (
-        <img alt="" className="absolute h-[149.62%] left-[-92.5%] max-w-none top-[-24.81%] w-[285%]" src={src} />
-      ) : (
-        <img alt="" className="absolute inset-0 size-full object-cover pointer-events-none" src={src} />
-      )}
-    </div>
-  );
-}
-
-function StatusTag({ bond }: { bond: FixedIncomeBond }) {
-  const isOpen = bond.status === "open";
-  return (
-    <span
-      className="inline-flex items-center justify-center overflow-hidden px-2 py-1 rounded shrink-0 text-xs font-bold leading-4 whitespace-nowrap"
-      style={{
-        backgroundColor: isOpen ? "#dbfce7" : "#f3f4f6",
-        color: isOpen ? "#008236" : "#6a7282",
-      }}
-    >
-      {bond.statusLabel}
-    </span>
-  );
-}
-
 export function FixedIncomeDetail({
   bond,
   onBack,
@@ -160,11 +121,11 @@ export function FixedIncomeDetail({
 
           <div className="flex flex-col gap-4 w-full">
             <div className="flex gap-3 items-center w-full">
-              <BondLogo bond={bond} />
+              <BondLogo src={BOND_LOGOS[bond.logoIdx]} logoCrop={bond.logoCrop} className="size-12 rounded-md" />
               <div className="flex flex-1 min-w-0 flex-col gap-1">
                 <p className="text-lg font-bold leading-6 text-[#101828] truncate w-full">{bond.symbol}</p>
                 <div className="flex flex-wrap gap-2 items-center">
-                  <StatusTag bond={bond} />
+                  <StatusTag status={bond.status} label={bond.statusLabel} />
                   <span className="inline-flex items-center justify-center px-2 py-1 rounded bg-[#f3f4f6] text-xs leading-4 text-[#4a5565] whitespace-nowrap">
                     {bond.bondCategory}
                   </span>

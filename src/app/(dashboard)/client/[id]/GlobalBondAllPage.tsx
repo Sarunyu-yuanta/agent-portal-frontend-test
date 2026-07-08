@@ -22,11 +22,10 @@ import {
   type TickerFilter,
   type YieldFilter,
 } from "./global-bond-data";
+import { BORDER_COLOR, HEADER_TEXT_CLS, headerBorderStyle, cellBorderStyle, BondLogo } from "./fixed-income-shared";
 
-const BORDER_COLOR = "rgba(0,0,0,0.1)";
 const BONDS_COL_MIN_CLS = "min-w-[400px]";
 const TABLE_SHADOW = "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
-const HEADER_CLS = "text-sm leading-5 text-[#6a7282]";
 
 const TICKER_OPTIONS: { id: TickerFilter; label: string }[] = [
   { id: "all", label: "All Ticker" },
@@ -85,15 +84,6 @@ function formatUpdatedAtTablet(dateStr: string): string {
   return dateStr.replace("September", "Sep").replace("August", "Aug");
 }
 
-const headerBorder = (opts?: { right?: boolean; left?: boolean }) => ({
-  borderBottom: `1px solid ${BORDER_COLOR}`,
-  borderRight: opts?.right === false ? undefined : `1px solid ${BORDER_COLOR}`,
-  borderLeft: opts?.left ? `1px solid ${BORDER_COLOR}` : undefined,
-});
-
-const cellBorder = (opts?: { bottom?: boolean }) => ({
-  borderBottom: opts?.bottom === false ? undefined : `1px solid ${BORDER_COLOR}`,
-});
 
 function FilterDropdown<T extends string>({
   value,
@@ -138,9 +128,7 @@ function FilterDropdown<T extends string>({
 function IssuerLogo({ src }: { src: string }) {
   return (
     <div className="flex shrink-0 items-center py-0.5">
-      <div className="relative size-5 rounded overflow-hidden" style={{ border: `1px solid ${BORDER_COLOR}` }}>
-        <img alt="" className="absolute inset-0 size-full object-cover rounded pointer-events-none" src={src} />
-      </div>
+      <BondLogo src={src} />
     </div>
   );
 }
@@ -346,14 +334,14 @@ function AllBondsTable({ bonds }: { bonds: GlobalBondRow[] }) {
       <div className="overflow-x-auto hide-scrollbar" style={{ scrollbarWidth: "none" }}>
         <div className="flex items-stretch min-w-[1400px]">
           <div className={`flex flex-col w-[400px] shrink-0 ${BONDS_COL_MIN_CLS}`}>
-            <div className="flex h-11 items-center px-4" style={headerBorder({ left: true })}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>Bonds</span>
+            <div className="flex h-11 items-center px-4" style={headerBorderStyle({ left: true })}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Bonds</span>
             </div>
             {bonds.map((row, i) => (
               <div
                 key={row.id}
                 className="flex items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden"
-                style={cellBorder({ bottom: i === bonds.length - 1 ? false : undefined })}
+                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
               >
                 <IssuerLogo src={row.logo} />
                 <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
@@ -364,124 +352,124 @@ function AllBondsTable({ bonds }: { bonds: GlobalBondRow[] }) {
             ))}
           </div>
           <div className="flex flex-col w-[138px] shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>ISIN</span>
+            <div className="flex h-11 items-center px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ISIN</span>
             </div>
             {bonds.map((row, i) => (
               <div
                 key={row.id}
                 className="flex flex-1 items-center px-4 py-3.5 min-h-[52px]"
-                style={cellBorder({ bottom: i === bonds.length - 1 ? false : undefined })}
+                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
               >
                 <span className="text-sm leading-5 text-[#101828]">{row.isin}</span>
               </div>
             ))}
           </div>
           <div className="flex flex-col w-[80px] shrink-0">
-            <div className="flex h-11 items-center justify-center px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>Currency</span>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Currency</span>
             </div>
             {bonds.map((row, i) => (
               <div
                 key={row.id}
                 className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]"
-                style={cellBorder({ bottom: i === bonds.length - 1 ? false : undefined })}
+                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
               >
                 <span className="text-sm leading-5 text-[#101828]">{row.currency}</span>
               </div>
             ))}
           </div>
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>Coupon Rate</span>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Coupon Rate</span>
             </div>
             {bonds.map((row, i) => (
               <div
                 key={row.id}
                 className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
-                style={cellBorder({ bottom: i === bonds.length - 1 ? false : undefined })}
+                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
               >
                 <span className="text-sm leading-5 text-[#101828]">{row.couponRate}</span>
               </div>
             ))}
           </div>
           <div className="flex flex-col w-[81px] shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>Price</span>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Price</span>
             </div>
             {bonds.map((row, i) => (
               <div
                 key={row.id}
                 className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
-                style={cellBorder({ bottom: i === bonds.length - 1 ? false : undefined })}
+                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
               >
                 <span className="text-sm leading-5 text-[#101828]">{row.price}</span>
               </div>
             ))}
           </div>
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>ผลตอบแทนโดยประมาณ</span>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ผลตอบแทนโดยประมาณ</span>
             </div>
             {bonds.map((row, i) => (
               <div
                 key={row.id}
                 className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
-                style={cellBorder({ bottom: i === bonds.length - 1 ? false : undefined })}
+                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
               >
                 <span className="text-sm leading-5 text-[#101828]">{row.yieldPct}</span>
               </div>
             ))}
           </div>
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
             </div>
             {bonds.map((row, i) => (
               <div
                 key={row.id}
                 className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]"
-                style={cellBorder({ bottom: i === bonds.length - 1 ? false : undefined })}
+                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
               >
                 <span className="text-sm leading-5 text-[#101828]">{row.maturity}</span>
               </div>
             ))}
           </div>
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>ระยะเวลา (ปี)</span>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ระยะเวลา (ปี)</span>
             </div>
             {bonds.map((row, i) => (
               <div
                 key={row.id}
                 className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
-                style={cellBorder({ bottom: i === bonds.length - 1 ? false : undefined })}
+                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
               >
                 <span className="text-sm leading-5 text-[#101828]">{row.duration}</span>
               </div>
             ))}
           </div>
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-3" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>เอกสาร</span>
+            <div className="flex h-11 items-center justify-center px-3" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>เอกสาร</span>
             </div>
             {bonds.map((row, i) => (
               <div
                 key={row.id}
                 className="flex flex-1 items-center justify-center px-3 py-[11px] min-h-[52px]"
-                style={cellBorder({ bottom: i === bonds.length - 1 ? false : undefined })}
+                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
               >
                 <FactsheetButton />
               </div>
             ))}
           </div>
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorder({ right: false })} />
+            <div className="flex h-11 items-center px-4" style={headerBorderStyle({ right: false })} />
             {bonds.map((row, i) => (
               <div
                 key={row.id}
                 className="flex flex-1 items-center justify-center px-4 py-3 min-h-[52px]"
-                style={cellBorder({ bottom: i === bonds.length - 1 ? false : undefined })}
+                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
               >
                 <BondCheckbox />
               </div>

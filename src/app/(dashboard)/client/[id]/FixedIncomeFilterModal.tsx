@@ -17,24 +17,7 @@ import {
   type FixedIncomeOfferFilter,
   type FixedIncomeRiskFilter,
 } from "./fixed-income-data";
-
-const CHIP_BORDER = "rgba(0,0,0,0.1)";
-
-function CompanyLogo({ company }: { company: FixedIncomeFilterCompany }) {
-  const src = BOND_LOGOS[company.logoIdx];
-  return (
-    <div
-      className="relative shrink-0 size-5 rounded overflow-hidden"
-      style={{ border: `1px solid ${CHIP_BORDER}` }}
-    >
-      {company.logoCrop ? (
-        <img alt="" className="absolute h-[149.62%] left-[-92.5%] max-w-none top-[-24.81%] w-[285%]" src={src} />
-      ) : (
-        <img alt="" className="absolute inset-0 size-full object-cover rounded pointer-events-none" src={src} />
-      )}
-    </div>
-  );
-}
+import { BondLogo } from "./fixed-income-shared";
 
 function CompanyFilterChip({
   label,
@@ -54,11 +37,11 @@ function CompanyFilterChip({
       className="flex h-8 w-full min-w-0 items-center justify-center gap-1 overflow-hidden rounded-full border pl-2 pr-3 py-1.5 text-sm leading-5 cursor-pointer transition-colors"
       style={{
         backgroundColor: selected ? "#0a6ee7" : "white",
-        borderColor: selected ? "rgba(0,0,0,0.08)" : CHIP_BORDER,
+        borderColor: selected ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.1)",
         color: selected ? "white" : "#4a5565",
       }}
     >
-      <CompanyLogo company={company} />
+      <BondLogo src={BOND_LOGOS[company.logoIdx]} logoCrop={company.logoCrop} />
       <span className="min-w-0 flex-1 truncate text-center">{label}</span>
     </button>
   );

@@ -101,10 +101,8 @@ export default function ClientPage({
           ? "Needs Attention"
           : "In Progress";
 
-
   // NBA action for this client (provides aiDraft + revenueImpact for AI cards)
   const nbaAction = nbaActions.find((a) => a.clientId === client.id);
-
 
   // Compact sticky header on scroll
   const [scrolled, setScrolled] = useState(false);

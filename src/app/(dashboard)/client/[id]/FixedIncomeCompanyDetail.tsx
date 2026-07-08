@@ -11,13 +11,18 @@ import {
   getCompanySecondaryBonds,
   resolveFixedIncomeCompany,
   type FixedIncomeBond,
-  type FixedIncomeStatus,
 } from "./fixed-income-data";
+import {
+  BORDER_COLOR,
+  HEADER_TEXT_CLS,
+  headerBorderStyle,
+  cellBorderStyle,
+  StatusTag,
+  BondLogo,
+} from "./fixed-income-shared";
 
-const BORDER_COLOR = "rgba(0,0,0,0.1)";
 const TABLE_SHADOW =
   "0px 0px 1px rgba(102,102,102,0.16),0px 4px 4px rgba(102,102,102,0.12)";
-const HEADER_TEXT = "text-sm leading-5 text-[#6a7282]";
 const GRADIENT_TITLE =
   "bg-gradient-to-r from-[#00a1e9] to-[#004eba] bg-clip-text text-transparent";
 
@@ -42,47 +47,6 @@ const STICKY_ACTION_HEADER_CLS =
 
 const STICKY_ACTION_CELL_CLS =
   "sticky right-0 z-10 w-[72px] shrink-0 bg-white group-hover:bg-[#f9fafb] border-l border-[rgba(0,0,0,0.1)] shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06)]";
-
-const headerBorder = (opts?: { right?: boolean; left?: boolean }) => ({
-  borderBottom: `1px solid ${BORDER_COLOR}`,
-  borderRight: opts?.right === false ? undefined : `1px solid ${BORDER_COLOR}`,
-  borderLeft: opts?.left ? `1px solid ${BORDER_COLOR}` : undefined,
-});
-
-const cellBorder = (opts?: { bottom?: boolean }) => ({
-  borderBottom: opts?.bottom === false ? undefined : `1px solid ${BORDER_COLOR}`,
-});
-
-function BondLogo({ bond }: { bond: FixedIncomeBond }) {
-  const src = BOND_LOGOS[bond.logoIdx];
-  return (
-    <div
-      className="relative shrink-0 size-5 rounded overflow-hidden"
-      style={{ border: `1px solid ${BORDER_COLOR}` }}
-    >
-      {bond.logoCrop ? (
-        <img alt="" className="absolute h-[149.62%] left-[-92.5%] max-w-none top-[-24.81%] w-[285%]" src={src} />
-      ) : (
-        <img alt="" className="absolute inset-0 size-full object-cover pointer-events-none" src={src} />
-      )}
-    </div>
-  );
-}
-
-function StatusTag({ status, label }: { status: FixedIncomeStatus; label: string }) {
-  const isOpen = status === "open";
-  return (
-    <span
-      className="inline-flex items-center justify-center overflow-hidden px-2 py-1 rounded shrink-0 text-xs font-bold leading-4 whitespace-nowrap"
-      style={{
-        backgroundColor: isOpen ? "#dbfce7" : "#f3f4f6",
-        color: isOpen ? "#008236" : "#6a7282",
-      }}
-    >
-      {label}
-    </span>
-  );
-}
 
 function CategoryTag({ label }: { label: string }) {
   return (
@@ -141,11 +105,11 @@ function HeaderCellSimple({
         align === "center" ? "justify-center" : align === "right" ? "justify-end" : ""
       } ${className}`}
       style={{
-        ...headerBorder({ left: borderLeft, right: borderRight ? undefined : false }),
+        ...headerBorderStyle({ left: borderLeft, right: borderRight ? undefined : false }),
       }}
     >
       {children != null && children !== "" && (
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>{children}</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>{children}</span>
       )}
     </div>
   );
@@ -155,23 +119,23 @@ function RatingsHeaderCell() {
   return (
     <div
       className="flex flex-col h-[44px] min-w-0 overflow-hidden"
-      style={{ ...headerBorder(), gridColumn: "span 2" }}
+      style={{ ...headerBorderStyle(), gridColumn: "span 2" }}
     >
       <div
         className="flex flex-1 items-center justify-center px-3 min-h-0"
         style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}
       >
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>Ratings</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Ratings</span>
       </div>
       <div className="flex flex-1 items-stretch min-h-0">
         <div
           className="flex flex-1 items-center justify-center px-3"
           style={{ borderRight: `1px solid ${BORDER_COLOR}` }}
         >
-          <span className={`${HEADER_TEXT} whitespace-nowrap`}>บริษัท</span>
+          <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>บริษัท</span>
         </div>
         <div className="flex flex-1 items-center justify-center px-3">
-          <span className={`${HEADER_TEXT} whitespace-nowrap`}>หุ้นกู้</span>
+          <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>หุ้นกู้</span>
         </div>
       </div>
     </div>
@@ -212,7 +176,7 @@ function BondTableRow({
   showStatus: boolean;
   onSelect: (bond: FixedIncomeBond) => void;
 }) {
-  const border = () => cellBorder({ bottom: !isLast });
+  const border = () => cellBorderStyle({ bottom: !isLast });
 
   const cell = "flex items-center px-3 py-3.5 min-w-0";
 
@@ -231,7 +195,7 @@ function BondTableRow({
       style={bondTableRowStyle(showStatus)}
     >
       <div className={`${cell} gap-2`} style={border()}>
-        <BondLogo bond={bond} />
+        <BondLogo src={BOND_LOGOS[bond.logoIdx]} logoCrop={bond.logoCrop} />
         <span className="flex-1 min-w-0 text-sm font-bold leading-5 text-[#101828] truncate">{bond.symbol}</span>
       </div>
       {showStatus && (

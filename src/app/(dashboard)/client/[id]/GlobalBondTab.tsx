@@ -15,10 +15,9 @@ import {
   TOP_PICK_ROWS,
   type GlobalBondIssuerId,
 } from "./global-bond-data";
+import { BORDER_COLOR, HEADER_TEXT_CLS, headerBorderStyle, cellBorderStyle, BondLogo } from "./fixed-income-shared";
 
-const BORDER_COLOR = "rgba(0,0,0,0.1)";
 const TABLE_SHADOW = "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
-const CARD_SHADOW = TABLE_SHADOW;
 
 const BANNER_ASSETS = {
   ysinvestIllustration: "/banner-ysinvest-illustration.png",
@@ -27,8 +26,6 @@ const BANNER_ASSETS = {
   adsIndexCard: "/banner-ads-index-card.png",
   adsClose: "/banner-ads-close.svg",
 };
-
-const BANNER_SHADOW = "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
 
 const SHOW_YSINVEST_BANNER = false;
 
@@ -39,7 +36,7 @@ function BannerYSinvest() {
   return (
     <div
       className="relative h-[120px] shrink-0 overflow-hidden rounded-[8px] bg-gradient-to-b from-[#e6f1fc] to-white w-[343px] max-w-[calc(100%-32px)]"
-      style={{ boxShadow: BANNER_SHADOW }}
+      style={{ boxShadow: TABLE_SHADOW }}
     >
       <div className="relative flex h-full flex-col items-start justify-between p-4 z-[1]">
         <div className="flex flex-col gap-1 text-[#2b7fff]">
@@ -135,25 +132,6 @@ const RECOMMENDED_ROWS = RECOMMENDED_ISSUERS.map((id, i) => {
 
 type RecommendedRow = (typeof RECOMMENDED_ROWS)[number];
 
-const headerBorder = (opts?: { right?: boolean; left?: boolean }) => ({
-  borderBottom: `1px solid ${BORDER_COLOR}`,
-  borderRight: opts?.right === false ? undefined : `1px solid ${BORDER_COLOR}`,
-  borderLeft: opts?.left ? `1px solid ${BORDER_COLOR}` : undefined,
-});
-
-const cellBorder = (opts?: { bottom?: boolean }) => ({
-  borderBottom: opts?.bottom === false ? undefined : `1px solid ${BORDER_COLOR}`,
-});
-
-const HEADER_CLS = "text-sm leading-5 text-[#6a7282]";
-
-function IssuerLogo({ src }: { src: string }) {
-  return (
-    <div className="relative shrink-0 size-5 rounded overflow-hidden" style={{ border: `1px solid ${BORDER_COLOR}` }}>
-      <img alt="" className="absolute inset-0 size-full object-cover rounded pointer-events-none" src={src} />
-    </div>
-  );
-}
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
@@ -191,7 +169,7 @@ function TopPickAccordionList() {
                 onClick={() => setExpandedIdx(expanded ? null : i)}
                 className="flex w-full items-center gap-2 p-3 bg-white border-none cursor-pointer text-left"
               >
-                <IssuerLogo src={row.logo} />
+                <BondLogo src={row.logo} />
                 <div className="flex flex-1 min-w-0 flex-col gap-0.5">
                   <span className="text-sm font-bold leading-5 text-[#101828] truncate">{row.name}</span>
                   <div className="flex gap-0.5 items-center min-h-[18px]">
@@ -265,7 +243,7 @@ function RecommendedAccordionList({ onIssuerSelect }: { onIssuerSelect?: (id: Gl
                 onClick={() => setExpandedIdx(expanded ? null : i)}
                 className="flex w-full items-center gap-2 p-3 bg-white border-none cursor-pointer text-left min-h-12"
               >
-                <IssuerLogo src={row.logo} />
+                <BondLogo src={row.logo} />
                 <span
                   className={`flex-1 min-w-0 text-sm font-bold leading-5 truncate ${
                     expanded ? "text-[#101828]" : "text-[#4a5565]"
@@ -370,19 +348,19 @@ function TopPickTable() {
           <div className="flex flex-col flex-1 min-w-0">
             <div
               className="flex h-11 items-center px-4"
-              style={headerBorder({ left: true, right: false })}
+              style={headerBorderStyle({ left: true, right: false })}
             >
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>Top pick</span>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Top pick</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
               <div
                 key={i}
                 className="flex items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden"
-                style={cellBorder({
+                style={cellBorderStyle({
                   bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined,
                 })}
               >
-                <IssuerLogo src={row.logo} />
+                <BondLogo src={row.logo} />
                 <span className="flex-1 min-w-0 truncate text-sm leading-5 text-[#101828]">
                   {row.name}
                 </span>
@@ -393,13 +371,13 @@ function TopPickTable() {
           <div className="flex flex-col w-[70px] shrink-0">
             <div
               className="flex h-11 items-center justify-center px-4"
-              style={headerBorder()}
+              style={headerBorderStyle()}
             />
             {TOP_PICK_ROWS.map((row, i) => (
               <div
                 key={i}
                 className="flex flex-1 items-center justify-center px-4 py-3 min-h-[52px]"
-                style={cellBorder({
+                style={cellBorderStyle({
                   bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined,
                 })}
               >
@@ -409,97 +387,97 @@ function TopPickTable() {
           </div>
           {/* ISIN */}
           <div className="flex flex-col w-[154px] shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>ISIN</span>
+            <div className="flex h-11 items-center px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ISIN</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center px-4 py-3.5 min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className="flex flex-1 items-center px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
                 <span className="text-sm leading-5 text-[#101828]">{row.isin}</span>
               </div>
             ))}
           </div>
           {/* Currency */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>Currency</span>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Currency</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
                 <span className="text-sm leading-5 text-[#101828]">{row.currency}</span>
               </div>
             ))}
           </div>
           {/* Coupon Rate */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>Coupon Rate</span>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Coupon Rate</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
                 <span className="text-sm leading-5 text-[#101828]">{row.couponRate}</span>
               </div>
             ))}
           </div>
           {/* Price */}
           <div className="flex flex-col w-[81px] shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>Price</span>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Price</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
                 <span className="text-sm leading-5 text-[#101828]">{row.price}</span>
               </div>
             ))}
           </div>
           {/* Yield */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>ผลตอบแทน</span>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ผลตอบแทน</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
                 <span className="text-sm leading-5 text-[#101828]">{row.yieldPct}</span>
               </div>
             ))}
           </div>
           {/* Maturity */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
                 <span className="text-sm leading-5 text-[#101828]">{row.maturity}</span>
               </div>
             ))}
           </div>
           {/* Duration */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>ระยะเวลา (ปี)</span>
+            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ระยะเวลา (ปี)</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
                 <span className="text-sm leading-5 text-[#101828]">{row.duration}</span>
               </div>
             ))}
           </div>
           {/* Factsheet */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-3" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>เอกสาร</span>
+            <div className="flex h-11 items-center justify-center px-3" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>เอกสาร</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-center px-3 py-[11px] min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className="flex flex-1 items-center justify-center px-3 py-[11px] min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
                 <FactsheetButton />
               </div>
             ))}
           </div>
           {/* Action */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorder({ right: false })} />
+            <div className="flex h-11 items-center px-4" style={headerBorderStyle({ right: false })} />
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-center px-4 py-[11px] min-h-[52px]" style={cellBorder({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className="flex flex-1 items-center justify-center px-4 py-[11px] min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
                 <InvestButton />
               </div>
             ))}
@@ -520,34 +498,34 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
         <div className="flex items-stretch min-w-[1152px]">
           {/* Issuer */}
           <div className="flex flex-col w-[296px] shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorder({ left: true })}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>ผู้ออกตราสาร</span>
+            <div className="flex h-11 items-center px-4" style={headerBorderStyle({ left: true })}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ผู้ออกตราสาร</span>
             </div>
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
                 className="flex flex-1 items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden"
                 style={{
-                  ...cellBorder({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
+                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
                   backgroundColor: row.alt ? "#f9fafb" : "white",
                 }}
               >
-                <IssuerLogo src={row.logo} />
+                <BondLogo src={row.logo} />
                 <span className="flex-1 min-w-0 text-sm font-bold leading-5 text-[#101828] truncate">{row.issuer}</span>
               </div>
             ))}
           </div>
           {/* Coupon Rate */}
           <div className="flex flex-col flex-1 min-w-[100px]">
-            <div className="flex h-11 items-center justify-center px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>Coupon Rate</span>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Coupon Rate</span>
             </div>
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
                 className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]"
                 style={{
-                  ...cellBorder({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
+                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
                   backgroundColor: row.alt ? "#f9fafb" : "white",
                 }}
               >
@@ -557,15 +535,15 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
           </div>
           {/* Maturity */}
           <div className="flex flex-col flex-1 min-w-[100px]">
-            <div className="flex h-11 items-center justify-center px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
             </div>
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
                 className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]"
                 style={{
-                  ...cellBorder({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
+                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
                   backgroundColor: row.alt ? "#f9fafb" : "white",
                 }}
               >
@@ -575,19 +553,19 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
           </div>
           {/* Credit Rating — nested header */}
           <div className="flex flex-col w-[210px] shrink-0">
-            <div className="flex flex-col h-11 overflow-hidden" style={headerBorder()}>
+            <div className="flex flex-col h-11 overflow-hidden" style={headerBorderStyle()}>
               <div className="flex flex-1 items-center justify-center px-4" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
-                <span className={`${HEADER_CLS} whitespace-nowrap`}>Credit Rating</span>
+                <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Credit Rating</span>
               </div>
               <div className="flex flex-1 items-stretch">
                 <div className="flex flex-1 items-center justify-center px-4" style={{ borderRight: `1px solid ${BORDER_COLOR}` }}>
-                  <span className={`${HEADER_CLS} whitespace-nowrap`}>S&P</span>
+                  <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>S&P</span>
                 </div>
                 <div className="flex flex-1 items-center justify-center px-4" style={{ borderRight: `1px solid ${BORDER_COLOR}` }}>
-                  <span className={`${HEADER_CLS} whitespace-nowrap`}>Moody&apos;s</span>
+                  <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Moody&apos;s</span>
                 </div>
                 <div className="flex flex-1 items-center justify-center px-4">
-                  <span className={`${HEADER_CLS} whitespace-nowrap`}>Fitch</span>
+                  <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Fitch</span>
                 </div>
               </div>
             </div>
@@ -596,7 +574,7 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
                 key={i}
                 className="flex flex-1 items-stretch min-h-[52px]"
                 style={{
-                  ...cellBorder({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
+                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
                   backgroundColor: row.alt ? "#f9fafb" : "white",
                 }}
               >
@@ -614,15 +592,15 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
           </div>
           {/* Yield */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-4" style={headerBorder()}>
-              <span className={`${HEADER_CLS} whitespace-nowrap`}>ผลตอบแทนโดยประมาณ</span>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle()}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ผลตอบแทนโดยประมาณ</span>
             </div>
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
                 className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
                 style={{
-                  ...cellBorder({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
+                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
                   backgroundColor: row.alt ? "#f9fafb" : "white",
                 }}
               >
@@ -632,13 +610,13 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
           </div>
           {/* View info */}
           <div className="flex flex-col w-[129px] shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorder({ right: false })} />
+            <div className="flex h-11 items-center px-4" style={headerBorderStyle({ right: false })} />
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
                 className="flex flex-1 items-center justify-center px-4 py-3 min-h-[52px]"
                 style={{
-                  ...cellBorder({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
+                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
                   backgroundColor: row.alt ? "#f9fafb" : "white",
                 }}
               >
@@ -697,7 +675,7 @@ export function GlobalBondTab({
         >
           <div
             className="flex flex-col gap-6 items-center w-full max-w-[1200px] p-6 rounded-2xl bg-white"
-            style={{ boxShadow: CARD_SHADOW }}
+            style={{ boxShadow: TABLE_SHADOW }}
           >
             <h2 className="w-full text-lg font-bold leading-6 text-[#101828]">
               ตราสารหนี้ต่างประเทศแนะนำ

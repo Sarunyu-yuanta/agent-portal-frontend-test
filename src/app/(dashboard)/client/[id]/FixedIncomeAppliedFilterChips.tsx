@@ -30,6 +30,8 @@ type FixedIncomeAppliedFilterChipsProps = {
   onRemoveChip: (chip: FixedIncomeFilterChip) => void;
   className?: string;
   innerClassName?: string;
+  style?: React.CSSProperties;
+  wrap?: boolean;
 };
 
 export function FixedIncomeAppliedFilterChips({
@@ -37,22 +39,36 @@ export function FixedIncomeAppliedFilterChips({
   onRemoveChip,
   className,
   innerClassName,
+  style,
+  wrap = false,
 }: FixedIncomeAppliedFilterChipsProps) {
   if (chips.length === 0) return null;
+
+  const chipElements = chips.map((chip) => (
+    <AppliedFilterChip
+      key={chip.id}
+      label={chip.label}
+      onRemove={() => onRemoveChip(chip)}
+    />
+  ));
+
+  if (wrap) {
+    return (
+      <div className={`w-full ${className ?? ""}`} style={style}>
+        <div className={`flex flex-wrap items-center gap-2 ${innerClassName ?? ""}`}>
+          {chipElements}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
       className={`overflow-x-auto hide-scrollbar ${className ?? "w-full"}`}
-      style={{ scrollbarWidth: "none" }}
+      style={{ scrollbarWidth: "none", ...style }}
     >
       <div className={`flex w-max flex-nowrap items-center gap-2 ${innerClassName ?? ""}`}>
-        {chips.map((chip) => (
-          <AppliedFilterChip
-            key={chip.id}
-            label={chip.label}
-            onRemove={() => onRemoveChip(chip)}
-          />
-        ))}
+        {chipElements}
       </div>
     </div>
   );

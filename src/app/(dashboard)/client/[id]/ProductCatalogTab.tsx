@@ -30,37 +30,10 @@ import {
   FireIcon,
 } from "@phosphor-icons/react";
 const A = {
-  // UI icons
-  magnifyingGlass: "https://www.figma.com/api/mcp/asset/2f89682b-fdc1-4045-9041-572aaabfc626",
-  infoFill: "https://www.figma.com/api/mcp/asset/a298a2c1-417e-404e-947c-2d573d56a438",
-  closeX: "https://www.figma.com/api/mcp/asset/d41bed6e-2d74-4bd9-8454-5d6117e31004",
-  hourglassHigh: "https://www.figma.com/api/mcp/asset/57ccec5b-3a0a-4dab-a4d9-90d077aa7e1f",
-  arrowRight: "https://www.figma.com/api/mcp/asset/ba1e0039-95d0-4ce2-ba86-26e3a1c5d612",
-  arrowRightSm: "https://www.figma.com/api/mcp/asset/bd7d1b7f-8d11-4c2e-b017-c2295410cd1e",
-  orderListIcon: "https://www.figma.com/api/mcp/asset/67d60e44-f9e4-4782-9dc7-2d97ae6f4992",
-  filterIcon: "https://www.figma.com/api/mcp/asset/75721d74-1d76-4a21-b3d4-b44777a09bea",
-  sparkle: "https://www.figma.com/api/mcp/asset/3ab94ca8-803f-4683-a15e-ff0de3868bec",
-  phoneIcon: "https://www.figma.com/api/mcp/asset/242c59cf-4099-444d-866e-03b11b663717",
-  fire: "https://www.figma.com/api/mcp/asset/7781fa1c-d4b1-4f18-9bb1-c7944ceef4e7",
-  fireSmall: "https://www.figma.com/api/mcp/asset/c5622f0d-2de9-4890-b0ce-442d75f90b13",
-  shieldCheck: "https://www.figma.com/api/mcp/asset/c2c3aab0-bfd1-4eea-ad52-036428770223",
-  lineDivider: "https://www.figma.com/api/mcp/asset/2986753b-4895-4381-8a8d-f3a50d3bf169",
-  // Investment Solution (local files — stable, never expire)
   imgSecureIncome: "/invest-secure-income.png",
   imgBalancedGrowth: "/invest-balanced-growth.png",
   imgHighConvBg: "/invest-high-conviction.png",
   recommendBg: "/investment-solution-bg.jpg",
-  // Stock logos
-  logoKO: "https://www.figma.com/api/mcp/asset/35aeb96b-04ba-45b4-ab74-c4efce9975bc",
-  logoWMT: "https://www.figma.com/api/mcp/asset/f2d38797-fa49-4638-80aa-b2fd40baa5b3",
-  logoAAPL: "https://www.figma.com/api/mcp/asset/3e3f247c-9e5f-4d73-889b-8e2ac39c6775",
-  logoAMZN: "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-  logoNFLX: "https://www.figma.com/api/mcp/asset/96c3fbf3-e9b9-456c-b58e-5e8de310848b",
-  logoSAWAD: "https://www.figma.com/api/mcp/asset/bfc79ad4-d98a-43be-8f21-7c985bdf5f50",
-  logoPTT: "https://www.figma.com/api/mcp/asset/66f9ced5-92fa-4ac4-92b8-0987267234ed",
-  logoNasdaq: "https://www.figma.com/api/mcp/asset/a708082e-9b94-471a-8131-97c46b0e5141",
-  logoNVDA: "https://www.figma.com/api/mcp/asset/4c98c144-ca5e-4810-b5de-d052b7d23f15",
-  logoAXP: "https://www.figma.com/api/mcp/asset/af0aeaf6-937f-4416-81ad-d11c3d31f1f9",
 };
 
 const PRODUCT_TABS = [
@@ -69,11 +42,7 @@ const PRODUCT_TABS = [
   { id: "global-bond", title: "Global Bond", icon: <GlobeHemisphereWestIcon size={18} /> },
 ];
 
-const PRODUCT_TABS_MOBILE = [
-  { id: "structured", title: "Structured Product" },
-  { id: "fixed-income", title: "Fixed Income" },
-  { id: "global-bond", title: "Global Bond" },
-];
+const PRODUCT_TABS_MOBILE = PRODUCT_TABS.map(({ id, title }) => ({ id, title }));
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -243,6 +212,18 @@ export function ProductCatalogTab() {
     setFixedIncomeView(null);
   };
 
+  const handleProductTabChange = (id: string) => {
+    setActiveProductTab(id);
+    setSelectedProduct(null);
+    setShowAllTopIdeas(false);
+    setSelectedTopIdea(null);
+    setSelectedInvestmentSolution(null);
+    setShowAllStructuredProducts(false);
+    resetFixedIncomeNav();
+    setSelectedGlobalBondIssuer(null);
+    setShowAllGlobalBonds(false);
+  };
+
   if (showAllGlobalBonds) {
     return (
       <div className="flex flex-col w-full">
@@ -389,7 +370,7 @@ export function ProductCatalogTab() {
         <TabGroup
           items={PRODUCT_TABS_MOBILE}
           activeId={activeProductTab}
-          onChange={(id) => { setActiveProductTab(id); setSelectedProduct(null); setShowAllTopIdeas(false); setSelectedTopIdea(null); setSelectedInvestmentSolution(null); setShowAllStructuredProducts(false); resetFixedIncomeNav(); setSelectedGlobalBondIssuer(null); setShowAllGlobalBonds(false); }}
+          onChange={handleProductTabChange}
           size="md"
         />
       </div>
@@ -411,7 +392,7 @@ export function ProductCatalogTab() {
         <TabGroup
           items={PRODUCT_TABS}
           activeId={activeProductTab}
-          onChange={(id) => { setActiveProductTab(id); setSelectedProduct(null); setShowAllTopIdeas(false); setSelectedTopIdea(null); setSelectedInvestmentSolution(null); setShowAllStructuredProducts(false); resetFixedIncomeNav(); setSelectedGlobalBondIssuer(null); setShowAllGlobalBonds(false); }}
+          onChange={handleProductTabChange}
           size="md"
         />
         </div>

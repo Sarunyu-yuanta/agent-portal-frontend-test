@@ -16,45 +16,76 @@ import {
   type FixedIncomeAction,
   type FixedIncomeBond,
   type FixedIncomeFilters,
-  type FixedIncomeStatus,
 } from "./fixed-income-data";
+import {
+  BORDER_COLOR,
+  HEADER_TEXT_CLS,
+  headerBorderStyle,
+  cellBorderStyle,
+  ACTION_LABELS,
+  StatusTag,
+  BondLogo,
+} from "./fixed-income-shared";
 import { FixedIncomeFilterModal } from "./FixedIncomeFilterModal";
 import { FixedIncomeAppliedFilterChips } from "./FixedIncomeAppliedFilterChips";
 
-const BORDER_COLOR = "rgba(0,0,0,0.1)";
 const TAB_SHADOW = "0px 4px 6px -1px rgba(0,0,0,0.1),0px 2px 4px -2px rgba(0,0,0,0.1)";
 
-const headerBorderStyle = (opts?: { right?: boolean; bottom?: boolean; left?: boolean }) => ({
-  borderBottom: opts?.bottom === false ? undefined : `1px solid ${BORDER_COLOR}`,
-  borderRight: opts?.right === false ? undefined : `1px solid ${BORDER_COLOR}`,
-  borderLeft: opts?.left ? `1px solid ${BORDER_COLOR}` : undefined,
-});
-
-const cellBorderStyle = (opts?: { bottom?: boolean }) => ({
-  borderBottom: opts?.bottom === false ? undefined : `1px solid ${BORDER_COLOR}`,
-});
-const HEADER_TEXT = "text-sm leading-5 text-[#6a7282]";
-
-function StatusTag({ status, label }: { status: FixedIncomeStatus; label: string }) {
-  const isOpen = status === "open";
+function MarketSwitcher({
+  market,
+  onChange,
+}: {
+  market: "primary" | "secondary";
+  onChange: (market: "primary" | "secondary") => void;
+}) {
   return (
-    <span
-      className="inline-flex items-center justify-center overflow-hidden px-2 py-1 rounded shrink-0 text-xs font-bold leading-4 whitespace-nowrap"
-      style={{
-        backgroundColor: isOpen ? "#dbfce7" : "#f3f4f6",
-        color: isOpen ? "#008236" : "#6a7282",
-      }}
+    <div
+      className="flex flex-1 min-w-0 max-w-[604px] gap-0 p-1 rounded-full"
+      style={{ backgroundColor: "#f3f4f6" }}
     >
-      {label}
-    </span>
+      <button
+        type="button"
+        onClick={() => onChange("primary")}
+        className="flex flex-1 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer border-none"
+        style={{
+          backgroundColor: market === "primary" ? "white" : "transparent",
+          boxShadow: market === "primary" ? TAB_SHADOW : "none",
+        }}
+      >
+        {market === "primary" && <BuildingsIcon size={20} weight="fill" color="#101828" />}
+        <span
+          className="text-sm leading-5 whitespace-nowrap"
+          style={{
+            fontWeight: market === "primary" ? 700 : 400,
+            color: market === "primary" ? "#101828" : "#6a7282",
+          }}
+        >
+          หุ้นกู้ตลาดแรก
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("secondary")}
+        className="flex flex-1 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer border-none"
+        style={{
+          backgroundColor: market === "secondary" ? "white" : "transparent",
+          boxShadow: market === "secondary" ? TAB_SHADOW : "none",
+        }}
+      >
+        {market === "secondary" && <HandshakeIcon size={20} weight="fill" color="#101828" />}
+        <span
+          className="text-sm leading-5 whitespace-nowrap"
+          style={{
+            fontWeight: market === "secondary" ? 700 : 400,
+            color: market === "secondary" ? "#101828" : "#6a7282",
+          }}
+        >
+          หุ้นกู้ตลาดรอง
+        </span>
+      </button>
+    </div>
   );
 }
-
-const ACTION_LABELS: Record<FixedIncomeAction, string> = {
-  invest: "สนใจลงทุน",
-  follow: "ติดตาม",
-  followed: "ติดตามแล้ว",
-};
 
 function ActionButton({ action }: { action: FixedIncomeAction }) {
   const isFollowed = action === "followed";
@@ -87,20 +118,6 @@ function CardActionButton({ action }: { action: FixedIncomeAction }) {
     >
       {ACTION_LABELS[action]}
     </Button>
-  );
-}
-
-function BondLogo({ bond, size = "sm" }: { bond: FixedIncomeBond; size?: "sm" | "lg" }) {
-  const src = BOND_LOGOS[bond.logoIdx];
-  const dim = size === "lg" ? "size-8" : "size-5";
-  return (
-    <div className={`relative shrink-0 ${dim} rounded overflow-hidden`} style={{ border: `1px solid ${BORDER_COLOR}` }}>
-      {bond.logoCrop ? (
-        <img alt="" className="absolute h-[149.62%] left-[-92.5%] max-w-none top-[-24.81%] w-[285%]" src={src} />
-      ) : (
-        <img alt="" className="absolute inset-0 size-full object-cover rounded pointer-events-none" src={src} />
-      )}
-    </div>
   );
 }
 
@@ -149,7 +166,7 @@ function FixedIncomeCard({
       </div>
       <hr className="w-full border-0 m-0" style={{ borderTop: `1px solid ${BORDER_COLOR}` }} />
       <div className="flex gap-3 items-center w-full">
-        <BondLogo bond={bond} size="lg" />
+        <BondLogo src={BOND_LOGOS[bond.logoIdx]} logoCrop={bond.logoCrop} className="size-8 rounded" />
         <div className="flex flex-1 min-w-0 gap-3 items-center overflow-hidden">
           <span className="text-xs font-bold leading-4 text-[#101828] truncate shrink-0">{bond.companyName}</span>
           <span className="text-xs leading-4 text-[#4a5565] whitespace-nowrap shrink-0">
@@ -166,44 +183,44 @@ function TableHeader() {
   return (
     <div className="flex h-11 items-stretch shrink-0 min-w-[1280px] bg-white">
       <div className="flex flex-1 items-center px-3" style={headerBorderStyle({ left: true })}>
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>หุ้นกู้</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>หุ้นกู้</span>
       </div>
       <div className="flex w-20 items-center justify-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>สถานะ</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>สถานะ</span>
       </div>
       <div className="flex w-[71px] items-center justify-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>YTM</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>YTM</span>
       </div>
       <div className="flex w-[93px] items-center justify-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>งวดดอกเบี้ย</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>งวดดอกเบี้ย</span>
       </div>
       <div className="flex w-32 items-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>อายุ</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>อายุ</span>
       </div>
       <div className="flex w-[116px] items-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>วันครบกำหนด</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
       </div>
       <div className="flex flex-col w-[212px] shrink-0 overflow-hidden" style={headerBorderStyle()}>
         <div className="flex flex-1 items-center justify-center px-3" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
-          <span className={`${HEADER_TEXT} whitespace-nowrap`}>Ratings</span>
+          <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Ratings</span>
         </div>
         <div className="flex flex-1 items-stretch">
           <div className="flex flex-1 items-center justify-center px-3" style={{ borderRight: `1px solid ${BORDER_COLOR}` }}>
-            <span className={`${HEADER_TEXT} whitespace-nowrap`}>บริษัท</span>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>บริษัท</span>
           </div>
           <div className="flex flex-1 items-center justify-center px-3">
-            <span className={`${HEADER_TEXT} whitespace-nowrap`}>หุ้นกู้</span>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>หุ้นกู้</span>
           </div>
         </div>
       </div>
       <div className="flex w-[82px] items-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>ความเสี่ยง</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ความเสี่ยง</span>
       </div>
       <div className="flex w-[116px] items-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>ประเภทเสนอขาย</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ประเภทเสนอขาย</span>
       </div>
       <div className="flex flex-1 min-w-[104px] items-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT} whitespace-nowrap`}>คาดว่าเปิดจอง</span>
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>คาดว่าเปิดจอง</span>
       </div>
       <div className="flex w-[92px] items-center justify-center px-3" style={headerBorderStyle({ right: false })} />
     </div>
@@ -235,7 +252,7 @@ function BondTableRow({
       className="flex items-stretch shrink-0 min-w-[1280px] bg-white cursor-pointer hover:bg-[#f9fafb] transition-colors"
     >
       <div className="flex flex-1 items-center gap-2 px-3 py-3.5" style={border()}>
-        <BondLogo bond={bond} />
+        <BondLogo src={BOND_LOGOS[bond.logoIdx]} logoCrop={bond.logoCrop} />
         <span className="flex-1 min-w-0 text-sm font-bold leading-5 text-[#101828]">{bond.symbol}</span>
       </div>
       <div className="flex w-20 items-center justify-end p-3" style={border()}>
@@ -311,35 +328,10 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
   return (
     <div className="flex flex-col gap-6 items-center w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-6 pt-6 pb-10">
       {/* ── Mobile/Tablet: sticky filter bar ── */}
-      <div
-        className="sticky top-9 z-[9] w-full py-3 bg-white lg:hidden"
-      >
+      <div className="sticky top-9 z-[9] w-full py-3 bg-white lg:hidden">
         <div className="flex w-full max-w-[704px] flex-col gap-3">
           <div className="flex w-full flex-row items-center gap-3 md:gap-4">
-            <div className="flex flex-1 min-w-0 max-w-[604px] gap-0 p-1 rounded-full" style={{ backgroundColor: "#f3f4f6" }}>
-              <button
-                type="button"
-                onClick={() => setMarket("primary")}
-                className="flex flex-1 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer border-none"
-                style={{ backgroundColor: market === "primary" ? "white" : "transparent", boxShadow: market === "primary" ? TAB_SHADOW : "none" }}
-              >
-                {market === "primary" && <BuildingsIcon size={20} weight="fill" color="#101828" />}
-                <span className="text-sm leading-5 whitespace-nowrap" style={{ fontWeight: market === "primary" ? 700 : 400, color: market === "primary" ? "#101828" : "#6a7282" }}>
-                  หุ้นกู้ตลาดแรก
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMarket("secondary")}
-                className="flex flex-1 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer border-none"
-                style={{ backgroundColor: market === "secondary" ? "white" : "transparent", boxShadow: market === "secondary" ? TAB_SHADOW : "none" }}
-              >
-                {market === "secondary" && <HandshakeIcon size={20} weight="fill" color="#101828" />}
-                <span className="text-sm leading-5 whitespace-nowrap" style={{ fontWeight: market === "secondary" ? 700 : 400, color: market === "secondary" ? "#101828" : "#6a7282" }}>
-                  หุ้นกู้ตลาดรอง
-                </span>
-              </button>
-            </div>
+            <MarketSwitcher market={market} onChange={setMarket} />
             <Badge variant="button" iconOnly label="Filter" count={activeFilterCount} onClick={openFilters} className="shrink-0 md:hidden" />
             <Badge variant="button" label="Filter" count={activeFilterCount} onClick={openFilters} className="shrink-0 hidden md:flex" />
           </div>
@@ -347,38 +339,15 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
         </div>
       </div>
 
-      {/* ── Desktop: static filter bar + count (original layout) ── */}
+      {/* ── Desktop: static filter bar + count ── */}
       <div className="hidden lg:flex flex-col gap-3 w-full">
         <div className="flex w-full justify-center">
           <div className="flex w-full max-w-[704px] flex-col items-start gap-3">
             <div className="flex w-full flex-row items-center gap-3 md:gap-4">
-              <div className="flex flex-1 min-w-0 max-w-[604px] gap-0 p-1 rounded-full" style={{ backgroundColor: "#f3f4f6" }}>
-                <button
-                  type="button"
-                  onClick={() => setMarket("primary")}
-                  className="flex flex-1 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer border-none"
-                  style={{ backgroundColor: market === "primary" ? "white" : "transparent", boxShadow: market === "primary" ? TAB_SHADOW : "none" }}
-                >
-                  {market === "primary" && <BuildingsIcon size={20} weight="fill" color="#101828" />}
-                  <span className="text-sm leading-5 whitespace-nowrap" style={{ fontWeight: market === "primary" ? 700 : 400, color: market === "primary" ? "#101828" : "#6a7282" }}>
-                    หุ้นกู้ตลาดแรก
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMarket("secondary")}
-                  className="flex flex-1 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer border-none"
-                  style={{ backgroundColor: market === "secondary" ? "white" : "transparent", boxShadow: market === "secondary" ? TAB_SHADOW : "none" }}
-                >
-                  {market === "secondary" && <HandshakeIcon size={20} weight="fill" color="#101828" />}
-                  <span className="text-sm leading-5 whitespace-nowrap" style={{ fontWeight: market === "secondary" ? 700 : 400, color: market === "secondary" ? "#101828" : "#6a7282" }}>
-                    หุ้นกู้ตลาดรอง
-                  </span>
-                </button>
-              </div>
+              <MarketSwitcher market={market} onChange={setMarket} />
               <Badge variant="button" label="Filter" count={activeFilterCount} onClick={openFilters} className="shrink-0" />
             </div>
-            {activeFilterCount > 0 && <FixedIncomeAppliedFilterChips chips={appliedFilterChips} onRemoveChip={removeFilterChip} />}
+            {activeFilterCount > 0 && <FixedIncomeAppliedFilterChips chips={appliedFilterChips} onRemoveChip={removeFilterChip} wrap />}
           </div>
         </div>
         <div className="flex items-center justify-between w-full px-1 text-sm leading-5 text-[#6a7282] whitespace-nowrap">
@@ -387,7 +356,7 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
         </div>
       </div>
 
-      {/* ── Mobile/Tablet: count text (scrolls normally) ── */}
+      {/* ── Mobile/Tablet: count text ── */}
       <div className="flex items-center justify-between w-full px-1 text-xs leading-4 text-[#6a7282] whitespace-nowrap lg:hidden">
         <span>{filteredBonds.length} หุ้นกู้ {companyCount} บริษัท</span>
         <span>อัปเดตล่าสุด 25 Aug 2026 - 9:00</span>

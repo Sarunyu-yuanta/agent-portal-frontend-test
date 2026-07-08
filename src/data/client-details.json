@@ -1,5 +1,25 @@
 {
   "1": {
+    "assetSummary": {
+      "netValue": "9,400,000.00",
+      "changeAmount": "+450,210.00",
+      "changePercent": "12.40",
+      "changePositive": true,
+      "lineAvailable": "320,000.00",
+      "cash": "42,500.00",
+      "lastUpdatedDate": "22 มิ.ย. 2567",
+      "lastUpdatedTime": "12:37",
+      "allocationSlices": [
+        { "label": "เงินสด", "percent": 35, "statusIcon": "/asset-allocation/status-0.svg" },
+        { "label": "หุ้นไทย", "percent": 20, "statusIcon": "/asset-allocation/status-1.svg" },
+        { "label": "หุ้นต่างประเทศ", "percent": 20, "statusIcon": "/asset-allocation/status-2.svg" },
+        { "label": "หุ้นกู้ที่มีอนุพันธ์แฝง", "percent": 10, "statusIcon": "/asset-allocation/status-3.svg" },
+        { "label": "กองทุนรวม", "percent": 8, "statusIcon": "/asset-allocation/status-4.svg" },
+        { "label": "ตราสารหนี้", "percent": 6, "statusIcon": "/asset-allocation/status-5.svg" },
+        { "label": "อนุพันธ์", "percent": 3, "statusIcon": "/asset-allocation/status-6.svg" },
+        { "label": "ตราสารหนี้ต่างประเทศ", "percent": 1, "statusIcon": "/asset-allocation/status-7.svg" }
+      ]
+    },
     "allocationData": [
       { "name": "Thai Equity",   "value": 35, "fill": "#3b82f6" },
       { "name": "Fixed Income",  "value": 28, "fill": "#8b5cf6" },
