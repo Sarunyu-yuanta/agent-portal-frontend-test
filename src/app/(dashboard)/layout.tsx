@@ -7,11 +7,10 @@ import {
   NavHeaderNotification,
   NavHeaderAvatarSlot,
   Avatar,
-  SearchInput,
   Tag,
   Breadcrumb,
 } from "@sarunyu/system-one";
-import { MagnifyingGlassIcon, ListIcon } from "@phosphor-icons/react";
+import { ListIcon } from "@phosphor-icons/react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { notificationGroups } from "@/lib/mock-data";
@@ -83,7 +82,6 @@ function usePageInfo(): PageInfo {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const { title: pageTitle, clientBreadcrumb, isCommandCenter, isHouseView, isPerformance, isFullWidth } = usePageInfo();
 
   return (
@@ -126,24 +124,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Desktop: always visible search input */}
-            <div className="hidden lg:block">
-              <SearchInput
-                placeholder="Search clients, accounts, keywords…"
-                size="sm"
-                className="w-[400px]"
-              />
-            </div>
-            {/* Mobile: icon toggle */}
-            <div className="lg:hidden">
-              <NavHeaderIconButton
-                aria-label="Search"
-                onClick={() => setSearchOpen((v) => !v)}
-              >
-                <MagnifyingGlassIcon weight="regular" size={24} />
-              </NavHeaderIconButton>
-            </div>
-
             <NavHeaderNotification groups={notificationGroups} badgeCount={4} />
 
             <NavHeaderAvatarSlot>
@@ -157,15 +137,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         </header>
-
-        {searchOpen && (
-          <div className="lg:hidden shrink-0 px-4 py-2 border-b border-border bg-card">
-            <SearchInput
-              placeholder="Search clients, accounts, keywords…"
-              size="sm"
-            />
-          </div>
-        )}
 
         <main className={`flex-1 overflow-y-auto overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 lg:p-6"}`}>
           <div
