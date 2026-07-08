@@ -30,6 +30,7 @@ export function StructuredProductAllPage({
   onProductSelect: (product: StructuredProduct) => void;
 }) {
   const [couponFilter, setCouponFilter] = useState<CouponFilter>("all");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const main = document.querySelector("main");
@@ -38,6 +39,11 @@ export function StructuredProductAllPage({
     } else {
       window.scrollTo(0, 0);
     }
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(t);
   }, []);
 
   const filteredProducts = ALL_STRUCTURED_PRODUCTS.filter((p) => {
@@ -116,11 +122,12 @@ export function StructuredProductAllPage({
             ))}
           </div>
 
-          {/* Loading indicator — Figma mobile 33799:163741 */}
-          <div className="flex gap-1 items-center justify-center w-full py-2 pl-2.5 pr-3.5 lg:hidden">
-            <CircleNotchIcon size={22} className="animate-spin text-black/40" />
-            <span className="text-sm font-semibold leading-[22px] text-black/40">กำลังโหลดข้อมูล</span>
-          </div>
+          {isLoading && (
+            <div className="flex gap-1 items-center justify-center w-full py-2 pl-2.5 pr-3.5 lg:hidden">
+              <CircleNotchIcon size={22} className="animate-spin text-black/40" />
+              <span className="text-sm font-semibold leading-[22px] text-black/40">กำลังโหลดข้อมูล</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

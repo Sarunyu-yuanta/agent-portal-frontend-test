@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge, Button } from "@sarunyu/system-one";
 import { BuildingsIcon, HandshakeIcon, CircleNotchIcon } from "@phosphor-icons/react";
 import {
@@ -279,6 +279,12 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
   const [market, setMarket] = useState<"primary" | "secondary">("primary");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<FixedIncomeFilters>(EMPTY_FIXED_INCOME_FILTERS);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(t);
+  }, []);
 
   const filteredBonds = useMemo(
     () => filterFixedIncomeBonds(FIXED_INCOME_BONDS, appliedFilters),
@@ -304,31 +310,57 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
 
   return (
     <div className="flex flex-col gap-6 items-center w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-6 pt-6 pb-10">
-      <div className="flex flex-col gap-3 w-full">
+      {/* ── Mobile/Tablet: sticky filter bar ── */}
+      <div
+        className="sticky top-9 z-[9] w-full py-3 bg-white lg:hidden"
+      >
+        <div className="flex w-full max-w-[704px] flex-col gap-3">
+          <div className="flex w-full flex-row items-center gap-3 md:gap-4">
+            <div className="flex flex-1 min-w-0 max-w-[604px] gap-0 p-1 rounded-full" style={{ backgroundColor: "#f3f4f6" }}>
+              <button
+                type="button"
+                onClick={() => setMarket("primary")}
+                className="flex flex-1 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer border-none"
+                style={{ backgroundColor: market === "primary" ? "white" : "transparent", boxShadow: market === "primary" ? TAB_SHADOW : "none" }}
+              >
+                {market === "primary" && <BuildingsIcon size={20} weight="fill" color="#101828" />}
+                <span className="text-sm leading-5 whitespace-nowrap" style={{ fontWeight: market === "primary" ? 700 : 400, color: market === "primary" ? "#101828" : "#6a7282" }}>
+                  หุ้นกู้ตลาดแรก
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMarket("secondary")}
+                className="flex flex-1 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer border-none"
+                style={{ backgroundColor: market === "secondary" ? "white" : "transparent", boxShadow: market === "secondary" ? TAB_SHADOW : "none" }}
+              >
+                {market === "secondary" && <HandshakeIcon size={20} weight="fill" color="#101828" />}
+                <span className="text-sm leading-5 whitespace-nowrap" style={{ fontWeight: market === "secondary" ? 700 : 400, color: market === "secondary" ? "#101828" : "#6a7282" }}>
+                  หุ้นกู้ตลาดรอง
+                </span>
+              </button>
+            </div>
+            <Badge variant="button" iconOnly label="Filter" count={activeFilterCount} onClick={openFilters} className="shrink-0 md:hidden" />
+            <Badge variant="button" label="Filter" count={activeFilterCount} onClick={openFilters} className="shrink-0 hidden md:flex" />
+          </div>
+          {activeFilterCount > 0 && <FixedIncomeAppliedFilterChips chips={appliedFilterChips} onRemoveChip={removeFilterChip} className="-mx-4 md:-mx-8" innerClassName="px-4 md:px-8" />}
+        </div>
+      </div>
+
+      {/* ── Desktop: static filter bar + count (original layout) ── */}
+      <div className="hidden lg:flex flex-col gap-3 w-full">
         <div className="flex w-full justify-center">
           <div className="flex w-full max-w-[704px] flex-col items-start gap-3">
             <div className="flex w-full flex-row items-center gap-3 md:gap-4">
-              <div
-                className="flex flex-1 min-w-0 max-w-[604px] gap-0 p-1 rounded-full"
-                style={{ backgroundColor: "#f3f4f6" }}
-              >
+              <div className="flex flex-1 min-w-0 max-w-[604px] gap-0 p-1 rounded-full" style={{ backgroundColor: "#f3f4f6" }}>
                 <button
                   type="button"
                   onClick={() => setMarket("primary")}
                   className="flex flex-1 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer border-none"
-                  style={{
-                    backgroundColor: market === "primary" ? "white" : "transparent",
-                    boxShadow: market === "primary" ? TAB_SHADOW : "none",
-                  }}
+                  style={{ backgroundColor: market === "primary" ? "white" : "transparent", boxShadow: market === "primary" ? TAB_SHADOW : "none" }}
                 >
                   {market === "primary" && <BuildingsIcon size={20} weight="fill" color="#101828" />}
-                  <span
-                    className="text-sm leading-5 whitespace-nowrap"
-                    style={{
-                      fontWeight: market === "primary" ? 700 : 400,
-                      color: market === "primary" ? "#101828" : "#6a7282",
-                    }}
-                  >
+                  <span className="text-sm leading-5 whitespace-nowrap" style={{ fontWeight: market === "primary" ? 700 : 400, color: market === "primary" ? "#101828" : "#6a7282" }}>
                     หุ้นกู้ตลาดแรก
                   </span>
                 </button>
@@ -336,56 +368,29 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
                   type="button"
                   onClick={() => setMarket("secondary")}
                   className="flex flex-1 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all cursor-pointer border-none"
-                  style={{
-                    backgroundColor: market === "secondary" ? "white" : "transparent",
-                    boxShadow: market === "secondary" ? TAB_SHADOW : "none",
-                  }}
+                  style={{ backgroundColor: market === "secondary" ? "white" : "transparent", boxShadow: market === "secondary" ? TAB_SHADOW : "none" }}
                 >
                   {market === "secondary" && <HandshakeIcon size={20} weight="fill" color="#101828" />}
-                  <span
-                    className="text-sm leading-5 whitespace-nowrap"
-                    style={{
-                      fontWeight: market === "secondary" ? 700 : 400,
-                      color: market === "secondary" ? "#101828" : "#6a7282",
-                    }}
-                  >
+                  <span className="text-sm leading-5 whitespace-nowrap" style={{ fontWeight: market === "secondary" ? 700 : 400, color: market === "secondary" ? "#101828" : "#6a7282" }}>
                     หุ้นกู้ตลาดรอง
                   </span>
                 </button>
               </div>
-              <Badge
-                variant="button"
-                iconOnly
-                label="Filter"
-                count={activeFilterCount}
-                onClick={openFilters}
-                className="shrink-0 md:hidden"
-              />
-              <Badge
-                variant="button"
-                label="Filter"
-                count={activeFilterCount}
-                onClick={openFilters}
-                className="shrink-0 hidden md:flex"
-              />
+              <Badge variant="button" label="Filter" count={activeFilterCount} onClick={openFilters} className="shrink-0" />
             </div>
-
-            {activeFilterCount > 0 && (
-              <FixedIncomeAppliedFilterChips
-                chips={appliedFilterChips}
-                onRemoveChip={removeFilterChip}
-              />
-            )}
+            {activeFilterCount > 0 && <FixedIncomeAppliedFilterChips chips={appliedFilterChips} onRemoveChip={removeFilterChip} />}
           </div>
         </div>
-
-        <div className="flex items-center justify-between w-full px-1 text-xs lg:text-sm leading-4 lg:leading-5 text-[#6a7282] whitespace-nowrap">
-          <span>
-            {filteredBonds.length} หุ้นกู้ {companyCount} บริษัท
-          </span>
-          <span className="hidden lg:inline">อัปเดตล่าสุด 25 August 2026 - 9:00</span>
-          <span className="lg:hidden">อัปเดตล่าสุด 25 Aug 2026 - 9:00</span>
+        <div className="flex items-center justify-between w-full px-1 text-sm leading-5 text-[#6a7282] whitespace-nowrap">
+          <span>{filteredBonds.length} หุ้นกู้ {companyCount} บริษัท</span>
+          <span>อัปเดตล่าสุด 25 August 2026 - 9:00</span>
         </div>
+      </div>
+
+      {/* ── Mobile/Tablet: count text (scrolls normally) ── */}
+      <div className="flex items-center justify-between w-full px-1 text-xs leading-4 text-[#6a7282] whitespace-nowrap lg:hidden">
+        <span>{filteredBonds.length} หุ้นกู้ {companyCount} บริษัท</span>
+        <span>อัปเดตล่าสุด 25 Aug 2026 - 9:00</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full lg:hidden">
@@ -416,10 +421,12 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
         </div>
       </div>
 
-      <div className="flex gap-1 items-center justify-center w-full py-2.5 px-3 pl-3 pr-4">
-        <CircleNotchIcon size={20} className="animate-spin text-[#6a7282]" />
-        <span className="text-sm font-bold leading-5 text-[#6a7282]">กำลังโหลดข้อมูล</span>
-      </div>
+      {isLoading && (
+        <div className="flex gap-1 items-center justify-center w-full py-2.5 px-3 pl-3 pr-4">
+          <CircleNotchIcon size={20} className="animate-spin text-[#6a7282]" />
+          <span className="text-sm font-bold leading-5 text-[#6a7282]">กำลังโหลดข้อมูล</span>
+        </div>
+      )}
 
       <FixedIncomeFilterModal
         open={filtersOpen}

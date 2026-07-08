@@ -28,20 +28,24 @@ function AppliedFilterChip({
 type FixedIncomeAppliedFilterChipsProps = {
   chips: FixedIncomeFilterChip[];
   onRemoveChip: (chip: FixedIncomeFilterChip) => void;
+  className?: string;
+  innerClassName?: string;
 };
 
 export function FixedIncomeAppliedFilterChips({
   chips,
   onRemoveChip,
+  className,
+  innerClassName,
 }: FixedIncomeAppliedFilterChipsProps) {
   if (chips.length === 0) return null;
 
   return (
     <div
-      className="w-full overflow-x-auto hide-scrollbar max-lg:w-screen max-lg:relative max-lg:left-1/2 max-lg:-translate-x-1/2"
+      className={`overflow-x-auto hide-scrollbar ${className ?? "w-full"}`}
       style={{ scrollbarWidth: "none" }}
     >
-      <div className="flex w-max flex-nowrap items-center gap-2 px-4 md:px-8 lg:px-0">
+      <div className={`flex w-max flex-nowrap items-center gap-2 ${innerClassName ?? ""}`}>
         {chips.map((chip) => (
           <AppliedFilterChip
             key={chip.id}
