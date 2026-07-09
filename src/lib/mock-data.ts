@@ -97,7 +97,7 @@ type AssetSummary    = {
   cash: string;
   lastUpdatedDate: string;
   lastUpdatedTime: string;
-  allocationSlices: AssetAllocationSlice[];
+  allocationSlices?: AssetAllocationSlice[];
 };
 type Holding         = { asset: string; value: string; pnl: string; pnlPct: string; positive: boolean; pct: string };
 type AIAlert         = { title: string; message: string; primaryAction: string; secondaryAction: string };

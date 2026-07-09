@@ -18,7 +18,7 @@ import { useClients } from "@/hooks/use-api";
 
 const PAGE_TITLES: Record<string, string> = {
   "/command-center": "Command Center",
-  "/client-hub": "Client Hub",
+  "/client-hub": "Client 360",
   "/pipeline": "Pipeline",
   "/ai-insights": "AI Insights",
   "/performance": "Performance & Targets",
@@ -59,7 +59,7 @@ function usePageInfo(): PageInfo {
     return {
       title: null,
       clientBreadcrumb: [
-        { label: "Client Hub", href: "/client-hub" },
+        { label: "Client 360", href: "/client-hub" },
         { label: client?.name ?? "Client" },
       ],
       isCommandCenter: false,

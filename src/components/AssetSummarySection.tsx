@@ -1,7 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { InfoIcon } from "@phosphor-icons/react";
+import { useState, type ReactNode } from "react";
+import { CaretRightIcon, InfoIcon } from "@phosphor-icons/react";
+import { NetValueSummaryModal } from "@/components/NetValueSummaryModal";
 
 export type AssetHeroSummary = {
   netValue: string;
@@ -35,7 +36,7 @@ const DEFAULT_HERO: AssetHeroSummary = {
   lastUpdatedTime: "—",
 };
 
-const ALLOCATION_SLICES: AssetAllocationSlice[] = [
+export const ALLOCATION_SLICES: AssetAllocationSlice[] = [
   { label: "เงินสด", percent: 35, statusIcon: "/asset-allocation/status-0.svg" },
   { label: "หุ้นไทย", percent: 20, statusIcon: "/asset-allocation/status-1.svg" },
   { label: "หุ้นต่างประเทศ", percent: 20, statusIcon: "/asset-allocation/status-2.svg" },
@@ -95,11 +96,11 @@ function AllocationLegendItemDesktop({ slice }: { slice: AssetAllocationSlice })
         <span className="relative shrink-0 size-3">
           <img alt="" className="block size-full max-w-none" src={slice.statusIcon} />
         </span>
-        <p className="type-caption text-[#6a7282] whitespace-nowrap leading-4">
+        <p className="type-caption text-[var(--text-default-tertiary)] whitespace-nowrap leading-4">
           {slice.label}
         </p>
       </div>
-      <p className="type-caption text-[#6a7282] whitespace-nowrap leading-4 shrink-0">
+      <p className="type-caption text-[var(--text-default-tertiary)] whitespace-nowrap leading-4 shrink-0">
         {slice.percent}%
       </p>
     </div>
@@ -113,11 +114,11 @@ function AllocationLegendItemCompact({ slice }: { slice: AssetAllocationSlice })
         <span className="relative shrink-0 size-3">
           <img alt="" className="block size-full max-w-none" src={slice.statusIcon} />
         </span>
-        <p className="type-caption text-[#6a7282] leading-4 truncate">
+        <p className="type-caption text-[var(--text-default-tertiary)] leading-4 truncate">
           {slice.label}
         </p>
       </div>
-      <p className="type-caption text-[#6a7282] leading-4 shrink-0">
+      <p className="type-caption text-[var(--text-default-tertiary)] leading-4 shrink-0">
         {slice.percent}%
       </p>
     </div>
@@ -127,7 +128,7 @@ function AllocationLegendItemCompact({ slice }: { slice: AssetAllocationSlice })
 function AllocationBreakdownHeader() {
   return (
     <div className="flex w-full shrink-0 justify-start">
-      <p className="type-caption font-semibold text-[#4a5565] whitespace-nowrap leading-4">
+      <p className="type-caption font-semibold text-[var(--text-default-secondary)] whitespace-nowrap leading-4">
         Allocation breakdown
       </p>
     </div>
@@ -154,7 +155,7 @@ function AllocationBreakdownDesktop({ slices }: { slices: AssetAllocationSlice[]
   return (
     <div className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg flex flex-col gap-3 items-start justify-center p-4 w-full">
       <div className="flex gap-3 items-start justify-center shrink-0 w-full">
-        <p className="type-caption font-semibold text-[#4a5565] whitespace-nowrap leading-4 shrink-0">
+        <p className="type-caption font-semibold text-[var(--text-default-secondary)] whitespace-nowrap leading-4 shrink-0">
           Allocation breakdown
         </p>
       </div>
@@ -171,6 +172,26 @@ function AllocationBreakdownDesktop({ slices }: { slices: AssetAllocationSlice[]
 }
 
 function AllocationBreakdownMobile({ slices }: { slices: AssetAllocationSlice[] }) {
+  return (
+    <AllocationBreakdownCard>
+      <AllocationBreakdownHeader />
+      <div className="flex gap-3 items-center shrink-0 w-full">
+        <AllocationDonutChart />
+        <div className="flex flex-1 flex-col items-start min-w-0">
+          {slices.map((slice) => (
+            <AllocationLegendItemCompact key={slice.label} slice={slice} />
+          ))}
+        </div>
+      </div>
+    </AllocationBreakdownCard>
+  );
+}
+
+export function AllocationBreakdownSidebar({
+  slices,
+}: {
+  slices: AssetAllocationSlice[];
+}) {
   return (
     <AllocationBreakdownCard>
       <AllocationBreakdownHeader />
@@ -213,27 +234,62 @@ function AllocationBreakdownTablet({ slices }: { slices: AssetAllocationSlice[] 
   );
 }
 
-function HeroCard({ summary }: { summary: AssetHeroSummary }) {
+export function LiabilitiesBar({
+  amount,
+  onClick,
+}: {
+  amount: string;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg flex items-center gap-2 pl-5 pr-4 py-2 w-full cursor-pointer hover:bg-[var(--bg-default-secondary)] transition-colors"
+      onClick={onClick}
+    >
+      <div className="flex flex-1 gap-0.5 items-center min-w-0">
+        <p className="type-caption text-[var(--text-default-tertiary)] whitespace-nowrap leading-4 shrink-0">
+          Liabilities (THB)
+        </p>
+        <p className="flex-1 type-body-2 font-bold text-destructive text-right leading-5 min-w-0">
+          {amount}
+        </p>
+      </div>
+      <CaretRightIcon size={16} className="text-[var(--text-default-tertiary)] shrink-0" />
+    </button>
+  );
+}
+
+export function HeroCard({ summary }: { summary: AssetHeroSummary }) {
+  const [infoOpen, setInfoOpen] = useState(false);
   const changePrefix = summary.changePositive ? "+" : "";
 
   return (
+    <>
     <div className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg overflow-hidden w-full">
       <div className="flex flex-col items-center py-3 w-full">
         <div className="flex items-start justify-center w-full">
           <div className="flex gap-1 items-center justify-center">
-            <p className="type-caption text-[#6a7282] whitespace-nowrap leading-4">
+            <p className="type-caption text-[var(--text-default-tertiary)] whitespace-nowrap leading-4">
               มูลค่าสุทธิ (THB)
             </p>
-            <InfoIcon size={16} className="text-[#6a7282] shrink-0" />
+            <button
+              type="button"
+              onClick={() => setInfoOpen(true)}
+              className="text-[var(--text-default-tertiary)] hover:text-[var(--text-default-secondary)] transition-colors cursor-pointer"
+              aria-label="ดูรายละเอียดมูลค่าสุทธิ"
+            >
+              <InfoIcon size={16} className="shrink-0" />
+            </button>
           </div>
         </div>
-        <p className="type-h4 text-[#101828] whitespace-nowrap leading-9">
+        <p className="type-h4 text-[var(--text-default-primary)] whitespace-nowrap leading-9">
           {summary.netValue}
         </p>
         <div className="flex gap-1 items-center justify-end">
           <p
             className={`type-caption whitespace-nowrap leading-4 ${
-              summary.changePositive ? "text-[#008236]" : "text-destructive"
+              summary.changePositive ? "text-[var(--text-success-primary)]" : "text-destructive"
             }`}
           >
             {summary.changeAmount}
@@ -241,7 +297,7 @@ function HeroCard({ summary }: { summary: AssetHeroSummary }) {
           <div
             className={`flex items-center px-1.5 py-0.5 rounded type-caption leading-4 ${
               summary.changePositive
-                ? "bg-[#dbfce7] text-[#008236]"
+                ? "bg-[var(--bg-success-soft)] text-[var(--text-success-primary)]"
                 : "bg-[var(--bg-danger-light)] text-destructive"
             }`}
           >
@@ -273,29 +329,34 @@ function HeroCard({ summary }: { summary: AssetHeroSummary }) {
 
       <div className="flex items-center w-full">
         <div className="flex flex-[1_0_0] flex-col items-center min-w-0 pt-1.5 pb-3">
-          <p className="type-caption text-[#6a7282] whitespace-nowrap leading-4">
+          <p className="type-caption text-[var(--text-default-tertiary)] whitespace-nowrap leading-4">
             Line Available (THB)
           </p>
-          <p className="type-subtitle-1 font-bold text-[#4a5565] whitespace-nowrap leading-6">
+          <p className="type-subtitle-1 font-bold text-[var(--text-default-secondary)] whitespace-nowrap leading-6">
             {summary.lineAvailable}
           </p>
         </div>
         <div className="flex flex-[1_0_0] flex-col items-center min-w-0 pt-1.5 pb-3">
-          <p className="type-caption text-[#6a7282] whitespace-nowrap leading-4">
+          <p className="type-caption text-[var(--text-default-tertiary)] whitespace-nowrap leading-4">
             Cash (THB)
           </p>
-          <p className="type-subtitle-1 font-bold text-[#4a5565] whitespace-nowrap leading-6">
+          <p className="type-subtitle-1 font-bold text-[var(--text-default-secondary)] whitespace-nowrap leading-6">
             {summary.cash}
           </p>
         </div>
       </div>
     </div>
+    <NetValueSummaryModal
+      open={infoOpen}
+      onClose={() => setInfoOpen(false)}
+    />
+    </>
   );
 }
 
-function LastUpdated({ summary }: { summary: AssetHeroSummary }) {
+export function LastUpdated({ summary }: { summary: AssetHeroSummary }) {
   return (
-    <div className="flex gap-1 items-center justify-center w-full type-caption text-[#99a1af] whitespace-nowrap leading-4">
+    <div className="flex gap-1 items-center justify-center w-full type-caption text-[var(--text-default-placeholder)] whitespace-nowrap leading-4">
       <span>อัปเดตล่าสุด</span>
       <span>{summary.lastUpdatedDate}</span>
       <span>-</span>

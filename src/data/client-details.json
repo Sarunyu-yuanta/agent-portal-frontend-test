@@ -1,12 +1,12 @@
 {
-  "1": {
+  "800001": {
     "assetSummary": {
-      "netValue": "9,400,000.00",
-      "changeAmount": "+450,210.00",
+      "netValue": "450,000,000.00",
+      "changeAmount": "+55,800,000.00",
       "changePercent": "12.40",
       "changePositive": true,
-      "lineAvailable": "320,000.00",
-      "cash": "42,500.00",
+      "lineAvailable": "15,319,148.94",
+      "cash": "81,000,000.00",
       "lastUpdatedDate": "22 มิ.ย. 2567",
       "lastUpdatedTime": "12:37",
       "allocationSlices": [
@@ -68,7 +68,17 @@
       "action": "Simulate Rebalance"
     }
   },
-  "2": {
+  "800002": {
+    "assetSummary": {
+      "netValue": "180,000,000.00",
+      "changeAmount": "-5,580,000.00",
+      "changePercent": "3.10",
+      "changePositive": false,
+      "lineAvailable": "6,127,659.57",
+      "cash": "57,600,000.00",
+      "lastUpdatedDate": "22 มิ.ย. 2567",
+      "lastUpdatedTime": "11:45"
+    },
     "allocationData": [
       { "name": "Thai Equity",  "value": 28, "fill": "#3b82f6" },
       { "name": "Fixed Income", "value": 40, "fill": "#8b5cf6" },
@@ -115,7 +125,17 @@
       "action": "Review Suitability"
     }
   },
-  "3": {
+  "800003": {
+    "assetSummary": {
+      "netValue": "95,000,000.00",
+      "changeAmount": "+6,840,000.00",
+      "changePercent": "7.20",
+      "changePositive": true,
+      "lineAvailable": "3,234,042.55",
+      "cash": "7,600,000.00",
+      "lastUpdatedDate": "21 มิ.ย. 2567",
+      "lastUpdatedTime": "14:22"
+    },
     "allocationData": [
       { "name": "Fixed Income", "value": 55, "fill": "#8b5cf6" },
       { "name": "Thai Equity",  "value": 30, "fill": "#3b82f6" },
@@ -159,7 +179,17 @@
       "action": "Review REITs Exposure"
     }
   },
-  "4": {
+  "800004": {
+    "assetSummary": {
+      "netValue": "620,000,000.00",
+      "changeAmount": "+97,960,000.00",
+      "changePercent": "15.80",
+      "changePositive": true,
+      "lineAvailable": "21,106,382.98",
+      "cash": "31,000,000.00",
+      "lastUpdatedDate": "22 มิ.ย. 2567",
+      "lastUpdatedTime": "09:15"
+    },
     "allocationData": [
       { "name": "Global Equity", "value": 42, "fill": "#10b981" },
       { "name": "Thai Equity",   "value": 28, "fill": "#3b82f6" },
@@ -206,7 +236,17 @@
     },
     "aiRiskAlert": null
   },
-  "5": {
+  "800005": {
+    "assetSummary": {
+      "netValue": "130,000,000.00",
+      "changeAmount": "-1,950,000.00",
+      "changePercent": "1.50",
+      "changePositive": false,
+      "lineAvailable": "4,425,531.91",
+      "cash": "36,400,000.00",
+      "lastUpdatedDate": "20 มิ.ย. 2567",
+      "lastUpdatedTime": "16:30"
+    },
     "allocationData": [
       { "name": "Thai Equity",  "value": 50, "fill": "#3b82f6" },
       { "name": "Fixed Income", "value": 22, "fill": "#8b5cf6" },
@@ -253,7 +293,17 @@
       "action": "Propose Rebalancing"
     }
   },
-  "6": {
+  "800006": {
+    "assetSummary": {
+      "netValue": "75,000,000.00",
+      "changeAmount": "+3,675,000.00",
+      "changePercent": "4.90",
+      "changePositive": true,
+      "lineAvailable": "2,553,191.49",
+      "cash": "9,000,000.00",
+      "lastUpdatedDate": "21 มิ.ย. 2567",
+      "lastUpdatedTime": "10:08"
+    },
     "allocationData": [
       { "name": "Fixed Income", "value": 48, "fill": "#8b5cf6" },
       { "name": "Thai Equity",  "value": 40, "fill": "#3b82f6" },
@@ -296,7 +346,17 @@
     },
     "aiRiskAlert": null
   },
-  "7": {
+  "800007": {
+    "assetSummary": {
+      "netValue": "890,000,000.00",
+      "changeAmount": "+196,690,000.00",
+      "changePercent": "22.10",
+      "changePositive": true,
+      "lineAvailable": "30,297,872.34",
+      "cash": "44,500,000.00",
+      "lastUpdatedDate": "22 มิ.ย. 2567",
+      "lastUpdatedTime": "08:50"
+    },
     "allocationData": [
       { "name": "Global Equity", "value": 50, "fill": "#10b981" },
       { "name": "Thai Equity",   "value": 28, "fill": "#3b82f6" },
@@ -343,7 +403,17 @@
     },
     "aiRiskAlert": null
   },
-  "8": {
+  "800008": {
+    "assetSummary": {
+      "netValue": "220,000,000.00",
+      "changeAmount": "+13,860,000.00",
+      "changePercent": "6.30",
+      "changePositive": true,
+      "lineAvailable": "7,489,361.70",
+      "cash": "61,600,000.00",
+      "lastUpdatedDate": "21 มิ.ย. 2567",
+      "lastUpdatedTime": "13:20"
+    },
     "allocationData": [
       { "name": "Thai Equity",  "value": 45, "fill": "#3b82f6" },
       { "name": "Fixed Income", "value": 27, "fill": "#8b5cf6" },

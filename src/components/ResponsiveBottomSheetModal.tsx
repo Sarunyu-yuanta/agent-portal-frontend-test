@@ -1,0 +1,87 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { BottomSheet, useIsMobile } from "@sarunyu/system-one";
+import { XIcon } from "@phosphor-icons/react";
+
+export function ResponsiveBottomSheetModal({
+  open,
+  onClose,
+  title,
+  titleId,
+  desktopMaxWidth = "max-w-[520px]",
+  desktopRoundedClassName = "rounded-xl",
+  desktopTitleClassName = "leading-6",
+  desktopTitleIcon,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  titleId: string;
+  desktopMaxWidth?: string;
+  desktopRoundedClassName?: string;
+  desktopTitleClassName?: string;
+  desktopTitleIcon?: ReactNode;
+  children: ReactNode;
+}) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <BottomSheet
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) onClose();
+        }}
+        title={title}
+        showHandle
+        rightSide="action"
+        actionLabel="Close"
+        onActionClick={onClose}
+        contentClassName="flex min-h-0 max-h-[calc(100dvh-10rem)] flex-col overflow-hidden pt-0"
+      >
+        {children}
+      </BottomSheet>
+    );
+  }
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className={`bg-white border border-[rgba(0,0,0,0.1)] ${desktopRoundedClassName} w-full ${desktopMaxWidth} max-h-[85vh] flex flex-col overflow-hidden shadow-lg`}
+        role="dialog"
+        aria-modal
+        aria-labelledby={titleId}
+      >
+        <div className="flex gap-4 items-center px-4 pt-4 pb-0 shrink-0">
+          <div className="flex flex-1 gap-2 items-center min-w-0">
+            {desktopTitleIcon}
+            <p
+              id={titleId}
+              className={`type-h6 font-bold text-[var(--text-default-primary)] ${desktopTitleClassName} flex-1 min-w-0`}
+            >
+              {title}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 p-0.5 text-[var(--text-default-tertiary)] hover:text-[var(--text-default-primary)] cursor-pointer"
+            aria-label="Close"
+          >
+            <XIcon size={20} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}

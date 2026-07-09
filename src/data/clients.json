@@ -1,6 +1,6 @@
 [
   {
-    "id": "1",
+    "id": "800001",
     "name": "Sarunyu Siripat",
     "tier": "UHNW",
     "aum": "฿ 450M",
@@ -13,7 +13,7 @@
     "riskProfile": "Aggressive"
   },
   {
-    "id": "2",
+    "id": "800002",
     "name": "Malee Pongpipat",
     "tier": "HNW",
     "aum": "฿ 180M",
@@ -26,7 +26,7 @@
     "riskProfile": "Moderate"
   },
   {
-    "id": "3",
+    "id": "800003",
     "name": "Pravit Suwannarat",
     "tier": "HNW",
     "aum": "฿ 95M",
@@ -39,11 +39,11 @@
     "riskProfile": "Conservative"
   },
   {
-    "id": "4",
+    "id": "800004",
     "name": "Nattaporn Chaiwong",
     "tier": "UHNW",
     "aum": "฿ 620M",
-    "cashIdlePct": 25,
+    "cashIdlePct": 5,
     "plYtd": "+15.8%",
     "plPositive": true,
     "aiScore": 91,
@@ -52,11 +52,11 @@
     "riskProfile": "Aggressive"
   },
   {
-    "id": "5",
+    "id": "800005",
     "name": "Wichai Thongkam",
     "tier": "HNW",
     "aum": "฿ 130M",
-    "cashIdlePct": 41,
+    "cashIdlePct": 28,
     "plYtd": "-1.5%",
     "plPositive": false,
     "aiScore": 65,
@@ -65,7 +65,7 @@
     "riskProfile": "Moderate"
   },
   {
-    "id": "6",
+    "id": "800006",
     "name": "Siriporn Ladawan",
     "tier": "HNW",
     "aum": "฿ 75M",
@@ -78,11 +78,11 @@
     "riskProfile": "Conservative"
   },
   {
-    "id": "7",
+    "id": "800007",
     "name": "Thanawat Boonmee",
     "tier": "UHNW",
     "aum": "฿ 890M",
-    "cashIdlePct": 15,
+    "cashIdlePct": 5,
     "plYtd": "+22.1%",
     "plPositive": true,
     "aiScore": 96,
@@ -91,7 +91,7 @@
     "riskProfile": "Aggressive"
   },
   {
-    "id": "8",
+    "id": "800008",
     "name": "Kannika Srisuphan",
     "tier": "HNW",
     "aum": "฿ 220M",
