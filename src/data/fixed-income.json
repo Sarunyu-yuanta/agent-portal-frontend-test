@@ -1,13 +1,13 @@
 {
   "logos": [
-    "https://www.figma.com/api/mcp/asset/a5f05391-6db4-4331-8aef-ef94906f3c62",
-    "https://www.figma.com/api/mcp/asset/421a208c-5a27-4d6e-8da6-7fc9f6274002",
-    "https://www.figma.com/api/mcp/asset/b5eb430c-1593-4e1f-97bf-c372874a0de9",
-    "https://www.figma.com/api/mcp/asset/394969de-3f1d-491f-a01e-d762b900434e",
-    "https://www.figma.com/api/mcp/asset/81b9a35e-2fbd-42d3-bd07-29549a0ebab2",
-    "https://www.figma.com/api/mcp/asset/fc024e02-b5f6-4f55-aadd-8660f197d433",
-    "https://www.figma.com/api/mcp/asset/b034589d-7f5d-4869-a6f9-075b424c900d",
-    "https://www.figma.com/api/mcp/asset/75efc54f-3be6-4cef-a9b4-b98d357f57b8"
+    "/bond-logos/fi-0.jpg",
+    "/bond-logos/fi-1.jpg",
+    "/bond-logos/fi-2.jpg",
+    "/bond-logos/fi-3.jpg",
+    "/bond-logos/fi-4.jpg",
+    "/bond-logos/fi-5.jpg",
+    "/bond-logos/fi-6.jpg",
+    "/bond-logos/fi-7.jpg"
   ],
   "bonds": [
     {

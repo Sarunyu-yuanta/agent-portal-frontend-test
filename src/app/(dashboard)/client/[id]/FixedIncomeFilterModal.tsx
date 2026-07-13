@@ -41,7 +41,7 @@ function CompanyFilterChip({
         color: selected ? "white" : "#4a5565",
       }}
     >
-      <BondLogo src={BOND_LOGOS[company.logoIdx]} logoCrop={company.logoCrop} />
+      <BondLogo src={BOND_LOGOS[company.logoIdx]} logoCrop={company.logoCrop} className="size-5 rounded" />
       <span className="min-w-0 flex-1 truncate text-center">{label}</span>
     </button>
   );
@@ -74,8 +74,8 @@ type FilterContentProps = {
   draft: FixedIncomeFilters;
   mobile?: boolean;
   onToggleCompany: (companyId: string) => void;
-  onSetCoupon: (coupon: FixedIncomeCouponFilter) => void;
-  onSetOfferType: (offerType: FixedIncomeOfferFilter) => void;
+  onToggleCoupon: (coupon: FixedIncomeCouponFilter) => void;
+  onToggleOfferType: (offerType: FixedIncomeOfferFilter) => void;
   onToggleRisk: (risk: FixedIncomeRiskFilter) => void;
 };
 
@@ -83,8 +83,8 @@ function FilterContent({
   draft,
   mobile,
   onToggleCompany,
-  onSetCoupon,
-  onSetOfferType,
+  onToggleCoupon,
+  onToggleOfferType,
   onToggleRisk,
 }: FilterContentProps) {
   const companies = getFixedIncomeFilterCompanies();
@@ -115,8 +115,8 @@ function FilterContent({
               key={option.id}
               label={option.label}
               size="medium"
-              selected={draft.coupon === option.id}
-              onClick={() => onSetCoupon(option.id)}
+              selected={draft.coupons.includes(option.id)}
+              onClick={() => onToggleCoupon(option.id)}
               className="w-full"
             />
           ))}
@@ -130,8 +130,8 @@ function FilterContent({
               key={option.id}
               label={option.label}
               size="medium"
-              selected={draft.offerType === option.id}
-              onClick={() => onSetOfferType(option.id)}
+              selected={draft.offerTypes.includes(option.id)}
+              onClick={() => onToggleOfferType(option.id)}
               className="w-full"
             />
           ))}
@@ -181,7 +181,7 @@ function FilterFooter({
         className="min-w-0 flex-1 max-w-[343px]"
         onClick={onApply}
       >
-        นำไปใช้
+        ยืนยันตัวเลือก
       </Button>
     </div>
   );
@@ -228,17 +228,21 @@ export function FixedIncomeFilterModal({
     }));
   };
 
-  const setCoupon = (coupon: FixedIncomeCouponFilter) => {
+  const toggleCoupon = (coupon: FixedIncomeCouponFilter) => {
     setDraft((prev) => ({
       ...prev,
-      coupon: prev.coupon === coupon ? null : coupon,
+      coupons: prev.coupons.includes(coupon)
+        ? prev.coupons.filter((c) => c !== coupon)
+        : [...prev.coupons, coupon],
     }));
   };
 
-  const setOfferType = (offerType: FixedIncomeOfferFilter) => {
+  const toggleOfferType = (offerType: FixedIncomeOfferFilter) => {
     setDraft((prev) => ({
       ...prev,
-      offerType: prev.offerType === offerType ? null : offerType,
+      offerTypes: prev.offerTypes.includes(offerType)
+        ? prev.offerTypes.filter((o) => o !== offerType)
+        : [...prev.offerTypes, offerType],
     }));
   };
 
@@ -257,8 +261,8 @@ export function FixedIncomeFilterModal({
   const filterContentProps = {
     draft,
     onToggleCompany: toggleCompany,
-    onSetCoupon: setCoupon,
-    onSetOfferType: setOfferType,
+    onToggleCoupon: toggleCoupon,
+    onToggleOfferType: toggleOfferType,
     onToggleRisk: toggleRisk,
   };
 
@@ -318,7 +322,9 @@ export function FixedIncomeFilterModal({
         </div>
 
         <FilterContent {...filterContentProps} />
-        <FilterFooter onClear={clearDraft} onApply={applyDraft} />
+        <div className="pt-4">
+          <FilterFooter onClear={clearDraft} onApply={applyDraft} />
+        </div>
       </div>
     </div>
   );

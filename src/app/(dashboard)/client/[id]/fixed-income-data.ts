@@ -112,15 +112,15 @@ export type FixedIncomeRiskFilter = "lt3" | "4to5" | "6to7" | "8";
 
 export type FixedIncomeFilters = {
   companies: string[];
-  coupon: FixedIncomeCouponFilter | null;
-  offerType: FixedIncomeOfferFilter | null;
+  coupons: FixedIncomeCouponFilter[];
+  offerTypes: FixedIncomeOfferFilter[];
   risks: FixedIncomeRiskFilter[];
 };
 
 export const EMPTY_FIXED_INCOME_FILTERS: FixedIncomeFilters = {
   companies: [],
-  coupon: null,
-  offerType: null,
+  coupons: [],
+  offerTypes: [],
   risks: [],
 };
 
@@ -142,8 +142,8 @@ export const FIXED_INCOME_RISK_FILTERS = fixedIncomeRaw.filters.risk as {
 export function countFixedIncomeFilters(filters: FixedIncomeFilters): number {
   return (
     filters.companies.length +
-    (filters.coupon ? 1 : 0) +
-    (filters.offerType ? 1 : 0) +
+    filters.coupons.length +
+    filters.offerTypes.length +
     filters.risks.length
   );
 }
@@ -187,22 +187,22 @@ export function getFixedIncomeFilterChips(filters: FixedIncomeFilters): FixedInc
     });
   }
 
-  if (filters.coupon) {
+  for (const couponId of filters.coupons) {
     chips.push({
-      id: `coupon:${filters.coupon}`,
-      label: getCouponChipLabel(filters.coupon),
+      id: `coupon:${couponId}`,
+      label: getCouponChipLabel(couponId),
       category: "coupon",
-      value: filters.coupon,
+      value: couponId,
     });
   }
 
-  if (filters.offerType) {
-    const option = FIXED_INCOME_OFFER_FILTERS.find((item) => item.id === filters.offerType);
+  for (const offerTypeId of filters.offerTypes) {
+    const option = FIXED_INCOME_OFFER_FILTERS.find((item) => item.id === offerTypeId);
     chips.push({
-      id: `offerType:${filters.offerType}`,
-      label: option?.label ?? filters.offerType,
+      id: `offerType:${offerTypeId}`,
+      label: option?.label ?? offerTypeId,
       category: "offerType",
-      value: filters.offerType,
+      value: offerTypeId,
     });
   }
 
@@ -229,9 +229,9 @@ export function removeFixedIncomeFilterChip(
         companies: filters.companies.filter((companyId) => companyId !== chip.value),
       };
     case "coupon":
-      return { ...filters, coupon: null };
+      return { ...filters, coupons: filters.coupons.filter((c) => c !== chip.value) };
     case "offerType":
-      return { ...filters, offerType: null };
+      return { ...filters, offerTypes: filters.offerTypes.filter((o) => o !== chip.value) };
     case "risk":
       return {
         ...filters,
@@ -319,10 +319,10 @@ export function filterFixedIncomeBonds(
     if (filters.companies.length > 0 && !filters.companies.includes(bond.companyName)) {
       return false;
     }
-    if (filters.coupon && !matchesCouponFilter(bond.couponRate, filters.coupon)) {
+    if (filters.coupons.length > 0 && !filters.coupons.some((c) => matchesCouponFilter(bond.couponRate, c))) {
       return false;
     }
-    if (filters.offerType && !matchesOfferFilter(bond.offerType, filters.offerType)) {
+    if (filters.offerTypes.length > 0 && !filters.offerTypes.some((o) => matchesOfferFilter(bond.offerType, o))) {
       return false;
     }
     if (

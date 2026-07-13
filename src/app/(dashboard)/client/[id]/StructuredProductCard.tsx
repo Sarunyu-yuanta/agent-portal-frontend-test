@@ -16,10 +16,10 @@ function LogoRow({ logos, tags }: { logos: string[]; tags: string[] }) {
         {logos.map((src, i) => (
           <div
             key={i}
-            className="relative shrink-0 size-5 rounded overflow-hidden"
+            className="relative shrink-0 size-8 rounded overflow-hidden"
             style={{ border: "1px solid rgba(0,0,0,0.08)" }}
           >
-            <img alt="" className="absolute inset-0 size-full object-cover" src={src} />
+            <img alt="" className="absolute inset-0 size-full object-cover" src={src} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/logo-placeholder.svg"; }} />
           </div>
         ))}
       </div>

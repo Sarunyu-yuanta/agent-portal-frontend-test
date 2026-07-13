@@ -6,6 +6,7 @@ import {
   Tag,
   Button,
   Card,
+  SearchInput,
   Table,
   TableHead,
   TableBody,
@@ -37,6 +38,7 @@ import {
 } from "@phosphor-icons/react";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { useClients, useNBAActions } from "@/hooks/use-api";
+import { useSetHeaderSlot } from "../../header-slot-context";
 
 const clientDetailById = Object.fromEntries(
   mockClients.map((c) => [c.id, mockClientDetails[c.id]])
@@ -104,6 +106,9 @@ export default function ClientPage({
   // NBA action for this client (provides aiDraft + revenueImpact for AI cards)
   const nbaAction = nbaActions.find((a) => a.clientId === client.id);
 
+  const [searchValue, setSearchValue] = useState("");
+  const setHeaderSlot = useSetHeaderSlot();
+
   // Compact sticky header on scroll
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -121,6 +126,23 @@ export default function ClientPage({
     main.addEventListener("scroll", onScroll, { passive: true });
     return () => main.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (scrolled && activeTab === "product-catalog") {
+      setHeaderSlot(
+        <SearchInput
+          value={searchValue}
+          onChange={setSearchValue}
+          placeholder="ค้นหาสินทรัพย์"
+          size="sm"
+          className="w-full"
+        />
+      );
+    } else {
+      setHeaderSlot(null);
+    }
+    return () => setHeaderSlot(null);
+  }, [scrolled, activeTab, searchValue, setSearchValue, setHeaderSlot]);
 
   return (
     <div className="flex flex-col -mt-6">
@@ -187,6 +209,7 @@ export default function ClientPage({
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -206,7 +229,7 @@ export default function ClientPage({
       {/* ── Body content ── */}
       {activeTab === "product-catalog" ? (
         <div className="pt-8">
-          <ProductCatalogTab />
+          <ProductCatalogTab searchValue={searchValue} onSearchChange={setSearchValue} />
         </div>
       ) : (
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start pt-8">

@@ -169,7 +169,7 @@ function TopPickAccordionList() {
                 onClick={() => setExpandedIdx(expanded ? null : i)}
                 className="flex w-full items-center gap-2 p-3 bg-white border-none cursor-pointer text-left"
               >
-                <BondLogo src={row.logo} />
+                <BondLogo src={row.logo} className="size-8 rounded" />
                 <div className="flex flex-1 min-w-0 flex-col gap-0.5">
                   <span className="text-sm font-bold leading-5 text-[#101828] truncate">{row.name}</span>
                   <div className="flex gap-0.5 items-center min-h-[18px]">
@@ -243,7 +243,7 @@ function RecommendedAccordionList({ onIssuerSelect }: { onIssuerSelect?: (id: Gl
                 onClick={() => setExpandedIdx(expanded ? null : i)}
                 className="flex w-full items-center gap-2 p-3 bg-white border-none cursor-pointer text-left min-h-12"
               >
-                <BondLogo src={row.logo} />
+                <BondLogo src={row.logo} className="size-8 rounded" />
                 <span
                   className={`flex-1 min-w-0 text-sm font-bold leading-5 truncate ${
                     expanded ? "text-[#101828]" : "text-[#4a5565]"
@@ -360,7 +360,7 @@ function TopPickTable() {
                   bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined,
                 })}
               >
-                <BondLogo src={row.logo} />
+                <BondLogo src={row.logo} className="size-8 rounded" />
                 <span className="flex-1 min-w-0 truncate text-sm leading-5 text-[#101828]">
                   {row.name}
                 </span>
@@ -510,7 +510,7 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
                   backgroundColor: row.alt ? "#f9fafb" : "white",
                 }}
               >
-                <BondLogo src={row.logo} />
+                <BondLogo src={row.logo} className="size-8 rounded" />
                 <span className="flex-1 min-w-0 text-sm font-bold leading-5 text-[#101828] truncate">{row.issuer}</span>
               </div>
             ))}

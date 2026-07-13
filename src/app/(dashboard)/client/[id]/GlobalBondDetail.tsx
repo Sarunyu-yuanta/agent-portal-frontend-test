@@ -141,7 +141,7 @@ function FilterPillGroup<T extends string>({
 function IssuerLogo({ src }: { src: string }) {
   return (
     <div
-      className="relative shrink-0 size-5 rounded overflow-hidden"
+      className="relative shrink-0 size-8 rounded overflow-hidden"
       style={{ border: `1px solid ${BORDER_COLOR}` }}
     >
       <img

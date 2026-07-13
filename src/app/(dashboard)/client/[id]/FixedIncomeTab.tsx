@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button } from "@sarunyu/system-one";
-import { BuildingsIcon, HandshakeIcon, CircleNotchIcon } from "@phosphor-icons/react";
+import { Badge, Button, Tag } from "@sarunyu/system-one";
+import type { TagVariant } from "@sarunyu/system-one";
+import {
+  BuildingsIcon,
+  HandshakeIcon,
+  CircleNotchIcon,
+} from "@phosphor-icons/react";
 import {
   BOND_LOGOS,
   EMPTY_FIXED_INCOME_FILTERS,
@@ -29,7 +34,25 @@ import {
 import { FixedIncomeFilterModal } from "./FixedIncomeFilterModal";
 import { FixedIncomeAppliedFilterChips } from "./FixedIncomeAppliedFilterChips";
 
-const TAB_SHADOW = "0px 4px 6px -1px rgba(0,0,0,0.1),0px 2px 4px -2px rgba(0,0,0,0.1)";
+function offerTypeVariant(type: string): TagVariant {
+  if (type === "PO") return "blue";
+  if (type === "UHNW") return "yellow";
+  return "green";
+}
+
+function OfferTypeTag({ offerType }: { offerType: string }) {
+  const parts = offerType.split("/");
+  return (
+    <div className="flex flex-wrap gap-1">
+      {parts.map((part) => (
+        <Tag key={part} text={part} size="small" variant={offerTypeVariant(part)} />
+      ))}
+    </div>
+  );
+}
+
+const TAB_SHADOW =
+  "0px 4px 6px -1px rgba(0,0,0,0.1),0px 2px 4px -2px rgba(0,0,0,0.1)";
 
 function MarketSwitcher({
   market,
@@ -52,7 +75,9 @@ function MarketSwitcher({
           boxShadow: market === "primary" ? TAB_SHADOW : "none",
         }}
       >
-        {market === "primary" && <BuildingsIcon size={20} weight="fill" color="#101828" />}
+        {market === "primary" && (
+          <BuildingsIcon size={20} weight="fill" color="#101828" />
+        )}
         <span
           className="text-sm leading-5 whitespace-nowrap"
           style={{
@@ -72,7 +97,9 @@ function MarketSwitcher({
           boxShadow: market === "secondary" ? TAB_SHADOW : "none",
         }}
       >
-        {market === "secondary" && <HandshakeIcon size={20} weight="fill" color="#101828" />}
+        {market === "secondary" && (
+          <HandshakeIcon size={20} weight="fill" color="#101828" />
+        )}
         <span
           className="text-sm leading-5 whitespace-nowrap"
           style={{
@@ -87,21 +114,15 @@ function MarketSwitcher({
   );
 }
 
-function ActionButton({ action }: { action: FixedIncomeAction }) {
-  const isFollowed = action === "followed";
+function ActionButton({ action: _ }: { action: FixedIncomeAction }) {
   return (
     <button
       type="button"
-      disabled={isFollowed}
       onClick={(e) => e.stopPropagation()}
       className="inline-flex items-center justify-center px-1.5 py-1 rounded text-xs font-medium leading-[18px] whitespace-nowrap max-w-[343px]"
-      style={{
-        backgroundColor: isFollowed ? "#f3f4f6" : "#0a6ee7",
-        color: isFollowed ? "#99a1af" : "white",
-        cursor: isFollowed ? "default" : "pointer",
-      }}
+      style={{ backgroundColor: "#0a6ee7", color: "white", cursor: "pointer" }}
     >
-      {ACTION_LABELS[action]}
+      สร้างคำสั่งซื้อ
     </button>
   );
 }
@@ -145,30 +166,47 @@ function FixedIncomeCard({
       <div className="flex flex-col gap-2 w-full">
         <div className="flex gap-2 items-start w-full">
           <StatusTag status={bond.status} label={bond.statusLabel} />
-          <span className="flex-1 min-w-0 text-base font-bold leading-6 text-[#101828] truncate">{bond.symbol}</span>
+          <span className="flex-1 min-w-0 text-base font-bold leading-6 text-[#101828] truncate">
+            {bond.symbol}
+          </span>
           <div className="flex gap-1 items-center shrink-0 whitespace-nowrap">
-            <span className="text-base font-bold leading-6 text-[#101828]">{bond.ytm}</span>
+            <span className="text-base font-bold leading-6 text-[#101828]">
+              {bond.ytm}
+            </span>
             <span className="text-xs leading-4 text-[#6a7282]">YTM</span>
           </div>
         </div>
         <div className="flex gap-2 items-center w-full text-xs leading-4 text-[#101828]">
           <span className="flex-1 min-w-0">{bond.companyRating}</span>
-          <span className="shrink-0 whitespace-nowrap">{bond.couponPeriod}</span>
+          <span className="shrink-0 whitespace-nowrap">
+            {bond.couponPeriod}
+          </span>
         </div>
         <div className="flex gap-2 items-center w-full text-xs leading-4 text-[#101828]">
           <span className="flex-1 min-w-0">ครบกำหนด: {bond.maturity}</span>
           <span className="shrink-0 whitespace-nowrap">{bond.tenor}</span>
         </div>
         <div className="flex gap-2 items-center w-full text-xs leading-4 text-[#101828]">
-          <span className="flex-1 min-w-0">{bond.offerType}</span>
-          <span className="shrink-0 whitespace-nowrap">{getBookingLabel(bond)}</span>
+          <OfferTypeTag offerType={bond.offerType} />
+          <span className="shrink-0 whitespace-nowrap">
+            {getBookingLabel(bond)}
+          </span>
         </div>
       </div>
-      <hr className="w-full border-0 m-0" style={{ borderTop: `1px solid ${BORDER_COLOR}` }} />
+      <hr
+        className="w-full border-0 m-0"
+        style={{ borderTop: `1px solid ${BORDER_COLOR}` }}
+      />
       <div className="flex gap-3 items-center w-full">
-        <BondLogo src={BOND_LOGOS[bond.logoIdx]} logoCrop={bond.logoCrop} className="size-8 rounded" />
+        <BondLogo
+          src={BOND_LOGOS[bond.logoIdx]}
+          logoCrop={bond.logoCrop}
+          className="size-8 rounded"
+        />
         <div className="flex flex-1 min-w-0 gap-3 items-center overflow-hidden">
-          <span className="text-xs font-bold leading-4 text-[#101828] truncate shrink-0">{bond.companyName}</span>
+          <span className="text-xs font-bold leading-4 text-[#101828] truncate shrink-0">
+            {bond.companyName}
+          </span>
           <span className="text-xs leading-4 text-[#4a5565] whitespace-nowrap shrink-0">
             {bond.bondRating} / Risk {getRiskNumber(bond.risk)}
           </span>
@@ -181,48 +219,102 @@ function FixedIncomeCard({
 
 function TableHeader() {
   return (
-    <div className="flex h-11 items-stretch shrink-0 min-w-[1280px] bg-white">
-      <div className="flex flex-1 items-center px-3" style={headerBorderStyle({ left: true })}>
+    <div className="flex h-11 items-stretch shrink-0 min-w-[1420px] bg-white">
+      <div
+        className="flex flex-1 items-center px-3"
+        style={headerBorderStyle({ left: true })}
+      >
         <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>หุ้นกู้</span>
       </div>
-      <div className="flex w-20 items-center justify-center px-3" style={headerBorderStyle()}>
+      <div
+        className="flex w-20 items-center justify-center px-3"
+        style={headerBorderStyle()}
+      >
         <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>สถานะ</span>
       </div>
-      <div className="flex w-[71px] items-center justify-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>YTM</span>
+      <div
+        className="flex w-[136px] items-center justify-center px-3"
+        style={headerBorderStyle()}
+      >
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>
+          อัตราดอกเบี้ย
+        </span>
       </div>
-      <div className="flex w-[93px] items-center justify-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>งวดดอกเบี้ย</span>
+      <div
+        className="flex w-[120px] items-center justify-center px-3"
+        style={headerBorderStyle()}
+      >
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>
+          งวดดอกเบี้ย
+        </span>
       </div>
       <div className="flex w-32 items-center px-3" style={headerBorderStyle()}>
         <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>อายุ</span>
       </div>
-      <div className="flex w-[116px] items-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
+      <div
+        className="flex w-[120px] items-center px-3"
+        style={headerBorderStyle()}
+      >
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>
+          วันครบกำหนด
+        </span>
       </div>
-      <div className="flex flex-col w-[212px] shrink-0 overflow-hidden" style={headerBorderStyle()}>
-        <div className="flex flex-1 items-center justify-center px-3" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
-          <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Ratings</span>
+      <div
+        className="flex flex-col w-[212px] shrink-0 overflow-hidden"
+        style={headerBorderStyle()}
+      >
+        <div
+          className="flex flex-1 items-center justify-center px-3"
+          style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}
+        >
+          <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>
+            Ratings
+          </span>
         </div>
         <div className="flex flex-1 items-stretch">
-          <div className="flex flex-1 items-center justify-center px-3" style={{ borderRight: `1px solid ${BORDER_COLOR}` }}>
-            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>บริษัท</span>
+          <div
+            className="flex flex-1 items-center justify-center px-3"
+            style={{ borderRight: `1px solid ${BORDER_COLOR}` }}
+          >
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>
+              บริษัท
+            </span>
           </div>
           <div className="flex flex-1 items-center justify-center px-3">
-            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>หุ้นกู้</span>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>
+              หุ้นกู้
+            </span>
           </div>
         </div>
       </div>
-      <div className="flex w-[82px] items-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ความเสี่ยง</span>
+      <div
+        className="flex w-[112px] items-center px-3"
+        style={headerBorderStyle()}
+      >
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>
+          ความเสี่ยง
+        </span>
       </div>
-      <div className="flex w-[116px] items-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ประเภทเสนอขาย</span>
+      <div
+        className="flex w-[140px] items-center px-3"
+        style={headerBorderStyle()}
+      >
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>
+          ประเภทเสนอขาย
+        </span>
       </div>
-      <div className="flex flex-1 min-w-[104px] items-center px-3" style={headerBorderStyle()}>
-        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>คาดว่าเปิดจอง</span>
+      <div
+        className="flex flex-1 min-w-[140px] items-center px-3"
+        style={headerBorderStyle()}
+      >
+        <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>
+          คาดว่าเปิดจอง
+        </span>
       </div>
-      <div className="flex w-[92px] items-center justify-center px-3" style={headerBorderStyle({ right: false })} />
+      <div
+        className="flex w-[92px] items-center justify-center px-3"
+        style={headerBorderStyle({ right: false })}
+      />
     </div>
   );
 }
@@ -249,53 +341,93 @@ function BondTableRow({
           onSelect(bond);
         }
       }}
-      className="flex items-stretch shrink-0 min-w-[1280px] bg-white cursor-pointer hover:bg-[#f9fafb] transition-colors"
+      className="flex items-stretch shrink-0 min-w-[1420px] bg-white cursor-pointer hover:bg-[#f9fafb] transition-colors"
     >
-      <div className="flex flex-1 items-center gap-2 px-3 py-3.5" style={border()}>
-        <BondLogo src={BOND_LOGOS[bond.logoIdx]} logoCrop={bond.logoCrop} />
-        <span className="flex-1 min-w-0 text-sm font-bold leading-5 text-[#101828]">{bond.symbol}</span>
+      <div
+        className="flex flex-1 items-center gap-2 px-3 py-3.5"
+        style={border()}
+      >
+        <BondLogo src={BOND_LOGOS[bond.logoIdx]} logoCrop={bond.logoCrop} className="size-8 rounded" />
+        <span className="flex-1 min-w-0 text-sm font-bold leading-5 text-[#101828]">
+          {bond.symbol}
+        </span>
       </div>
-      <div className="flex w-20 items-center justify-end p-3" style={border()}>
-        <StatusTag status={bond.status} label={bond.statusLabel} />
+      <div className="flex w-20 items-center justify-center p-3" style={border()}>
+        <StatusTag status={bond.status} label={bond.status === "open" ? "Active" : "Inactive"} />
       </div>
-      <div className="flex w-[71px] items-center justify-end px-3 py-3.5" style={border()}>
-        <span className="text-sm font-bold leading-5 text-[#101828] whitespace-nowrap">{bond.ytm}</span>
+      <div
+        className="flex w-[136px] items-center justify-center px-3 py-3.5"
+        style={border()}
+      >
+        <span className="text-sm font-bold leading-5 text-[#101828] whitespace-nowrap">
+          {bond.ytm}
+        </span>
       </div>
-      <div className="flex w-[93px] items-center px-3 py-3.5" style={border()}>
-        <span className="text-sm leading-5 text-[#101828] whitespace-nowrap">{bond.couponPeriod}</span>
+      <div className="flex w-[120px] items-center justify-center px-3 py-3.5" style={border()}>
+        <span className="text-sm leading-5 text-[#101828] whitespace-nowrap">
+          {bond.couponPeriod}
+        </span>
       </div>
       <div className="flex w-32 items-center px-3 py-3.5" style={border()}>
-        <span className="text-sm leading-5 text-[#101828] whitespace-nowrap">{bond.tenor}</span>
+        <span className="text-sm leading-5 text-[#101828] whitespace-nowrap">
+          {bond.tenor}
+        </span>
       </div>
-      <div className="flex w-[116px] items-center px-3 py-3.5" style={border()}>
-        <span className="text-sm leading-5 text-[#101828]">{bond.maturity}</span>
+      <div className="flex w-[120px] items-center px-3 py-3.5" style={border()}>
+        <span className="text-sm leading-5 text-[#101828]">
+          {bond.maturity}
+        </span>
       </div>
-      <div className="flex w-[106px] items-center justify-center px-3 py-3.5" style={border()}>
-        <span className="text-sm leading-5 text-[#101828] text-center">{bond.companyRating}</span>
+      <div
+        className="flex w-[106px] items-center justify-center px-3 py-3.5"
+        style={border()}
+      >
+        <span className="text-sm leading-5 text-[#101828] text-center">
+          {bond.companyRating}
+        </span>
       </div>
-      <div className="flex w-[106px] items-center justify-center px-3 py-3.5" style={border()}>
-        <span className="text-sm leading-5 text-[#101828] text-center">{bond.bondRating}</span>
+      <div
+        className="flex w-[106px] items-center justify-center px-3 py-3.5"
+        style={border()}
+      >
+        <span className="text-sm leading-5 text-[#101828] text-center">
+          {bond.bondRating}
+        </span>
       </div>
-      <div className="flex w-[82px] items-center px-3 py-3.5" style={border()}>
+      <div className="flex w-[112px] items-center px-3 py-3.5" style={border()}>
         <span className="text-sm leading-5 text-[#101828]">{bond.risk}</span>
       </div>
-      <div className="flex w-[116px] items-center px-3 py-3.5" style={border()}>
-        <span className="text-sm leading-5 text-[#101828] whitespace-nowrap">{bond.offerType}</span>
+      <div className="flex w-[140px] items-center px-3 py-3.5" style={border()}>
+        <OfferTypeTag offerType={bond.offerType} />
       </div>
-      <div className="flex flex-1 min-w-[104px] items-center px-3 py-3.5" style={border()}>
-        <span className="text-sm leading-5 text-[#101828]">{bond.subscriptionPeriod}</span>
+      <div
+        className="flex flex-1 min-w-[140px] items-center px-3 py-3.5"
+        style={border()}
+      >
+        <span className="text-sm leading-5 text-[#101828]">
+          {bond.subscriptionPeriod}
+        </span>
       </div>
-      <div className="flex w-[92px] items-center justify-center px-3 py-[11px]" style={border()}>
+      <div
+        className="flex w-[92px] items-center justify-center px-3 py-[11px]"
+        style={border()}
+      >
         <ActionButton action={bond.action} />
       </div>
     </div>
   );
 }
 
-export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedIncomeBond) => void }) {
+export function FixedIncomeTab({
+  onBondSelect,
+}: {
+  onBondSelect: (bond: FixedIncomeBond) => void;
+}) {
   const [market, setMarket] = useState<"primary" | "secondary">("primary");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<FixedIncomeFilters>(EMPTY_FIXED_INCOME_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState<FixedIncomeFilters>(
+    EMPTY_FIXED_INCOME_FILTERS,
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -306,11 +438,6 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
   const filteredBonds = useMemo(
     () => filterFixedIncomeBonds(FIXED_INCOME_BONDS, appliedFilters),
     [appliedFilters],
-  );
-
-  const companyCount = useMemo(
-    () => new Set(filteredBonds.map((bond) => bond.companyName)).size,
-    [filteredBonds],
   );
 
   const activeFilterCount = countFixedIncomeFilters(appliedFilters);
@@ -332,10 +459,30 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
         <div className="flex w-full max-w-[704px] flex-col gap-3">
           <div className="flex w-full flex-row items-center gap-3 md:gap-4">
             <MarketSwitcher market={market} onChange={setMarket} />
-            <Badge variant="button" iconOnly label="Filter" count={activeFilterCount} onClick={openFilters} className="shrink-0 md:hidden" />
-            <Badge variant="button" label="Filter" count={activeFilterCount} onClick={openFilters} className="shrink-0 hidden md:flex" />
+            <Badge
+              variant="button"
+              iconOnly
+              label="Filter"
+              count={activeFilterCount}
+              onClick={openFilters}
+              className="shrink-0 md:hidden"
+            />
+            <Badge
+              variant="button"
+              label="Filter"
+              count={activeFilterCount}
+              onClick={openFilters}
+              className="shrink-0 hidden md:flex"
+            />
           </div>
-          {activeFilterCount > 0 && <FixedIncomeAppliedFilterChips chips={appliedFilterChips} onRemoveChip={removeFilterChip} className="-mx-4 md:-mx-8" innerClassName="px-4 md:px-8" />}
+          {activeFilterCount > 0 && (
+            <FixedIncomeAppliedFilterChips
+              chips={appliedFilterChips}
+              onRemoveChip={removeFilterChip}
+              className="-mx-4 md:-mx-8"
+              innerClassName="px-4 md:px-8"
+            />
+          )}
         </div>
       </div>
 
@@ -345,20 +492,30 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
           <div className="flex w-full max-w-[704px] flex-col items-start gap-3">
             <div className="flex w-full flex-row items-center gap-3 md:gap-4">
               <MarketSwitcher market={market} onChange={setMarket} />
-              <Badge variant="button" label="Filter" count={activeFilterCount} onClick={openFilters} className="shrink-0" />
+              <Badge
+                variant="button"
+                label="Filter"
+                count={activeFilterCount}
+                onClick={openFilters}
+                className="shrink-0"
+              />
             </div>
-            {activeFilterCount > 0 && <FixedIncomeAppliedFilterChips chips={appliedFilterChips} onRemoveChip={removeFilterChip} wrap />}
+            {activeFilterCount > 0 && (
+              <FixedIncomeAppliedFilterChips
+                chips={appliedFilterChips}
+                onRemoveChip={removeFilterChip}
+                wrap
+              />
+            )}
           </div>
         </div>
-        <div className="flex items-center justify-between w-full px-1 text-sm leading-5 text-[#6a7282] whitespace-nowrap">
-          <span>{filteredBonds.length} หุ้นกู้ {companyCount} บริษัท</span>
+        <div className="flex items-center justify-end w-full px-1 text-sm leading-5 text-[#6a7282] whitespace-nowrap">
           <span>อัปเดตล่าสุด 25 August 2026 - 9:00</span>
         </div>
       </div>
 
       {/* ── Mobile/Tablet: count text ── */}
       <div className="flex items-center justify-between w-full px-1 text-xs leading-4 text-[#6a7282] whitespace-nowrap lg:hidden">
-        <span>{filteredBonds.length} หุ้นกู้ {companyCount} บริษัท</span>
         <span>อัปเดตล่าสุด 25 Aug 2026 - 9:00</span>
       </div>
 
@@ -372,11 +529,12 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
         className="hidden lg:block w-full rounded-xl overflow-hidden bg-white"
         style={{
           border: `1px solid ${BORDER_COLOR}`,
-          boxShadow: "0px 0px 1px rgba(102,102,102,0.16),0px 4px 4px rgba(102,102,102,0.12)",
+          boxShadow:
+            "0px 0px 1px rgba(102,102,102,0.16),0px 4px 4px rgba(102,102,102,0.12)",
         }}
       >
-        <div className="overflow-x-auto hide-scrollbar" style={{ scrollbarWidth: "none" }}>
-          <div className="flex flex-col items-start shrink-0 min-w-[1280px]">
+        <div className="overflow-x-auto">
+          <div className="flex flex-col items-start shrink-0 min-w-[1420px]">
             <TableHeader />
             {filteredBonds.map((bond, i) => (
               <BondTableRow
@@ -393,7 +551,9 @@ export function FixedIncomeTab({ onBondSelect }: { onBondSelect: (bond: FixedInc
       {isLoading && (
         <div className="flex gap-1 items-center justify-center w-full py-2.5 px-3 pl-3 pr-4">
           <CircleNotchIcon size={20} className="animate-spin text-[#6a7282]" />
-          <span className="text-sm font-bold leading-5 text-[#6a7282]">กำลังโหลดข้อมูล</span>
+          <span className="text-sm font-bold leading-5 text-[#6a7282]">
+            กำลังโหลดข้อมูล
+          </span>
         </div>
       )}
 

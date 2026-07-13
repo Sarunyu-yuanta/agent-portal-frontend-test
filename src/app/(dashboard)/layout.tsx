@@ -15,6 +15,7 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { notificationGroups } from "@/lib/mock-data";
 import { useClients } from "@/hooks/use-api";
+import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
 
 const PAGE_TITLES: Record<string, string> = {
   "/command-center": "Command Center",
@@ -80,9 +81,10 @@ function usePageInfo(): PageInfo {
   };
 }
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { title: pageTitle, clientBreadcrumb, isCommandCenter, isHouseView, isPerformance, isFullWidth } = usePageInfo();
+  const headerSlot = useHeaderSlot();
 
   return (
     <>
@@ -122,6 +124,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             )}
           </div>
+
+          {headerSlot && (
+            <div className="hidden lg:flex flex-1 max-w-sm items-center">
+              {headerSlot}
+            </div>
+          )}
 
           <div className="flex items-center gap-4">
             <NavHeaderNotification groups={notificationGroups} badgeCount={4} />
@@ -164,5 +172,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
     </div>
     </>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <HeaderSlotProvider>
+      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+    </HeaderSlotProvider>
   );
 }

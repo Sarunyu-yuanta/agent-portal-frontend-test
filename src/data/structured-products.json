@@ -15,8 +15,8 @@
       "ki": "60.00%",
       "tags": ["ใกล้เต็ม", "รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/35aeb96b-04ba-45b4-ab74-c4efce9975bc",
-        "https://www.figma.com/api/mcp/asset/f2d38797-fa49-4638-80aa-b2fd40baa5b3"
+        "/bond-logos/sp-0.jpg",
+        "/bond-logos/sp-1.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -39,9 +39,9 @@
       "ki": "60.00%",
       "tags": ["ใกล้เต็ม"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/3e3f247c-9e5f-4d73-889b-8e2ac39c6775",
-        "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-        "https://www.figma.com/api/mcp/asset/96c3fbf3-e9b9-456c-b58e-5e8de310848b"
+        "/bond-logos/sp-2.jpg",
+        "/bond-logos/sp-3.jpg",
+        "/bond-logos/sp-4.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -64,8 +64,8 @@
       "ki": "60.00%",
       "tags": ["ใกล้เต็ม"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/bfc79ad4-d98a-43be-8f21-7c985bdf5f50",
-        "https://www.figma.com/api/mcp/asset/66f9ced5-92fa-4ac4-92b8-0987267234ed"
+        "/bond-logos/sp-5.jpg",
+        "/bond-logos/sp-6.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -90,8 +90,8 @@
       "ki": "60.00%",
       "tags": ["รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/35aeb96b-04ba-45b4-ab74-c4efce9975bc",
-        "https://www.figma.com/api/mcp/asset/f2d38797-fa49-4638-80aa-b2fd40baa5b3"
+        "/bond-logos/sp-0.jpg",
+        "/bond-logos/sp-1.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -114,9 +114,9 @@
       "ki": "60.00%",
       "tags": ["ใกล้เต็ม"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/3e3f247c-9e5f-4d73-889b-8e2ac39c6775",
-        "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-        "https://www.figma.com/api/mcp/asset/96c3fbf3-e9b9-456c-b58e-5e8de310848b"
+        "/bond-logos/sp-2.jpg",
+        "/bond-logos/sp-3.jpg",
+        "/bond-logos/sp-4.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -139,8 +139,8 @@
       "ki": "60.00%",
       "tags": ["ใกล้เต็ม", "รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/bfc79ad4-d98a-43be-8f21-7c985bdf5f50",
-        "https://www.figma.com/api/mcp/asset/66f9ced5-92fa-4ac4-92b8-0987267234ed"
+        "/bond-logos/sp-5.jpg",
+        "/bond-logos/sp-6.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -163,9 +163,9 @@
       "ki": "60.00%",
       "tags": ["รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/a708082e-9b94-471a-8131-97c46b0e5141",
-        "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-        "https://www.figma.com/api/mcp/asset/96c3fbf3-e9b9-456c-b58e-5e8de310848b"
+        "/bond-logos/sp-7.jpg",
+        "/bond-logos/sp-3.jpg",
+        "/bond-logos/sp-4.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -188,9 +188,9 @@
       "ki": "60.00%",
       "tags": [],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/4c98c144-ca5e-4810-b5de-d052b7d23f15",
-        "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-        "https://www.figma.com/api/mcp/asset/af0aeaf6-937f-4416-81ad-d11c3d31f1f9"
+        "/bond-logos/sp-8.jpg",
+        "/bond-logos/sp-3.jpg",
+        "/bond-logos/sp-9.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -215,9 +215,9 @@
       "ki": "60.00%",
       "tags": ["รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/3e3f247c-9e5f-4d73-889b-8e2ac39c6775",
-        "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-        "https://www.figma.com/api/mcp/asset/96c3fbf3-e9b9-456c-b58e-5e8de310848b"
+        "/bond-logos/sp-2.jpg",
+        "/bond-logos/sp-3.jpg",
+        "/bond-logos/sp-4.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -240,8 +240,8 @@
       "ki": "60.00%",
       "tags": ["ใกล้เต็ม", "รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/bfc79ad4-d98a-43be-8f21-7c985bdf5f50",
-        "https://www.figma.com/api/mcp/asset/66f9ced5-92fa-4ac4-92b8-0987267234ed"
+        "/bond-logos/sp-5.jpg",
+        "/bond-logos/sp-6.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -264,9 +264,9 @@
       "ki": "60.00%",
       "tags": [],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/a708082e-9b94-471a-8131-97c46b0e5141",
-        "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-        "https://www.figma.com/api/mcp/asset/96c3fbf3-e9b9-456c-b58e-5e8de310848b"
+        "/bond-logos/sp-7.jpg",
+        "/bond-logos/sp-3.jpg",
+        "/bond-logos/sp-4.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -289,8 +289,8 @@
       "ki": "60.00%",
       "tags": ["ใกล้เต็ม", "รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/35aeb96b-04ba-45b4-ab74-c4efce9975bc",
-        "https://www.figma.com/api/mcp/asset/f2d38797-fa49-4638-80aa-b2fd40baa5b3"
+        "/bond-logos/sp-0.jpg",
+        "/bond-logos/sp-1.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -313,9 +313,9 @@
       "ki": "60.00%",
       "tags": ["รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/4c98c144-ca5e-4810-b5de-d052b7d23f15",
-        "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-        "https://www.figma.com/api/mcp/asset/af0aeaf6-937f-4416-81ad-d11c3d31f1f9"
+        "/bond-logos/sp-8.jpg",
+        "/bond-logos/sp-3.jpg",
+        "/bond-logos/sp-9.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -340,9 +340,9 @@
       "ki": "60.00%",
       "tags": ["รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/3e3f247c-9e5f-4d73-889b-8e2ac39c6775",
-        "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-        "https://www.figma.com/api/mcp/asset/96c3fbf3-e9b9-456c-b58e-5e8de310848b"
+        "/bond-logos/sp-2.jpg",
+        "/bond-logos/sp-3.jpg",
+        "/bond-logos/sp-4.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -365,9 +365,9 @@
       "ki": "60.00%",
       "tags": [],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/a708082e-9b94-471a-8131-97c46b0e5141",
-        "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-        "https://www.figma.com/api/mcp/asset/96c3fbf3-e9b9-456c-b58e-5e8de310848b"
+        "/bond-logos/sp-7.jpg",
+        "/bond-logos/sp-3.jpg",
+        "/bond-logos/sp-4.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -390,9 +390,9 @@
       "ki": "60.00%",
       "tags": ["รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/4c98c144-ca5e-4810-b5de-d052b7d23f15",
-        "https://www.figma.com/api/mcp/asset/a03ed961-2640-4be3-a716-a7f8c88bab32",
-        "https://www.figma.com/api/mcp/asset/af0aeaf6-937f-4416-81ad-d11c3d31f1f9"
+        "/bond-logos/sp-8.jpg",
+        "/bond-logos/sp-3.jpg",
+        "/bond-logos/sp-9.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -415,8 +415,8 @@
       "ki": "60.00%",
       "tags": ["ใกล้เต็ม", "รับประกันเงินต้น"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/35aeb96b-04ba-45b4-ab74-c4efce9975bc",
-        "https://www.figma.com/api/mcp/asset/f2d38797-fa49-4638-80aa-b2fd40baa5b3"
+        "/bond-logos/sp-0.jpg",
+        "/bond-logos/sp-1.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",
@@ -439,8 +439,8 @@
       "ki": "60.00%",
       "tags": ["ใกล้เต็ม"],
       "logos": [
-        "https://www.figma.com/api/mcp/asset/bfc79ad4-d98a-43be-8f21-7c985bdf5f50",
-        "https://www.figma.com/api/mcp/asset/66f9ced5-92fa-4ac4-92b8-0987267234ed"
+        "/bond-logos/sp-5.jpg",
+        "/bond-logos/sp-6.jpg"
       ],
       "offerDate": "9 Feb 2029",
       "couponPeriod": "ทุก 3 เดือน",

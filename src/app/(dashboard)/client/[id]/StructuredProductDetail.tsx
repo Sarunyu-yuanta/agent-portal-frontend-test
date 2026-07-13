@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@sarunyu/system-one";
-import { ArrowLeftIcon, ShieldCheckIcon } from "@phosphor-icons/react";
+import {
+  ArrowLeftIcon,
+  CaretDownIcon,
+  DownloadSimpleIcon,
+  PackageIcon,
+  ShieldCheckIcon,
+} from "@phosphor-icons/react";
 import type { StructuredProduct } from "./structured-product-data";
+import { FCNPresentationModal } from "./FCNPresentationModal";
+import { PackageFilesModal } from "./PackageFilesModal";
 
 const BORDER_COLOR = "rgba(0,0,0,0.1)";
 
@@ -50,7 +58,7 @@ function DetailTable({ rows }: { rows: DetailRow[] }) {
             i % 2 === 0 ? "bg-[#f9fafb]" : "bg-white"
           }`}
         >
-          <span className="flex-1 min-w-0 text-[#4a5565]">{row.label}</span>
+          <span className="flex-1 min-w-0 text-[#0a6ee7]">{row.label}</span>
           {row.multiline ? (
             <div className="flex flex-1 min-w-0 flex-col gap-3 items-start text-[#101828]">
               {row.multiline.map((line) => (
@@ -84,6 +92,10 @@ export function StructuredProductDetail({
 }) {
   const showPrincipalTag =
     product.tags.includes("รับประกันเงินต้น") || product.id === "aapl-amzn-nflx";
+
+  const [fcnModalOpen, setFcnModalOpen] = useState(false);
+  const [packageModalOpen, setPackageModalOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const main = document.querySelector("main");
@@ -142,7 +154,7 @@ export function StructuredProductDetail({
                 {product.logos.map((src, i) => (
                   <div
                     key={i}
-                    className="relative shrink-0 size-6 rounded overflow-hidden"
+                    className="relative shrink-0 size-8 rounded overflow-hidden"
                     style={{ border: "1px solid rgba(0,0,0,0.08)" }}
                   >
                     <img alt="" className="absolute inset-0 size-full object-cover" src={src} />
@@ -164,13 +176,13 @@ export function StructuredProductDetail({
                 <p className="text-base font-bold leading-6 text-[#101828] truncate w-full">
                   {product.underlying}
                 </p>
-                <p className="text-xs leading-4 text-[#4a5565]">Underlying</p>
+                <p className="text-xs leading-4 text-[#0a6ee7]">Underlying</p>
               </div>
               <div className="flex flex-col gap-0.5 items-end shrink-0">
-                <p className="text-base font-bold leading-6 text-[#101828] whitespace-nowrap">
+                <p className="text-2xl font-bold leading-8 text-[#0a6ee7] whitespace-nowrap">
                   {product.coupon}
                 </p>
-                <p className="text-xs leading-4 text-[#4a5565]">Coupon</p>
+                <p className="text-xs leading-4 font-medium text-[#0a6ee7]">Coupon</p>
               </div>
             </div>
           </div>
@@ -191,11 +203,98 @@ export function StructuredProductDetail({
 
         {/* CTA */}
         <div className="flex flex-col gap-3 items-center w-full">
-          <Button variant="primary" size="xl" className="w-full max-w-[343px]">
-            Download PDF
-          </Button>
+          {/* Split download button */}
+          <div className="relative flex w-full max-w-[343px]">
+            {/* Main action — opens FCN Presentation modal */}
+            <button
+              type="button"
+              onClick={() => setFcnModalOpen(true)}
+              className="flex flex-1 min-w-0 items-center justify-center gap-2 h-12 font-medium text-sm text-white rounded-l-xl cursor-pointer transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "#0a6ee7" }}
+            >
+              <DownloadSimpleIcon size={18} weight="bold" />
+              ดาวน์โหลด
+            </button>
+
+            {/* Divider */}
+            <div className="w-px self-stretch" style={{ backgroundColor: "rgba(255,255,255,0.3)" }} />
+
+            {/* Caret — opens dropdown */}
+            <button
+              type="button"
+              onClick={() => setDropdownOpen((v) => !v)}
+              aria-label="ตัวเลือกเพิ่มเติม"
+              className="flex items-center justify-center w-10 h-12 rounded-r-xl cursor-pointer transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "#0a6ee7" }}
+            >
+              <CaretDownIcon size={14} color="white" />
+            </button>
+
+            {/* Dropdown */}
+            {dropdownOpen && (
+              <>
+                {/* click-away */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setDropdownOpen(false)}
+                  role="presentation"
+                />
+                <div
+                  className="absolute bottom-full mb-2 right-0 w-full rounded-xl overflow-hidden z-20 shadow-lg"
+                  style={{ border: "1px solid rgba(0,0,0,0.1)", backgroundColor: "white" }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => { setFcnModalOpen(true); setDropdownOpen(false); }}
+                    className="flex items-start gap-3 w-full px-4 py-3 text-left cursor-pointer transition-colors"
+                    style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9fafb")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "white")}
+                  >
+                    <div className="flex shrink-0 size-8 items-center justify-center rounded-lg" style={{ backgroundColor: "#eff6ff" }}>
+                      <DownloadSimpleIcon size={16} color="#0a6ee7" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-[#101828]">Presentation PDF</p>
+                      <p className="text-xs text-[#6a7282] mt-0.5">สำหรับนำเสนอลูกค้า</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      setPackageModalOpen(true);
+                    }}
+                    className="flex items-start gap-3 w-full px-4 py-3 text-left cursor-pointer transition-colors"
+                    style={{ backgroundColor: "white" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9fafb")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "white")}
+                  >
+                    <div className="flex shrink-0 size-8 items-center justify-center rounded-lg" style={{ backgroundColor: "#eff6ff" }}>
+                      <PackageIcon size={16} color="#0a6ee7" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-[#101828]">ชุดเอกสารครบชุด</p>
+                      <p className="text-xs text-[#6a7282] mt-0.5">สำหรับปิดการขาย (.zip)</p>
+                    </div>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      <FCNPresentationModal
+        product={product}
+        open={fcnModalOpen}
+        onClose={() => setFcnModalOpen(false)}
+      />
+      <PackageFilesModal
+        product={product}
+        open={packageModalOpen}
+        onClose={() => setPackageModalOpen(false)}
+      />
     </div>
   );
 }

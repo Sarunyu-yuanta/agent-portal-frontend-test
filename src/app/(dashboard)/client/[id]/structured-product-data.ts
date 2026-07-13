@@ -20,6 +20,9 @@ export type StructuredProduct = {
   updatedAt: string;
   requestNotionalSize?: string;
   confirmedRequest?: string;
+  issuer?: string;
+  underlyingNames?: string[];
+  underlyingSectors?: string[];
 };
 
 export const TOP_PICKS = structuredProductsRaw.topPicks as StructuredProduct[];

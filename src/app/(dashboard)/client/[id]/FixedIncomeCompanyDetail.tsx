@@ -195,7 +195,7 @@ function BondTableRow({
       style={bondTableRowStyle(showStatus)}
     >
       <div className={`${cell} gap-2`} style={border()}>
-        <BondLogo src={BOND_LOGOS[bond.logoIdx]} logoCrop={bond.logoCrop} />
+        <BondLogo src={BOND_LOGOS[bond.logoIdx]} logoCrop={bond.logoCrop} className="size-8 rounded" />
         <span className="flex-1 min-w-0 text-sm font-bold leading-5 text-[#101828] truncate">{bond.symbol}</span>
       </div>
       {showStatus && (

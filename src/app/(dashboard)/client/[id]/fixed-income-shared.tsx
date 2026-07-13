@@ -57,6 +57,13 @@ export function StatusTag({
  * Pass a `className` to control container size and border-radius,
  * e.g. "size-5 rounded" (default), "size-8 rounded", "size-12 rounded-md".
  */
+const LOGO_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='32' fill='%239ca3af'%3E%F0%9F%8F%A2%3C/text%3E%3C/svg%3E";
+
+function handleLogoError(e: React.SyntheticEvent<HTMLImageElement>) {
+  e.currentTarget.onerror = null;
+  e.currentTarget.src = LOGO_PLACEHOLDER;
+}
+
 export function BondLogo({
   src,
   logoCrop,
@@ -76,12 +83,14 @@ export function BondLogo({
           alt=""
           className="absolute h-[149.62%] left-[-92.5%] max-w-none top-[-24.81%] w-[285%]"
           src={src}
+          onError={handleLogoError}
         />
       ) : (
         <img
           alt=""
           className="absolute inset-0 size-full object-cover rounded pointer-events-none"
           src={src}
+          onError={handleLogoError}
         />
       )}
     </div>

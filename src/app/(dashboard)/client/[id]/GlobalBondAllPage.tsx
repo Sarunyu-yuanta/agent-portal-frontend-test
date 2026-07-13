@@ -128,7 +128,7 @@ function FilterDropdown<T extends string>({
 function IssuerLogo({ src }: { src: string }) {
   return (
     <div className="flex shrink-0 items-center py-0.5">
-      <BondLogo src={src} />
+      <BondLogo src={src} className="size-8 rounded" />
     </div>
   );
 }
