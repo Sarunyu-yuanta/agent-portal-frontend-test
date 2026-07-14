@@ -58,7 +58,7 @@ function DetailTable({ rows }: { rows: DetailRow[] }) {
             i % 2 === 0 ? "bg-[#f9fafb]" : "bg-white"
           }`}
         >
-          <span className="flex-1 min-w-0 text-[#0a6ee7]">{row.label}</span>
+          <span className="flex-1 min-w-0 text-[#4a5565]">{row.label}</span>
           {row.multiline ? (
             <div className="flex flex-1 min-w-0 flex-col gap-3 items-start text-[#101828]">
               {row.multiline.map((line) => (
@@ -176,13 +176,13 @@ export function StructuredProductDetail({
                 <p className="text-base font-bold leading-6 text-[#101828] truncate w-full">
                   {product.underlying}
                 </p>
-                <p className="text-xs leading-4 text-[#0a6ee7]">Underlying</p>
+                <p className="text-xs leading-4 text-[#4a5565]">Underlying</p>
               </div>
               <div className="flex flex-col gap-0.5 items-end shrink-0">
                 <p className="text-2xl font-bold leading-8 text-[#0a6ee7] whitespace-nowrap">
                   {product.coupon}
                 </p>
-                <p className="text-xs leading-4 font-medium text-[#0a6ee7]">Coupon</p>
+                <p className="text-xs leading-4 font-medium text-[#4a5565]">Coupon</p>
               </div>
             </div>
           </div>
