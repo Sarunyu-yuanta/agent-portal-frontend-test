@@ -264,7 +264,7 @@ function BondTable({
       className="w-full rounded-xl overflow-hidden bg-white"
       style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW }}
     >
-      <div className="overflow-x-auto hide-scrollbar w-full" style={{ scrollbarWidth: "none" }}>
+      <div className="overflow-x-auto w-full">
         <div className="flex flex-col w-max min-w-full">
           <BondTableHeader showStatus={showStatus} />
           {bonds.map((bond, i) => (

@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { kv } from "@vercel/kv";
+import clientsJson from "@/data/clients.json";
 
 export const dynamic = "force-dynamic";
 
 const KV_KEY = "mock-db";
+
+const SEEDS: Record<string, unknown[]> = {
+  clients: clientsJson as unknown[],
+};
 
 // ── DB helpers ─────────────────────────────────────────────────────────────────
 
@@ -32,7 +37,13 @@ export async function GET(
   const { slug } = await context.params;
   const [resource, id] = slug;
   const db = await readDB();
-  const items = db[resource] ?? [];
+  let items = db[resource] ?? [];
+
+  if (!items.length && SEEDS[resource]) {
+    items = SEEDS[resource] as Record<string, unknown>[];
+    db[resource] = items;
+    await writeDB(db);
+  }
 
   if (id) {
     const item = items.find((i) => String(i.id) === id);

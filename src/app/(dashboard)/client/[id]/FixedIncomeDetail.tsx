@@ -147,10 +147,6 @@ export function FixedIncomeDetail({
         </div>
 
         <div className="flex flex-col gap-3 items-center w-full">
-          <p className="w-full text-sm leading-5 text-[#6a7282] text-center">
-            การแจ้งความสนใจยังไม่ถือเป็นการลงทุนจริง จำเป็นต้องมีบัญชีซื้อขายตราสารหนี้
-            เพื่อรองรับการลงทุนและการรับดอกเบี้ยตามเงื่อนไข
-          </p>
           <Button
             variant="primary"
             size="xl"

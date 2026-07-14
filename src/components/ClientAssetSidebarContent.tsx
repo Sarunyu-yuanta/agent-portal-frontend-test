@@ -14,11 +14,8 @@ import {
   type AssetAllocationSlice,
   type AssetHeroSummary,
 } from "@/components/AssetSummarySection";
-import { AssetAccountDetailModal } from "@/components/AssetAccountDetailModal";
 import { LiabilitiesDetailModal } from "@/components/LiabilitiesDetailModal";
 import {
-  getAssetAccountDetail,
-  getAssetProductDetail,
   DEFAULT_ASSET_ACCOUNTS,
   type AssetAccountItem,
 } from "@/data/asset-account-details";
@@ -91,7 +88,7 @@ function AssetAccountCard({
   );
 }
 
-type AssetListViewMode = "product" | "account";
+export type AssetListViewMode = "product" | "account";
 
 const ASSET_LIST_VIEW_OPTIONS: { id: AssetListViewMode; label: string }[] = [
   { id: "product", label: "By Product" },
@@ -167,6 +164,7 @@ export function ClientAssetSidebarContent({
   liabilities,
   allocationSlices = ALLOCATION_SLICES,
   assetAccounts = DEFAULT_ASSET_ACCOUNTS,
+  onItemClick,
 }: {
   clientId: string;
   client: ClientSummaryInput;
@@ -174,11 +172,9 @@ export function ClientAssetSidebarContent({
   liabilities?: string;
   allocationSlices?: AssetAllocationSlice[];
   assetAccounts?: AssetAccountItem[];
+  onItemClick?: (item: AssetAccountItem, viewMode: AssetListViewMode) => void;
 }) {
   const [viewMode, setViewMode] = useState<AssetListViewMode>("product");
-  const [selectedItem, setSelectedItem] = useState<AssetAccountItem | null>(
-    null,
-  );
   const [liabilitiesOpen, setLiabilitiesOpen] = useState(false);
   const detail = mockClientDetails[clientId];
   const summary =
@@ -220,9 +216,9 @@ export function ClientAssetSidebarContent({
           <div className="flex flex-col gap-2 items-center p-4 w-full">
             <HeroCard summary={summary} />
             <LiabilitiesBar
-            amount={liabilitiesAmount}
-            onClick={() => setLiabilitiesOpen(true)}
-          />
+              amount={liabilitiesAmount}
+              onClick={() => setLiabilitiesOpen(true)}
+            />
             <LastUpdated summary={summary} />
           </div>
         </div>
@@ -230,10 +226,7 @@ export function ClientAssetSidebarContent({
         <div className="flex flex-col gap-4 items-center py-4 bg-white rounded-t-2xl">
           <AssetListHeader
             viewMode={viewMode}
-            onViewModeChange={(mode) => {
-              setViewMode(mode);
-              setSelectedItem(null);
-            }}
+            onViewModeChange={setViewMode}
           />
           <div className="flex flex-col gap-4 items-start px-4 w-full">
             <AllocationBreakdownSidebar slices={slices} />
@@ -242,27 +235,13 @@ export function ClientAssetSidebarContent({
                 <AssetAccountCard
                   key={`${viewMode}-${item.accountNo}-${item.name}`}
                   account={item}
-                  onClick={() => setSelectedItem(item)}
+                  onClick={() => onItemClick?.(item, viewMode)}
                 />
               ))}
             </div>
           </div>
         </div>
       </div>
-
-      {selectedItem && (
-        <AssetAccountDetailModal
-          key={`${viewMode}-${selectedItem.accountNo}-${selectedItem.name}`}
-          open
-          accountName={selectedItem.name}
-          detail={
-            viewMode === "account"
-              ? getAssetAccountDetail(selectedItem.accountNo)
-              : getAssetProductDetail(selectedItem.name)
-          }
-          onClose={() => setSelectedItem(null)}
-        />
-      )}
 
       <LiabilitiesDetailModal
         open={liabilitiesOpen}

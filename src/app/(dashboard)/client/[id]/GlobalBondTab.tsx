@@ -20,65 +20,9 @@ import { BORDER_COLOR, HEADER_TEXT_CLS, headerBorderStyle, cellBorderStyle, Bond
 const TABLE_SHADOW = "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
 
 const BANNER_ASSETS = {
-  ysinvestIllustration: "/banner-ysinvest-illustration.png",
-  ysinvestClock: "/banner-ysinvest-clock.svg",
-  ysinvestClose: "/banner-ysinvest-close.svg",
   adsIndexCard: "/banner-ads-index-card.png",
   adsClose: "/banner-ads-close.svg",
 };
-
-const SHOW_YSINVEST_BANNER = false;
-
-function BannerYSinvest() {
-  const [visible, setVisible] = useState(true);
-  if (!SHOW_YSINVEST_BANNER || !visible) return null;
-
-  return (
-    <div
-      className="relative h-[120px] shrink-0 overflow-hidden rounded-[8px] bg-gradient-to-b from-[#e6f1fc] to-white w-[343px] max-w-[calc(100%-32px)]"
-      style={{ boxShadow: TABLE_SHADOW }}
-    >
-      <div className="relative flex h-full flex-col items-start justify-between p-4 z-[1]">
-        <div className="flex flex-col gap-1 text-[#2b7fff]">
-          <p className="text-base font-normal leading-6 whitespace-nowrap">
-            All-in-One Trading Experience
-          </p>
-          <div className="flex items-center gap-1">
-            <span className="text-base font-normal leading-5">เทรดครบวงจรที่</span>
-            <span className="text-base font-semibold leading-6">YSinvest</span>
-          </div>
-        </div>
-        <span className="inline-flex items-center gap-0.5 rounded-[4px] px-2 py-1 bg-[#dbeafe]">
-          <img alt="" width={14} height={14} className="shrink-0" src={BANNER_ASSETS.ysinvestClock} />
-          <span className="text-xs font-bold leading-4 text-[#2b7fff] whitespace-nowrap">เร็ว ๆ นี้</span>
-        </span>
-      </div>
-
-      <div
-        className="absolute pointer-events-none"
-        style={{ top: "6.67%", right: "4.15%", bottom: "6.67%", left: "66.76%" }}
-      >
-        <img
-          alt=""
-          width={100}
-          height={106}
-          className="absolute inset-0 size-full object-contain object-right"
-          src={BANNER_ASSETS.ysinvestIllustration}
-        />
-      </div>
-
-      <button
-        type="button"
-        aria-label="ปิด"
-        onClick={() => setVisible(false)}
-        className="absolute z-[2] border-none bg-transparent p-0 cursor-pointer"
-        style={{ top: 4, right: 4, width: 20, height: 20 }}
-      >
-        <img alt="" width={20} height={20} className="size-full" src={BANNER_ASSETS.ysinvestClose} />
-      </button>
-    </div>
-  );
-}
 
 function BannerAds() {
   const [visible, setVisible] = useState(true);
@@ -325,13 +269,13 @@ function InvestButton({ fullWidth }: { fullWidth?: boolean }) {
   if (fullWidth) {
     return (
       <Button variant="primary" size="xl" className="w-full max-w-[343px]">
-        สนใจลงทุน
+        สร้างคำสั่งซื้อ
       </Button>
     );
   }
   return (
     <Button variant="primary" size="xs" className="whitespace-nowrap">
-      สนใจลงทุน
+      สร้างคำสั่งซื้อ
     </Button>
   );
 }
@@ -343,7 +287,7 @@ function TopPickTable() {
       style={{ boxShadow: TABLE_SHADOW }}
     >
       <div className="overflow-x-auto hide-scrollbar" style={{ scrollbarWidth: "none" }}>
-        <div className="flex items-stretch min-w-[1152px]">
+        <div className="flex items-stretch min-w-[1165px]">
           {/* Bond name */}
           <div className="flex flex-col flex-1 min-w-0">
             <div
@@ -495,7 +439,7 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
       style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW }}
     >
       <div className="overflow-x-auto hide-scrollbar" style={{ scrollbarWidth: "none" }}>
-        <div className="flex items-stretch min-w-[1152px]">
+        <div className="flex items-stretch min-w-[1165px]">
           {/* Issuer */}
           <div className="flex flex-col w-[296px] shrink-0">
             <div className="flex h-11 items-center px-4" style={headerBorderStyle({ left: true })}>
@@ -641,11 +585,6 @@ export function GlobalBondTab({
     <>
       {/* Tablet + mobile — accordion cards on white warp (Figma 768px) */}
       <div className="lg:hidden flex flex-col items-center w-full gap-8 pt-8 pb-10 bg-white">
-        {SHOW_YSINVEST_BANNER && (
-          <div className="flex h-[152px] items-center justify-center w-full">
-            <BannerYSinvest />
-          </div>
-        )}
         <div className="flex flex-col gap-6 items-center w-full px-8 py-3">
           <div className="flex flex-col items-start w-full">
             <h2 className="w-full text-lg font-bold leading-6 text-[#101828]">
@@ -668,7 +607,6 @@ export function GlobalBondTab({
 
       {/* Desktop — tables in gray card */}
       <div className="hidden lg:flex flex-col items-center w-full gap-8 pt-8 bg-gradient-to-b from-white from-[43.451%] to-transparent">
-        {SHOW_YSINVEST_BANNER && <BannerYSinvest />}
         <div
           className="w-full flex flex-col items-center pb-10 pt-6 px-6 lg:px-[120px] lg:pb-10 lg:pt-6"
           style={{ backgroundColor: "#f9fafb" }}

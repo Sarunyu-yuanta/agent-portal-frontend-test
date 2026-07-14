@@ -13,6 +13,7 @@ export function ResponsiveBottomSheetModal({
   desktopRoundedClassName = "rounded-xl",
   desktopTitleClassName = "leading-6",
   desktopTitleIcon,
+  headerAction,
   children,
 }: {
   open: boolean;
@@ -23,6 +24,7 @@ export function ResponsiveBottomSheetModal({
   desktopRoundedClassName?: string;
   desktopTitleClassName?: string;
   desktopTitleIcon?: ReactNode;
+  headerAction?: ReactNode;
   children: ReactNode;
 }) {
   const isMobile = useIsMobile();
@@ -71,6 +73,7 @@ export function ResponsiveBottomSheetModal({
               {title}
             </p>
           </div>
+          {headerAction && <div className="shrink-0">{headerAction}</div>}
           <button
             type="button"
             onClick={onClose}

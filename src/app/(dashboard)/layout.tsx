@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   NavHeaderIconButton,
   NavHeaderNotification,
-  NavHeaderAvatarSlot,
-  Avatar,
   Tag,
   Breadcrumb,
 } from "@sarunyu/system-one";
@@ -133,10 +131,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-4">
             <NavHeaderNotification groups={notificationGroups} badgeCount={4} />
-
-            <NavHeaderAvatarSlot>
-              <Avatar type="text" initials="RM" size="m" status />
-            </NavHeaderAvatarSlot>
 
             <div className="lg:hidden">
               <NavHeaderIconButton aria-label="Open navigation" onClick={() => setSidebarOpen(true)}>

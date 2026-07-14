@@ -24,7 +24,7 @@ export const cellBorderStyle = (opts?: { bottom?: boolean }) => ({
 // ─── Fixed income action labels ───────────────────────────────────────────────
 
 export const ACTION_LABELS = {
-  invest: "สนใจลงทุน",
+  invest: "สร้างคำสั่งซื้อ",
   follow: "ติดตาม",
   followed: "ติดตามแล้ว",
 } as const;

@@ -91,8 +91,8 @@ function AllocationDonutChart() {
 
 function AllocationLegendItemDesktop({ slice }: { slice: AssetAllocationSlice }) {
   return (
-    <div className="flex gap-2 items-center h-[24px] w-[244px] max-w-[244px] min-w-[200px] shrink-0">
-      <div className="flex flex-[1_0_0] gap-1 items-center min-w-0 px-2 py-1">
+    <>
+      <div className="flex gap-1 items-center py-1 pl-2">
         <span className="relative shrink-0 size-3">
           <img alt="" className="block size-full max-w-none" src={slice.statusIcon} />
         </span>
@@ -100,21 +100,21 @@ function AllocationLegendItemDesktop({ slice }: { slice: AssetAllocationSlice })
           {slice.label}
         </p>
       </div>
-      <p className="type-caption text-[var(--text-default-tertiary)] whitespace-nowrap leading-4 shrink-0">
+      <p className="type-caption text-[var(--text-default-tertiary)] whitespace-nowrap leading-4 shrink-0 py-1 pl-1 pr-4">
         {slice.percent}%
       </p>
-    </div>
+    </>
   );
 }
 
 function AllocationLegendItemCompact({ slice }: { slice: AssetAllocationSlice }) {
   return (
-    <div className="flex gap-2 items-center w-full shrink-0">
-      <div className="flex flex-1 gap-1 items-center min-w-0 px-2 py-1">
+    <div className="flex gap-2 items-center w-full justify-between">
+      <div className="flex gap-1 items-center px-2 py-1">
         <span className="relative shrink-0 size-3">
           <img alt="" className="block size-full max-w-none" src={slice.statusIcon} />
         </span>
-        <p className="type-caption text-[var(--text-default-tertiary)] leading-4 truncate">
+        <p className="type-caption text-[var(--text-default-tertiary)] leading-4 whitespace-nowrap">
           {slice.label}
         </p>
       </div>
@@ -128,7 +128,7 @@ function AllocationLegendItemCompact({ slice }: { slice: AssetAllocationSlice })
 function AllocationBreakdownHeader() {
   return (
     <div className="flex w-full shrink-0 justify-start">
-      <p className="type-caption font-semibold text-[var(--text-default-secondary)] whitespace-nowrap leading-4">
+      <p className="type-caption !font-bold text-[var(--text-default-secondary)] whitespace-nowrap leading-4">
         Allocation breakdown
       </p>
     </div>
@@ -154,14 +154,14 @@ function AllocationBreakdownCard({
 function AllocationBreakdownDesktop({ slices }: { slices: AssetAllocationSlice[] }) {
   return (
     <div className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg flex flex-col gap-3 items-start justify-center p-4 w-full">
-      <div className="flex gap-3 items-start justify-center shrink-0 w-full">
-        <p className="type-caption font-semibold text-[var(--text-default-secondary)] whitespace-nowrap leading-4 shrink-0">
+      <div className="flex gap-3 items-start justify-start shrink-0 w-full">
+        <p className="type-caption !font-bold text-[var(--text-default-secondary)] whitespace-nowrap leading-4 shrink-0">
           Allocation breakdown
         </p>
       </div>
       <div className="flex gap-10 items-center shrink-0 w-full">
         <AllocationDonutChart />
-        <div className="flex flex-[1_0_0] flex-wrap content-start gap-x-10 gap-y-2 h-[88px] items-start min-w-0">
+        <div className="grid grid-cols-[auto_auto_auto_auto_auto_auto] flex-[1_0_0] gap-y-2 items-center min-w-0">
           {slices.map((slice) => (
             <AllocationLegendItemDesktop key={slice.label} slice={slice} />
           ))}

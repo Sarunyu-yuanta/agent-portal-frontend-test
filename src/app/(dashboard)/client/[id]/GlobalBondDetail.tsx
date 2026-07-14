@@ -311,8 +311,7 @@ function BondTable({ bonds }: { bonds: GlobalBondRow[] }) {
       style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW }}
     >
       <div
-        className="overflow-x-auto hide-scrollbar"
-        style={{ scrollbarWidth: "none" }}
+        className="overflow-x-auto"
       >
         <div className="flex items-stretch min-w-[1280px]">
           <div className="flex flex-col flex-1 min-w-0">
