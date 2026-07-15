@@ -24,6 +24,7 @@ import {
   CalendarPlusIcon,
   ArrowLeftIcon,
   CaretRightIcon,
+  CaretDownIcon,
 } from "@phosphor-icons/react";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { ALLOCATION_SLICES } from "@/components/AssetSummarySection";
@@ -46,6 +47,7 @@ import {
   formatThbAmount,
   formatThaiUpdatedAt,
 } from "@/lib/client-utils";
+import { PRODUCT_SUB_DATA, type SubProduct } from "@/data/product-sub-data";
 
 type Client = (typeof mockClients)[number];
 
@@ -357,7 +359,10 @@ export default function ClientHubPage() {
   const [pageSize, setPageSize] = useState(10);
   const [viewFilter, setViewFilter] = useState<ViewFilter>("customer");
   const [selectedProduct, setSelectedProduct] = useState<ProductRow | null>(null);
+  const [productSearch, setProductSearch] = useState("");
   const [productDrawerOpen, setProductDrawerOpen] = useState(false);
+  const [productDetailTab, setProductDetailTab] = useState<"sub" | "clients">("sub");
+  const [expandedSubIds, setExpandedSubIds] = useState<Set<string>>(new Set());
   const [productPushClient, setProductPushClient] = useState<Client | null>(null);
   const [productPushMounted, setProductPushMounted] = useState(false);
   const [productPushVisible, setProductPushVisible] = useState(false);
@@ -465,7 +470,7 @@ export default function ClientHubPage() {
             <TabGroup
               items={[
                 { id: "customer", title: `Customer (${sorted.length})` },
-                { id: "product", title: `Product (${productRows.length})` },
+                { id: "product", title: `Product (${productSearch.trim() ? productRows.filter((r) => r.label.toLowerCase().includes(productSearch.toLowerCase())).length : productRows.length})` },
               ]}
               activeId={viewFilter}
               size="md"
@@ -484,6 +489,17 @@ export default function ClientHubPage() {
                     setSearch("");
                     setCurrentPage(1);
                   }}
+                  size="sm"
+                />
+              </div>
+            )}
+            {viewFilter === "product" && (
+              <div className="w-full lg:w-56 lg:ml-auto">
+                <SearchInput
+                  placeholder="Search products…"
+                  value={productSearch}
+                  onChange={setProductSearch}
+                  onClear={() => setProductSearch("")}
                   size="sm"
                 />
               </div>
@@ -683,13 +699,18 @@ export default function ClientHubPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {productRows.map((row, index) => (
+                  {(productSearch.trim()
+                    ? productRows.filter((r) => r.label.toLowerCase().includes(productSearch.toLowerCase()))
+                    : productRows
+                  ).map((row, index) => (
                     <TableRow
                       key={row.label}
                       className="cursor-pointer"
                       hoverable
                       onClick={() => {
                         setSelectedProduct(row);
+                        const hasSub = (PRODUCT_SUB_DATA[row.label]?.length ?? 0) > 0;
+                        setProductDetailTab(hasSub ? "sub" : "clients");
                         setProductDrawerOpen(true);
                       }}
                     >
@@ -753,6 +774,8 @@ export default function ClientHubPage() {
           setProductDrawerOpen(open);
           if (!open) {
             setSelectedProduct(null);
+            setProductDetailTab("sub");
+            setExpandedSubIds(new Set());
             setProductPushClient(null);
             setProductPushMounted(false);
             setProductPushVisible(false);
@@ -765,6 +788,7 @@ export default function ClientHubPage() {
         >
           {selectedProduct && (
             <div className="flex flex-col h-full relative overflow-hidden">
+              {/* Header */}
               <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border-default)] shrink-0">
                 <span className="relative shrink-0 size-3">
                   <img alt="" className="block size-full max-w-none" src={selectedProduct.statusIcon} />
@@ -774,6 +798,8 @@ export default function ClientHubPage() {
                   <p className="type-caption text-muted-foreground">{selectedProduct.clientCount} clients</p>
                 </div>
               </div>
+
+              {/* Stats */}
               <div className="shrink-0">
                 <StatCardRow
                   stats={[
@@ -793,36 +819,169 @@ export default function ClientHubPage() {
                   ]}
                 />
               </div>
-              <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar">
-                <div className="flex flex-col gap-2 p-4">
-                  {selectedProduct.holders.map((holder, i) => (
-                    <button
-                      key={holder.clientId}
-                      type="button"
-                      className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg p-3 flex items-center gap-3 w-full text-left hover:bg-[var(--bg-default-secondary)] transition-colors cursor-pointer"
-                      onClick={() => {
-                        const c = clients.find((cl) => cl.id === holder.clientId);
-                        if (c) {
-                          setProductPushClient(c);
-                          setProductPushMounted(true);
-                          requestAnimationFrame(() => setProductPushVisible(true));
-                        }
-                      }}
-                    >
-                      <Avatar type="text" initials={getInitials(holder.clientName)} size="s" />
-                      <div className="flex-1 min-w-0">
-                        <p className="type-subtitle-2 font-semibold text-foreground truncate">{holder.clientName}</p>
-                        <p className="type-caption text-muted-foreground">{holder.clientId} · {holder.tier}</p>
+
+              {/* Tabs */}
+              {(() => {
+                const subProducts: SubProduct[] = PRODUCT_SUB_DATA[selectedProduct.label] ?? [];
+                const hasSub = subProducts.length > 0;
+                return (
+                  <>
+                    {hasSub && (
+                      <div className="shrink-0 px-4 pt-3 pb-0">
+                        <TabGroup
+                          items={[
+                            { id: "sub", title: `Holdings (${subProducts.length})` },
+                            { id: "clients", title: `Clients (${selectedProduct.clientCount})` },
+                          ]}
+                          activeId={productDetailTab}
+                          size="sm"
+                          onChange={(id) => setProductDetailTab(id as "sub" | "clients")}
+                        />
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="type-subtitle-2 font-bold text-foreground">{holder.allocationPct.toFixed(1)}%</p>
-                        <p className="type-caption text-muted-foreground">{formatThbAmount(holder.amountThb)} THB</p>
-                      </div>
-                      <CaretRightIcon size={20} className="text-[var(--text-default-tertiary)] shrink-0" />
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    )}
+
+                    <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar">
+                      {/* Sub-products tab */}
+                      {hasSub && productDetailTab === "sub" && (
+                        <div className="flex flex-col gap-2 p-4">
+                          {/* Expand / Collapse All */}
+                          <div className="flex justify-end sticky top-0 bg-white py-1 -mx-4 px-4 z-10">
+                            {expandedSubIds.size === subProducts.length ? (
+                              <button
+                                type="button"
+                                className="text-[12px] text-blue-600 hover:underline cursor-pointer"
+                                onClick={() => setExpandedSubIds(new Set())}
+                              >
+                                Collapse All
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="text-[12px] text-blue-600 hover:underline cursor-pointer"
+                                onClick={() => setExpandedSubIds(new Set(subProducts.map((s) => s.id)))}
+                              >
+                                Expand All
+                              </button>
+                            )}
+                          </div>
+                          {subProducts.map((sub) => {
+                            const isExpanded = expandedSubIds.has(sub.id);
+                            // Use first N holders as mock client data for this sub-product
+                            const subHolders = selectedProduct.holders.slice(0, sub.clientCount);
+                            return (
+                              <div
+                                key={sub.id}
+                                className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg overflow-hidden"
+                              >
+                                {/* Card header — clickable */}
+                                <button
+                                  type="button"
+                                  className="w-full text-left p-3 flex items-center gap-3 hover:bg-[var(--bg-default-secondary)] transition-colors cursor-pointer"
+                                  onClick={() => setExpandedSubIds((prev) => {
+                                    const next = new Set(prev);
+                                    isExpanded ? next.delete(sub.id) : next.add(sub.id);
+                                    return next;
+                                  })}
+                                >
+                                  {/* Ticker + name */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      {sub.ticker && (
+                                        <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">
+                                          {sub.ticker}
+                                        </span>
+                                      )}
+                                      <p className="text-[13px] font-semibold text-foreground truncate">{sub.name}</p>
+                                    </div>
+                                    <p className="text-[12px] text-muted-foreground">{formatThbAmount(sub.totalAmountThb)} THB</p>
+                                  </div>
+
+                                  {/* Client count badge (prominent) */}
+                                  <div className="shrink-0 flex flex-col items-center bg-[var(--bg-default-secondary)] rounded-lg px-3 py-1.5 min-w-[52px]">
+                                    <span className="text-[18px] font-bold text-foreground leading-none">{sub.clientCount}</span>
+                                    <span className="text-[10px] text-muted-foreground leading-tight mt-0.5">clients</span>
+                                  </div>
+
+                                  {/* Chevron */}
+                                  <CaretDownIcon
+                                    size={20}
+                                    className={`text-[var(--text-default-tertiary)] shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                                  />
+                                </button>
+
+                                {/* Expanded client list */}
+                                {isExpanded && (
+                                  <div className="border-t border-[rgba(0,0,0,0.07)]">
+                                    {subHolders.map((holder) => (
+                                      <button
+                                        key={holder.clientId}
+                                        type="button"
+                                        className="w-full text-left flex items-center gap-3 px-3 py-2.5 hover:bg-[var(--bg-default-secondary)] transition-colors cursor-pointer"
+                                        onClick={() => {
+                                          const c = clients.find((cl) => cl.id === holder.clientId);
+                                          if (c) {
+                                            setProductPushClient(c);
+                                            setProductPushMounted(true);
+                                            requestAnimationFrame(() => setProductPushVisible(true));
+                                          }
+                                        }}
+                                      >
+                                        <Avatar type="text" initials={getInitials(holder.clientName)} size="s" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-[13px] font-semibold text-foreground truncate">{holder.clientName}</p>
+                                          <p className="type-caption text-muted-foreground">{holder.clientId} · {holder.tier}</p>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                          <p className="text-[12px] font-bold text-foreground">{holder.allocationPct.toFixed(1)}%</p>
+                                          <p className="type-caption text-muted-foreground">{formatThbAmount(holder.amountThb)} THB</p>
+                                        </div>
+                                        <CaretRightIcon size={20} className="text-[var(--text-default-tertiary)] shrink-0" />
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Clients tab */}
+                      {(!hasSub || productDetailTab === "clients") && (
+                        <div className="flex flex-col gap-2 p-4">
+                          {selectedProduct.holders.map((holder) => (
+                            <button
+                              key={holder.clientId}
+                              type="button"
+                              className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg p-3 flex items-center gap-3 w-full text-left hover:bg-[var(--bg-default-secondary)] transition-colors cursor-pointer"
+                              onClick={() => {
+                                const c = clients.find((cl) => cl.id === holder.clientId);
+                                if (c) {
+                                  setProductPushClient(c);
+                                  setProductPushMounted(true);
+                                  requestAnimationFrame(() => setProductPushVisible(true));
+                                }
+                              }}
+                            >
+                              <Avatar type="text" initials={getInitials(holder.clientName)} size="s" />
+                              <div className="flex-1 min-w-0">
+                                <p className="type-subtitle-2 font-semibold text-foreground truncate">{holder.clientName}</p>
+                                <p className="type-caption text-muted-foreground">{holder.clientId} · {holder.tier}</p>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <p className="type-subtitle-2 font-bold text-foreground">{holder.allocationPct.toFixed(1)}%</p>
+                                <p className="type-caption text-muted-foreground">{formatThbAmount(holder.amountThb)} THB</p>
+                              </div>
+                              <CaretRightIcon size={20} className="text-[var(--text-default-tertiary)] shrink-0" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+
 
               {/* Push overlay: client detail */}
               {productPushMounted && productPushClient && (
