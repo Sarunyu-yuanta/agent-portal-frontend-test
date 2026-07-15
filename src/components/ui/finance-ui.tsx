@@ -32,6 +32,27 @@ export function ProfitLossBadge({
   );
 }
 
+type StatCard = {
+  label: string;
+  value: React.ReactNode;
+};
+
+export function StatCardRow({ stats }: { stats: StatCard[] }) {
+  return (
+    <div className="flex gap-3 px-4 py-3 bg-[var(--bg-default-secondary)] border-b border-[var(--border-default)]">
+      {stats.map((stat) => (
+        <div
+          key={stat.label}
+          className="flex-1 flex flex-col gap-0.5 px-4 py-3 bg-white rounded-xl border border-[var(--border-default)]"
+        >
+          <p className="type-caption text-muted-foreground">{stat.label}</p>
+          <div className="type-subtitle-2 font-bold text-foreground">{stat.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function DashedDivider() {
   return (
     <div className="relative h-px w-full shrink-0">

@@ -92,7 +92,7 @@ export function PackageFilesModal({ product, open, onClose }: PackageFilesModalP
         actionLabel="ดาวน์โหลด .zip"
         onActionClick={handleDownload}
         showHandle
-        contentClassName="flex flex-col gap-0 overflow-y-auto pb-4 px-4"
+        contentClassName="flex flex-col gap-0 overflow-y-auto pb-4 px-2"
       >
         <FileList files={files} slug={slug} />
       </BottomSheet>

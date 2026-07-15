@@ -38,6 +38,10 @@ export const ALL_STRUCTURED_PRODUCTS: StructuredProduct[] = [
   ...STRUCTURED_PRODUCTS.map((p, i) => ({ ...p, id: `asp-repeat-sp-${i}`, updatedAt: "25 Aug 2026 - 09:00" })),
 ].slice(0, 12);
 
+export function findProductById(id: string): StructuredProduct | undefined {
+  return [...TOP_PICKS, ...STRUCTURED_PRODUCTS].find((p) => p.id === id);
+}
+
 export const TOP_IDEA_DETAIL_PRODUCTS: StructuredProduct[] = [
   ...(structuredProductsRaw.topIdeaDetailBase as StructuredProduct[]),
   ...TOP_PICKS.map((p, i) => ({ ...p, id: `ti-repeat-top-${i}` })),

@@ -29,6 +29,7 @@ import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { ALLOCATION_SLICES } from "@/components/AssetSummarySection";
 import { useClients } from "@/hooks/use-api";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { StatCardRow } from "@/components/ui/finance-ui";
 import { AssetSummarySection, type AssetHeroSummary } from "@/components/AssetSummarySection";
 import { ClientAssetSidebarContent, type AssetListViewMode } from "@/components/ClientAssetSidebarContent";
 import { HoldingDetailContent } from "@/components/HoldingDetailContent";
@@ -321,10 +322,26 @@ function ClientDetailPanel({
 
 type SortDir = "none" | "asc" | "desc";
 type SortKey =
+  | "rowIndex"
+  | "id"
   | "name"
   | "aum"
   | "plYtd"
+  | "liabilities"
+  | "cashIdle"
   | null;
+
+function getSortValue(c: Client, key: SortKey): number | string {
+  switch (key) {
+    case "id": return c.id;
+    case "name": return c.name;
+    case "aum": return parseAumToThb(c.aum);
+    case "plYtd": { const m = c.plYtd.match(/([+-]?[\d.]+)/); return m ? parseFloat(m[1]) : 0; }
+    case "liabilities": return parseAumToThb(c.aum) * LIABILITIES_MULTIPLIER;
+    case "cashIdle": return parseAumToThb(c.aum) * (c.cashIdlePct / 100);
+    default: return 0;
+  }
+}
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
@@ -365,26 +382,25 @@ export default function ClientHubPage() {
       );
     }
 
-    const key = sortKey as keyof Client | null;
-    const dir = sortDir;
-    if (key && dir !== "none") {
+    if (sortKey && sortDir !== "none") {
+      const origIdx = sortKey === "rowIndex"
+        ? new Map(clients.map((c, i) => [c.id, i]))
+        : null;
       list = [...list].sort((a, b) => {
-        const av = a[key];
-        const bv = b[key];
-        return av < bv
-          ? dir === "asc"
-            ? -1
-            : 1
-          : av > bv
-            ? dir === "asc"
-              ? 1
-              : -1
-            : 0;
+        const av = origIdx ? (origIdx.get(a.id) ?? 0) : getSortValue(a, sortKey);
+        const bv = origIdx ? (origIdx.get(b.id) ?? 0) : getSortValue(b, sortKey);
+        const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+        return sortDir === "asc" ? cmp : -cmp;
       });
     }
 
     return list;
   }, [search, sortKey, sortDir, clients]);
+
+  const originalIndexMap = useMemo(
+    () => new Map(clients.map((c, i) => [c.id, i + 1])),
+    [clients],
+  );
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
@@ -434,10 +450,16 @@ export default function ClientHubPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-6">
-        <AssetSummarySection heroSummary={heroSummary} />
+      {/* Hero — own padding + max-width */}
+      <div className="p-4 xl:p-6">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-6">
+          <AssetSummarySection heroSummary={heroSummary} />
+        </div>
+      </div>
 
-        <section className="-mx-4 lg:-mx-6 -mb-4 lg:-mb-6 px-4 lg:px-6 flex flex-col gap-3 pt-4 lg:pt-6 pb-6 bg-white rounded-t-[16px] lg:rounded-t-2xl">
+      {/* White section — full-width background, content constrained to max-w */}
+      <section className="flex-1 bg-white rounded-t-[16px] xl:rounded-t-2xl">
+        <div className="max-w-[1280px] mx-auto px-4 xl:px-6 flex flex-col gap-3 pt-4 xl:pt-6 pb-6">
           {/* Toolbar */}
           <div className="flex flex-wrap items-center gap-3">
             <TabGroup
@@ -450,7 +472,7 @@ export default function ClientHubPage() {
               onChange={(id) => setViewFilter(id as ViewFilter)}
             />
             {viewFilter === "customer" && (
-              <div className="flex-1 min-w-[200px] lg:flex-none lg:w-56">
+              <div className="w-full lg:w-56 lg:ml-auto">
                 <SearchInput
                   placeholder="Search clients…"
                   value={search}
@@ -475,10 +497,18 @@ export default function ClientHubPage() {
                 <Table className="table-fixed min-w-[960px]">
                   <TableHead>
                     <TableRow>
-                      <TableHeaderCell className="w-[6%]">
+                      <TableHeaderCell
+                        className="w-[6%]"
+                        sortDirection={dirFor("rowIndex")}
+                        onSortChange={handleSort("rowIndex")}
+                      >
                         No.
                       </TableHeaderCell>
-                      <TableHeaderCell className="w-[9%] whitespace-nowrap">
+                      <TableHeaderCell
+                        className="w-[9%] whitespace-nowrap"
+                        sortDirection={dirFor("id")}
+                        onSortChange={handleSort("id")}
+                      >
                         Client ID
                       </TableHeaderCell>
                       <TableHeaderCell
@@ -502,10 +532,18 @@ export default function ClientHubPage() {
                       >
                         P&L (YTD)
                       </TableHeaderCell>
-                      <TableHeaderCell className="w-[13%]">
+                      <TableHeaderCell
+                        className="w-[13%]"
+                        sortDirection={dirFor("liabilities")}
+                        onSortChange={handleSort("liabilities")}
+                      >
                         Liabilities (THB)
                       </TableHeaderCell>
-                      <TableHeaderCell className="whitespace-nowrap">
+                      <TableHeaderCell
+                        className="whitespace-nowrap"
+                        sortDirection={dirFor("cashIdle")}
+                        onSortChange={handleSort("cashIdle")}
+                      >
                         เงินสด (THB)
                       </TableHeaderCell>
                       <TableHeaderCell className="w-[11%] whitespace-nowrap">
@@ -514,8 +552,8 @@ export default function ClientHubPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {paged.map((client, index) => {
-                      const rowNo = (safePage - 1) * pageSize + index + 1;
+                    {paged.map((client) => {
+                      const rowNo = originalIndexMap.get(client.id) ?? 0;
 
                       return (
                         <Tooltip
@@ -681,8 +719,8 @@ export default function ClientHubPage() {
               </Table>
             </div>
           )}
-        </section>
-      </div>
+        </div>
+      </section>
 
       {/* Client Detail Drawer */}
       <Sheet
@@ -695,7 +733,7 @@ export default function ClientHubPage() {
       >
         <SheetContent
           side="right"
-          className="w-full lg:w-[30vw] lg:max-w-[30vw] overflow-hidden p-0 flex flex-col"
+          className="w-full md:w-[55vw] md:max-w-[55vw] lg:w-[40vw] lg:max-w-[40vw] xl:w-[30vw] xl:max-w-[30vw] overflow-hidden p-0 flex flex-col"
         >
           {selectedClient && (
             <ClientDetailPanel
@@ -723,7 +761,7 @@ export default function ClientHubPage() {
       >
         <SheetContent
           side="right"
-          className="w-full lg:w-[30vw] lg:max-w-[30vw] overflow-hidden p-0 flex flex-col"
+          className="w-full md:w-[55vw] md:max-w-[55vw] lg:w-[40vw] lg:max-w-[40vw] xl:w-[30vw] xl:max-w-[30vw] overflow-hidden p-0 flex flex-col"
         >
           {selectedProduct && (
             <div className="flex flex-col h-full relative overflow-hidden">
@@ -736,18 +774,24 @@ export default function ClientHubPage() {
                   <p className="type-caption text-muted-foreground">{selectedProduct.clientCount} clients</p>
                 </div>
               </div>
-              <div className="flex gap-3 px-4 py-3 border-b border-[var(--border-default)] bg-[var(--bg-default-secondary)] shrink-0">
-                <div className="flex-1 flex flex-col gap-0.5 px-4 py-3 bg-white rounded-xl border border-[var(--border-default)]">
-                  <p className="type-caption text-muted-foreground">Total AUM</p>
-                  <p className="type-subtitle-2 font-bold text-foreground">
-                    {formatThbAmount(selectedProduct.totalAmountThb)}{" "}
-                    <span className="type-body-2 font-normal text-muted-foreground">THB</span>
-                  </p>
-                </div>
-                <div className="flex-1 flex flex-col gap-0.5 px-4 py-3 bg-white rounded-xl border border-[var(--border-default)]">
-                  <p className="type-caption text-muted-foreground">Avg Allocation</p>
-                  <p className="type-subtitle-2 font-bold text-foreground">{selectedProduct.avgAllocationPct.toFixed(1)}%</p>
-                </div>
+              <div className="shrink-0">
+                <StatCardRow
+                  stats={[
+                    {
+                      label: "Total AUM",
+                      value: (
+                        <>
+                          {formatThbAmount(selectedProduct.totalAmountThb)}{" "}
+                          <span className="type-body-2 font-normal text-muted-foreground">THB</span>
+                        </>
+                      ),
+                    },
+                    {
+                      label: "Avg Allocation",
+                      value: `${selectedProduct.avgAllocationPct.toFixed(1)}%`,
+                    },
+                  ]}
+                />
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar">
                 <div className="flex flex-col gap-2 p-4">

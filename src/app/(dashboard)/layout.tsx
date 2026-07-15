@@ -75,12 +75,13 @@ function usePageInfo(): PageInfo {
     isCommandCenter: pathname.startsWith("/command-center"),
     isHouseView: pathname.startsWith("/house-view"),
     isPerformance: pathname.startsWith("/performance"),
-    isFullWidth: pathname.startsWith("/product-catalog"),
+    isFullWidth: pathname.startsWith("/product-catalog") || pathname.startsWith("/client-hub"),
   };
 }
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { title: pageTitle, clientBreadcrumb, isCommandCenter, isHouseView, isPerformance, isFullWidth } = usePageInfo();
   const headerSlot = useHeaderSlot();
 
@@ -94,9 +95,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     </Sheet>
 
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar — hidden on mobile, always visible on lg+ */}
-      <aside className="hidden lg:flex w-60 shrink-0 bg-slate-900 overflow-hidden flex-col">
-        <AppSidebar />
+      {/* Sidebar — hidden on mobile/tablet, visible on xl+ (desktop only) */}
+      <aside className={`hidden xl:flex shrink-0 bg-slate-900 overflow-hidden flex-col transition-[width] duration-300 ease-in-out ${sidebarCollapsed ? "w-[50px]" : "w-60"}`}>
+        <AppSidebar
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+        />
       </aside>
 
       {/* Content area */}
@@ -104,8 +108,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Top bar */}
         <header className="shrink-0 min-h-[60px] flex items-center justify-between gap-4 px-4 border-b border-border bg-background z-30 relative">
           <div className="flex items-center gap-3">
-            {/* Logo — mobile only (sidebar hidden on desktop) */}
-            <div className="flex items-center gap-2.5 lg:hidden">
+            {/* Logo — mobile + tablet (sidebar hidden below xl) */}
+            <div className="flex items-center gap-2.5 xl:hidden">
               <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
                 <span className="text-[10px] font-bold text-white">YA</span>
               </div>
@@ -115,7 +119,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             {clientBreadcrumb ? (
               <Breadcrumb items={clientBreadcrumb} />
             ) : (
-              <div className="hidden lg:flex items-center gap-3">
+              <div className="hidden xl:flex items-center gap-3">
                 {pageTitle && <h1 className="type-subtitle-1 text-foreground">{pageTitle}</h1>}
                 {isCommandCenter && <MarketOpenBadge />}
                 {isHouseView && <Tag text="Updated: Q2 2026" variant="blue" size="small" />}
@@ -124,7 +128,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
 
           {headerSlot && (
-            <div className="hidden lg:flex flex-1 max-w-sm items-center">
+            <div className="hidden xl:flex flex-1 max-w-sm items-center">
               {headerSlot}
             </div>
           )}
@@ -132,7 +136,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4">
             <NavHeaderNotification groups={notificationGroups} badgeCount={4} />
 
-            <div className="lg:hidden">
+            <div className="xl:hidden">
               <NavHeaderIconButton aria-label="Open navigation" onClick={() => setSidebarOpen(true)}>
                 <ListIcon weight="regular" size={24} />
               </NavHeaderIconButton>
@@ -140,14 +144,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className={`flex-1 overflow-y-auto overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 lg:p-6"}`}>
+        <main className={`flex-1 overflow-y-auto overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"}`}>
           <div
             className={`${
               isFullWidth ? "w-full" : "max-w-[1280px] mx-auto"
             } flex flex-col gap-6`}
           >
             {!clientBreadcrumb && !isFullWidth && (pageTitle || isCommandCenter || isHouseView) && (
-              <div className="flex items-center justify-between gap-3 lg:hidden">
+              <div className="flex items-center justify-between gap-3 xl:hidden">
                 <div className="flex items-center gap-3">
                   {pageTitle && <h1 className="type-h5 text-foreground">{pageTitle}</h1>}
                   {isCommandCenter && <MarketOpenBadge />}

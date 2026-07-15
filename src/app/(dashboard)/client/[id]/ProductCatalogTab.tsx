@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button, SearchInput, TabGroup } from "@sarunyu/system-one";
 import { FixedIncomeTab } from "./FixedIncomeTab";
 import { FixedIncomeDetail } from "./FixedIncomeDetail";
@@ -308,12 +308,27 @@ function useDragScroll() {
   return { ref, onMouseDown, onMouseMove, onMouseUp, onMouseLeave: onMouseUp };
 }
 
+export type CatalogNavigation = {
+  onProductSelect: (product: StructuredProduct) => void;
+  onAllProductsView: () => void;
+  onTopIdeaSelect: (sector: TopIdeaSector) => void;
+  onAllTopIdeasView: () => void;
+  onInvestmentSolutionSelect: (id: InvestmentSolutionId) => void;
+  onFixedIncomeBondSelect: (bond: FixedIncomeBond) => void;
+  onGlobalBondIssuerSelect: (issuerId: GlobalBondIssuerId) => void;
+  onAllGlobalBondsView: () => void;
+};
+
 export function ProductCatalogTab({
   searchValue: searchValueProp,
   onSearchChange,
+  onDetailViewChange,
+  navigation,
 }: {
   searchValue?: string;
   onSearchChange?: (v: string) => void;
+  onDetailViewChange?: (isDetail: boolean) => void;
+  navigation?: CatalogNavigation;
 } = {}) {
   const [activeProductTab, setActiveProductTab] = useState("structured");
   const [selectedFixedIncomeBond, setSelectedFixedIncomeBond] =
@@ -347,6 +362,37 @@ export function ProductCatalogTab({
 
   const topIdeaDrag = useDragScroll();
 
+  const isDetailView = !!(
+    showAllGlobalBonds ||
+    selectedGlobalBondIssuer ||
+    (fixedIncomeView === "bond" && selectedFixedIncomeBond) ||
+    (fixedIncomeView === "company" && selectedFixedIncomeCompany) ||
+    selectedProduct ||
+    selectedTopIdea ||
+    selectedInvestmentSolution ||
+    showAllTopIdeas ||
+    showAllStructuredProducts
+  );
+
+  useEffect(() => {
+    onDetailViewChange?.(isDetailView);
+  }, [isDetailView, onDetailViewChange]);
+
+  // Unified navigation handlers — use URL-based navigation when provided, else internal state
+  const nav = {
+    onProductSelect: navigation?.onProductSelect ?? setSelectedProduct,
+    onAllProductsView: navigation?.onAllProductsView ?? (() => setShowAllStructuredProducts(true)),
+    onTopIdeaSelect: navigation?.onTopIdeaSelect ?? setSelectedTopIdea,
+    onAllTopIdeasView: navigation?.onAllTopIdeasView ?? (() => setShowAllTopIdeas(true)),
+    onInvestmentSolutionSelect: navigation?.onInvestmentSolutionSelect ?? setSelectedInvestmentSolution,
+    onFixedIncomeBondSelect: navigation?.onFixedIncomeBondSelect ?? ((bond: FixedIncomeBond) => {
+      setSelectedFixedIncomeBond(bond);
+      setFixedIncomeView("bond");
+    }),
+    onGlobalBondIssuerSelect: navigation?.onGlobalBondIssuerSelect ?? setSelectedGlobalBondIssuer,
+    onAllGlobalBondsView: navigation?.onAllGlobalBondsView ?? (() => setShowAllGlobalBonds(true)),
+  };
+
   const resetFixedIncomeNav = () => {
     setSelectedFixedIncomeBond(null);
     setSelectedFixedIncomeCompany(null);
@@ -365,7 +411,8 @@ export function ProductCatalogTab({
     setShowAllGlobalBonds(false);
   };
 
-  if (showAllGlobalBonds) {
+  // State-based detail views — only used when URL navigation is not provided (e.g. client pages)
+  if (!navigation && showAllGlobalBonds) {
     return (
       <div className="flex flex-col w-full">
         <GlobalBondAllPage onBack={() => setShowAllGlobalBonds(false)} />
@@ -373,7 +420,7 @@ export function ProductCatalogTab({
     );
   }
 
-  if (selectedGlobalBondIssuer) {
+  if (!navigation && selectedGlobalBondIssuer) {
     return (
       <div className="flex flex-col w-full">
         <GlobalBondDetail
@@ -385,7 +432,7 @@ export function ProductCatalogTab({
     );
   }
 
-  if (fixedIncomeView === "bond" && selectedFixedIncomeBond) {
+  if (!navigation && fixedIncomeView === "bond" && selectedFixedIncomeBond) {
     return (
       <div className="flex flex-col w-full">
         <FixedIncomeDetail
@@ -407,7 +454,7 @@ export function ProductCatalogTab({
     );
   }
 
-  if (fixedIncomeView === "company" && selectedFixedIncomeCompany) {
+  if (!navigation && fixedIncomeView === "company" && selectedFixedIncomeCompany) {
     return (
       <div className="flex flex-col w-full">
         <FixedIncomeCompanyDetail
@@ -429,7 +476,7 @@ export function ProductCatalogTab({
     );
   }
 
-  if (selectedProduct) {
+  if (!navigation && selectedProduct) {
     return (
       <div className="flex flex-col w-full">
         <StructuredProductDetail
@@ -440,7 +487,7 @@ export function ProductCatalogTab({
     );
   }
 
-  if (selectedTopIdea) {
+  if (!navigation && selectedTopIdea) {
     return (
       <div className="flex flex-col w-full">
         <TopIdeaDetail
@@ -452,7 +499,7 @@ export function ProductCatalogTab({
     );
   }
 
-  if (selectedInvestmentSolution) {
+  if (!navigation && selectedInvestmentSolution) {
     return (
       <div className="flex flex-col w-full">
         <InvestmentSolutionDetail
@@ -464,7 +511,7 @@ export function ProductCatalogTab({
     );
   }
 
-  if (showAllTopIdeas) {
+  if (!navigation && showAllTopIdeas) {
     return (
       <div className="flex flex-col w-full">
         <TopIdeaAllPage
@@ -475,7 +522,7 @@ export function ProductCatalogTab({
     );
   }
 
-  if (showAllStructuredProducts) {
+  if (!navigation && showAllStructuredProducts) {
     return (
       <div className="flex flex-col w-full">
         <StructuredProductAllPage
@@ -565,18 +612,13 @@ export function ProductCatalogTab({
 
       {/* ── Tab content ─────────────────────────────────────────────────────── */}
       {activeProductTab === "fixed-income" && (
-        <FixedIncomeTab
-          onBondSelect={(bond) => {
-            setSelectedFixedIncomeBond(bond);
-            setFixedIncomeView("bond");
-          }}
-        />
+        <FixedIncomeTab onBondSelect={nav.onFixedIncomeBondSelect} />
       )}
 
       {activeProductTab === "global-bond" && (
         <GlobalBondTab
-          onIssuerSelect={setSelectedGlobalBondIssuer}
-          onViewAll={() => setShowAllGlobalBonds(true)}
+          onIssuerSelect={nav.onGlobalBondIssuerSelect}
+          onViewAll={nav.onAllGlobalBondsView}
         />
       )}
 
@@ -659,7 +701,7 @@ export function ProductCatalogTab({
                 size="sm"
                 rightIcon={<ArrowRightIcon size={18} />}
                 className="shrink-0"
-                onClick={() => setShowAllTopIdeas(true)}
+                onClick={nav.onAllTopIdeasView}
               >
                 ทั้งหมด
               </Button>
@@ -683,7 +725,7 @@ export function ProductCatalogTab({
                   <TopIdeaCard
                     key={i}
                     sector={idea.sector}
-                    onClick={() => setSelectedTopIdea(idea.sector)}
+                    onClick={() => nav.onTopIdeaSelect(idea.sector)}
                   />
                 ))}
               </div>
@@ -748,7 +790,7 @@ export function ProductCatalogTab({
                             : undefined
                         }
                         onClick={() =>
-                          setSelectedInvestmentSolution(solution.id)
+                          nav.onInvestmentSolutionSelect(solution.id)
                         }
                       />
                     );
@@ -794,7 +836,7 @@ export function ProductCatalogTab({
                   <StructuredProductCard
                     key={p.id}
                     {...p}
-                    onClick={() => setSelectedProduct(p)}
+                    onClick={() => nav.onProductSelect(p)}
                   />
                 ))}
               </div>
@@ -825,7 +867,7 @@ export function ProductCatalogTab({
                 <StructuredProductCard
                   key={p.id}
                   {...p}
-                  onClick={() => setSelectedProduct(p)}
+                  onClick={() => nav.onProductSelect(p)}
                 />
               ))}
             </div>
@@ -834,7 +876,7 @@ export function ProductCatalogTab({
               variant="plain"
               size="sm"
               className="shrink-0"
-              onClick={() => setShowAllStructuredProducts(true)}
+              onClick={nav.onAllProductsView}
             >
               ดูทั้งหมด
             </Button>

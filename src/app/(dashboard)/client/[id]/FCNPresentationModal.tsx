@@ -73,7 +73,7 @@ function FCNCard({ product }: { product: StructuredProduct }) {
       </div>
 
       {/* Two-column body */}
-      <div className="grid grid-cols-2 gap-3 px-4 py-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-4 py-4">
         {/* Left: Underlying Assets */}
         <div className="flex flex-col gap-2">
           <p className="font-bold text-[#0a6ee7] text-sm text-center">Underlying Assets</p>
@@ -119,7 +119,7 @@ function FCNCard({ product }: { product: StructuredProduct }) {
       </div>
 
       {/* Footer */}
-      <div className="grid grid-cols-2 gap-3 px-4 pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-4 pb-4">
         <div className="flex items-start gap-2.5 rounded-xl px-3 py-2.5" style={{ backgroundColor: "rgba(255,255,255,0.72)" }}>
           <FooterIconCircle color="#0a6ee7">
             <PhoneIcon size={13} color="white" weight="fill" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }} />

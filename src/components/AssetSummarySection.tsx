@@ -96,11 +96,11 @@ function AllocationLegendItemDesktop({ slice }: { slice: AssetAllocationSlice })
         <span className="relative shrink-0 size-3">
           <img alt="" className="block size-full max-w-none" src={slice.statusIcon} />
         </span>
-        <p className="type-caption text-[var(--text-default-tertiary)] whitespace-nowrap leading-4">
+        <p className="type-body-2 text-[var(--text-default-tertiary)] whitespace-nowrap leading-5">
           {slice.label}
         </p>
       </div>
-      <p className="type-caption text-[var(--text-default-tertiary)] whitespace-nowrap leading-4 shrink-0 py-1 pl-1 pr-4">
+      <p className="type-body-2 text-[var(--text-default-tertiary)] whitespace-nowrap leading-5 shrink-0 py-1 pl-1 pr-4">
         {slice.percent}%
       </p>
     </>
@@ -114,11 +114,11 @@ function AllocationLegendItemCompact({ slice }: { slice: AssetAllocationSlice })
         <span className="relative shrink-0 size-3">
           <img alt="" className="block size-full max-w-none" src={slice.statusIcon} />
         </span>
-        <p className="type-caption text-[var(--text-default-tertiary)] leading-4 whitespace-nowrap">
+        <p className="type-body-2 text-[var(--text-default-tertiary)] leading-5 whitespace-nowrap">
           {slice.label}
         </p>
       </div>
-      <p className="type-caption text-[var(--text-default-tertiary)] leading-4 shrink-0">
+      <p className="type-body-2 text-[var(--text-default-tertiary)] leading-5 shrink-0">
         {slice.percent}%
       </p>
     </div>
@@ -128,7 +128,7 @@ function AllocationLegendItemCompact({ slice }: { slice: AssetAllocationSlice })
 function AllocationBreakdownHeader() {
   return (
     <div className="flex w-full shrink-0 justify-start">
-      <p className="type-caption !font-bold text-[var(--text-default-secondary)] whitespace-nowrap leading-4">
+      <p className="type-body-2 !font-bold text-[var(--text-default-secondary)] whitespace-nowrap leading-5">
         Allocation breakdown
       </p>
     </div>

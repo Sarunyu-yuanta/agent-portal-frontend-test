@@ -5,7 +5,8 @@ import { Button } from "@sarunyu/system-one";
 import {
   ArrowLeftIcon,
   CaretDownIcon,
-  DownloadSimpleIcon,
+  EyeIcon,
+  FilePdfIcon,
   PackageIcon,
   ShieldCheckIcon,
 } from "@phosphor-icons/react";
@@ -203,42 +204,24 @@ export function StructuredProductDetail({
 
         {/* CTA */}
         <div className="flex flex-col gap-3 items-center w-full">
-          {/* Split download button */}
-          <div className="relative flex w-full max-w-[343px]">
-            {/* Main action — opens FCN Presentation modal */}
-            <button
-              type="button"
-              onClick={() => setFcnModalOpen(true)}
-              className="flex flex-1 min-w-0 items-center justify-center gap-2 h-12 font-medium text-sm text-white rounded-l-xl cursor-pointer transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#0a6ee7" }}
-            >
-              <DownloadSimpleIcon size={18} weight="bold" />
-              ดาวน์โหลด
-            </button>
-
-            {/* Divider */}
-            <div className="w-px self-stretch" style={{ backgroundColor: "rgba(255,255,255,0.3)" }} />
-
-            {/* Caret — opens dropdown */}
+          <div className="relative w-full max-w-[343px]">
             <button
               type="button"
               onClick={() => setDropdownOpen((v) => !v)}
-              aria-label="ตัวเลือกเพิ่มเติม"
-              className="flex items-center justify-center w-10 h-12 rounded-r-xl cursor-pointer transition-opacity hover:opacity-90"
+              className="flex w-full items-center h-12 px-4 font-medium text-sm text-white rounded-xl cursor-pointer transition-opacity hover:opacity-90"
               style={{ backgroundColor: "#0a6ee7" }}
             >
-              <CaretDownIcon size={14} color="white" />
+              <span className="flex-1 text-center">ดาวน์โหลดเอกสาร</span>
+              <CaretDownIcon
+                size={14}
+                color="white"
+                style={{ transition: "transform 0.2s", transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+              />
             </button>
 
-            {/* Dropdown */}
             {dropdownOpen && (
               <>
-                {/* click-away */}
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setDropdownOpen(false)}
-                  role="presentation"
-                />
+                <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} role="presentation" />
                 <div
                   className="absolute bottom-full mb-2 right-0 w-full rounded-xl overflow-hidden z-20 shadow-lg"
                   style={{ border: "1px solid rgba(0,0,0,0.1)", backgroundColor: "white" }}
@@ -246,13 +229,14 @@ export function StructuredProductDetail({
                   <button
                     type="button"
                     onClick={() => { setFcnModalOpen(true); setDropdownOpen(false); }}
-                    className="flex items-start gap-3 w-full px-4 py-3 text-left cursor-pointer transition-colors"
+                    className="group flex items-start gap-3 w-full px-4 py-3 text-left cursor-pointer transition-colors"
                     style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9fafb")}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "white")}
                   >
-                    <div className="flex shrink-0 size-8 items-center justify-center rounded-lg" style={{ backgroundColor: "#eff6ff" }}>
-                      <DownloadSimpleIcon size={16} color="#0a6ee7" />
+                    <div className="relative flex shrink-0 size-8 items-center justify-center rounded-lg bg-[#fee2e2] group-hover:bg-transparent transition-colors">
+                      <FilePdfIcon size={16} color="#dc2626" className="transition-opacity group-hover:opacity-0" />
+                      <EyeIcon size={16} color="#0a6ee7" className="absolute opacity-0 transition-opacity group-hover:opacity-100" />
                     </div>
                     <div>
                       <p className="font-medium text-sm text-[#101828]">Presentation PDF</p>
@@ -261,17 +245,14 @@ export function StructuredProductDetail({
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      setPackageModalOpen(true);
-                    }}
-                    className="flex items-start gap-3 w-full px-4 py-3 text-left cursor-pointer transition-colors"
-                    style={{ backgroundColor: "white" }}
+                    onClick={() => { setPackageModalOpen(true); setDropdownOpen(false); }}
+                    className="group flex items-start gap-3 w-full px-4 py-3 text-left cursor-pointer transition-colors"
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9fafb")}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "white")}
                   >
-                    <div className="flex shrink-0 size-8 items-center justify-center rounded-lg" style={{ backgroundColor: "#eff6ff" }}>
-                      <PackageIcon size={16} color="#0a6ee7" />
+                    <div className="relative flex shrink-0 size-8 items-center justify-center rounded-lg bg-[#eff6ff] group-hover:bg-transparent transition-colors">
+                      <PackageIcon size={16} color="#0a6ee7" className="transition-opacity group-hover:opacity-0" />
+                      <EyeIcon size={16} color="#0a6ee7" className="absolute opacity-0 transition-opacity group-hover:opacity-100" />
                     </div>
                     <div>
                       <p className="font-medium text-sm text-[#101828]">ชุดเอกสารครบชุด</p>

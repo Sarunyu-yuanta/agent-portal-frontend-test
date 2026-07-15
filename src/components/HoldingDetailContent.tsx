@@ -3,12 +3,55 @@
 import React, { useState } from "react";
 import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
 import { Tag, useIsMobile } from "@sarunyu/system-one";
-import { ProfitLossBadge, DashedDivider } from "@/components/ui/finance-ui";
+import { ProfitLossBadge, DashedDivider, StatCardRow } from "@/components/ui/finance-ui";
 import type {
   AssetAccountDetail,
   HoldingItem,
+  HoldingSection,
   PositionSummary,
 } from "@/data/asset-account-details";
+
+function parseNum(v: string): number {
+  return parseFloat(v.replace(/,/g, "")) || 0;
+}
+
+function formatNum(n: number): string {
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function HoldingSummary({ sections }: { sections: HoldingSection[] }) {
+  const allItems = sections.flatMap((s) => s.items);
+  const totalValue = allItems.reduce((sum, item) => sum + parseNum(item.value), 0);
+  const totalChange = allItems.reduce((sum, item) => {
+    if (!item.changeAmount) return sum;
+    return sum + parseNum(item.changeAmount);
+  }, 0);
+  const isPositive = totalChange >= 0;
+
+  return (
+    <StatCardRow
+      stats={[
+        {
+          label: "มูลค่ารวม",
+          value: (
+            <>
+              {formatNum(totalValue)}{" "}
+              <span className="type-body-2 font-normal text-muted-foreground">THB</span>
+            </>
+          ),
+        },
+        {
+          label: "กำไร/ขาดทุน",
+          value: (
+            <span className={isPositive ? "text-[var(--text-success-primary)]" : "text-destructive"}>
+              {isPositive ? "+" : ""}{formatNum(totalChange)}
+            </span>
+          ),
+        },
+      ]}
+    />
+  );
+}
 
 function PositionSummaryPanel({ position }: { position: PositionSummary }) {
   return (
@@ -183,7 +226,9 @@ export function HoldingDetailContent({ detail }: { detail: AssetAccountDetail })
   };
 
   return (
-    <div className="pt-2 pb-6">
+    <div className="pb-6">
+      <HoldingSummary sections={detail.sections} />
+      <div className="pt-2" />
       {detail.sections.map((section, index) => (
         <HoldingSectionBlock
           key={section.title}
