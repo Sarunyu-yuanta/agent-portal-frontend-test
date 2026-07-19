@@ -34,6 +34,7 @@ import { StatCardRow } from "@/components/ui/finance-ui";
 import { AssetSummarySection, type AssetHeroSummary } from "@/components/AssetSummarySection";
 import { ClientAssetSidebarContent, type AssetListViewMode } from "@/components/ClientAssetSidebarContent";
 import { HoldingDetailContent } from "@/components/HoldingDetailContent";
+import { NineBoxTab } from "./NineBoxTab";
 import {
   getAssetAccountDetail,
   getAssetProductDetail,
@@ -70,7 +71,7 @@ type ProductRow = {
   holders: ProductHolder[];
 };
 
-type ViewFilter = "customer" | "product";
+type ViewFilter = "customer" | "product" | "nine-box";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -223,7 +224,7 @@ function ClientDetailPanel({
               size="sm"
               className="shrink-0 mr-8 whitespace-nowrap"
               leftIcon={<UserIcon size={14} />}
-              disabled
+              onClick={onViewFull}
             >
               View Full Profile
             </Button>
@@ -271,7 +272,7 @@ function ClientDetailPanel({
               size="lg"
               className="w-full"
               leftIcon={<UserIcon size={16} />}
-              disabled
+              onClick={onViewFull}
             >
               View Full Profile
             </Button>
@@ -471,6 +472,7 @@ export default function ClientHubPage() {
               items={[
                 { id: "customer", title: `Customer (${sorted.length})` },
                 { id: "product", title: `Product (${productSearch.trim() ? productRows.filter((r) => r.label.toLowerCase().includes(productSearch.toLowerCase())).length : productRows.length})` },
+                { id: "nine-box", title: "Nine Box" },
               ]}
               activeId={viewFilter}
               size="md"
@@ -506,7 +508,9 @@ export default function ClientHubPage() {
             )}
           </div>
 
-          {viewFilter === "customer" ? (
+          {viewFilter === "nine-box" ? (
+            <NineBoxTab clients={sorted} onSelectClient={(c) => setSelectedClient(c)} />
+          ) : viewFilter === "customer" ? (
             <>
               {/* Customer Table */}
               <div className="overflow-hidden overflow-x-auto rounded-lg border border-[var(--border-default)]">

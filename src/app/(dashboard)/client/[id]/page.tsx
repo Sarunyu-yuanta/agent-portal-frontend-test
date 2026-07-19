@@ -6,7 +6,6 @@ import {
   Tag,
   Button,
   Card,
-  SearchInput,
   Table,
   TableHead,
   TableBody,
@@ -18,7 +17,7 @@ import {
   ListItem,
   TabGroup,
 } from "@sarunyu/system-one";
-import { ProductCatalogTab } from "./ProductCatalogTab";
+import { ClientAssetSidebarContent } from "@/components/ClientAssetSidebarContent";
 import {
   PhoneIcon,
   ChatCircleIcon,
@@ -106,7 +105,6 @@ export default function ClientPage({
   // NBA action for this client (provides aiDraft + revenueImpact for AI cards)
   const nbaAction = nbaActions.find((a) => a.clientId === client.id);
 
-  const [searchValue, setSearchValue] = useState("");
   const setHeaderSlot = useSetHeaderSlot();
 
   // Compact sticky header on scroll
@@ -128,21 +126,9 @@ export default function ClientPage({
   }, []);
 
   useEffect(() => {
-    if (scrolled && activeTab === "product-catalog") {
-      setHeaderSlot(
-        <SearchInput
-          value={searchValue}
-          onChange={setSearchValue}
-          placeholder="ค้นหาสินทรัพย์"
-          size="sm"
-          className="w-full"
-        />
-      );
-    } else {
-      setHeaderSlot(null);
-    }
+    setHeaderSlot(null);
     return () => setHeaderSlot(null);
-  }, [scrolled, activeTab, searchValue, setSearchValue, setHeaderSlot]);
+  }, [scrolled, activeTab, setHeaderSlot]);
 
   return (
     <div className="flex flex-col -mt-6">
@@ -214,22 +200,24 @@ export default function ClientPage({
       </div>
 
       {/* ── Tab navigation ── */}
-      <div className="pt-6 border-b border-border -mx-[9999px] px-[9999px]">
-        <TabGroup
-          items={[
-            { id: "overview", title: "Overview" },
-            { id: "product-catalog", title: "Product Catalog" },
-          ]}
-          activeId={activeTab}
-          onChange={setActiveTab}
-          size="md"
-        />
+      <div className="pt-6 -mx-[9999px] px-[9999px]">
+        <div className="transparent-tabs">
+          <TabGroup
+            items={[
+              { id: "overview", title: "Overview" },
+              { id: "assets", title: "Assets" },
+            ]}
+            activeId={activeTab}
+            onChange={setActiveTab}
+            size="md"
+          />
+        </div>
       </div>
 
       {/* ── Body content ── */}
-      {activeTab === "product-catalog" ? (
+      {activeTab === "assets" ? (
         <div className="pt-8">
-          <ProductCatalogTab searchValue={searchValue} onSearchChange={setSearchValue} />
+          <ClientAssetSidebarContent clientId={client.id} client={client} accordionCards />
         </div>
       ) : (
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start pt-8">
