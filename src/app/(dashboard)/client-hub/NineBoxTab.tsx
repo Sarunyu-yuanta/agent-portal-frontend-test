@@ -70,6 +70,13 @@ const AI_COLS = [
   { label: "High",   sub: "> 87",   color: "var(--fill-p1-800)", activeColor: "var(--fill-p1-900)" },
 ];
 
+export function getNineBoxCell(client: Client): { label: string; heat: 1 | 2 | 3 | 4 | 5; aumLabel: string; aiLabel: string } {
+  const row = getAumTier(client.aum);
+  const col = getAiTier(client.aiScore);
+  const cell = CELLS[row][col];
+  return { label: cell.label, heat: cell.heat, aumLabel: AUM_ROWS[row].label, aiLabel: AI_COLS[col].label };
+}
+
 export type NineBoxCellInfo = {
   label: string;
   heat: 1 | 2 | 3 | 4 | 5;

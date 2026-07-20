@@ -15,18 +15,21 @@ import {
   Pagination,
   SearchInput,
   Tooltip,
+  Modal,
 } from "@sarunyu/system-one";
 import {
   PhoneListIcon,
-  EnvelopeSimpleIcon,
+  PhoneIncomingIcon,
+  PhoneOutgoingIcon,
   UserIcon,
   UsersIcon,
-  ClipboardTextIcon,
-  CalendarPlusIcon,
+  NotePencilIcon,
+  BellSimpleIcon,
   ArrowLeftIcon,
   CaretRightIcon,
   CaretDownIcon,
 } from "@phosphor-icons/react";
+import { getCallLogs, relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { ALLOCATION_SLICES } from "@/components/AssetSummarySection";
 import { useClients } from "@/hooks/use-api";
@@ -145,6 +148,8 @@ function ClientDetailPanel({
   const [selectedViewMode, setSelectedViewMode] = useState<AssetListViewMode>("product");
   const [detailMounted, setDetailMounted] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
+  const [callLogOpen, setCallLogOpen] = useState(false);
+  const callLogs = getCallLogs(client.id);
 
   useEffect(() => {
     setCompact(false);
@@ -187,6 +192,7 @@ function ClientDetailPanel({
   }, []);
 
   return (
+    <>
     <div className="flex flex-col h-full relative overflow-hidden">
       <div
         className={`flex flex-col shrink-0 border-b border-[var(--border-default)] transition-[padding,gap] duration-300 ease-out ${
@@ -240,16 +246,15 @@ function ClientDetailPanel({
           }`}
         >
           <div className="overflow-hidden min-h-0">
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {[
-                { icon: <PhoneListIcon size={20} />, label: "Call log" },
-                { icon: <EnvelopeSimpleIcon size={20} />, label: "Mail" },
-                { icon: <ClipboardTextIcon size={20} />, label: "Proposal" },
-                { icon: <CalendarPlusIcon size={20} />, label: "Meet" },
-              ].map(({ icon, label }) => (
+                { icon: <PhoneListIcon size={20} />,   label: "Call log", onClick: () => setCallLogOpen(true) },
+                { icon: <NotePencilIcon size={20} />,  label: "Notes",    onClick: () => {} },
+                { icon: <BellSimpleIcon size={20} />,  label: "Reminder", onClick: () => {} },
+              ].map(({ icon, label, onClick }) => (
                 <button
                   key={label}
-                  onClick={() => {}}
+                  onClick={onClick}
                   className="flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-xl bg-[var(--bg-default-secondary)] border border-primary-action/20 hover:bg-[var(--bg-brand-light)] hover:border-[var(--bg-brand-primary)] transition-colors cursor-pointer"
                 >
                   <span className="text-primary-action">{icon}</span>
@@ -319,6 +324,45 @@ function ClientDetailPanel({
         </div>
       )}
     </div>
+
+    {/* Call log modal */}
+
+    {callLogOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+        <Modal
+          variant="content"
+          actionLayout="none"
+          title={`Call log — ${client.name}`}
+          onClose={() => setCallLogOpen(false)}
+        >
+          <div className="flex flex-col gap-3 min-w-[420px] max-w-[520px]">
+            {callLogs.map((log: CallLogEntry) => (
+              <div key={log.id} className="flex gap-3 p-3 rounded-xl bg-[var(--bg-default-secondary)]">
+                <div className="shrink-0 mt-0.5">
+                  {log.direction === "outbound" ? (
+                    <PhoneOutgoingIcon size={18} className="text-[var(--text-brand-primary)]" />
+                  ) : (
+                    <PhoneIncomingIcon size={18} className="text-[var(--icon-success)]" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="type-caption font-semibold text-foreground">{log.date} · {log.time}</span>
+                    <span className="type-caption font-medium text-[var(--text-brand-primary)] shrink-0">{relativeCallDate(log.date)}</span>
+                  </div>
+                  <p className="type-caption text-foreground leading-relaxed">{log.summary}</p>
+                  <p className="type-caption text-muted-foreground mt-1">{log.duration}</p>
+                </div>
+              </div>
+            ))}
+            {callLogs.length === 0 && (
+              <p className="type-body-2 text-muted-foreground text-center py-6">No call history yet.</p>
+            )}
+          </div>
+        </Modal>
+      </div>
+    )}
+    </>
   );
 }
 

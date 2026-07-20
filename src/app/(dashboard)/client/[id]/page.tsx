@@ -16,11 +16,13 @@ import {
   List,
   ListItem,
   TabGroup,
+  Modal,
 } from "@sarunyu/system-one";
 import { ClientAssetSidebarContent } from "@/components/ClientAssetSidebarContent";
 import {
   PhoneIcon,
-  ChatCircleIcon,
+  PhoneIncomingIcon,
+  PhoneOutgoingIcon,
   DownloadSimpleIcon,
   SparkleIcon,
   FileTextIcon,
@@ -38,6 +40,8 @@ import {
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { useClients, useNBAActions } from "@/hooks/use-api";
 import { useSetHeaderSlot } from "../../header-slot-context";
+import { getNineBoxCell, NINE_BOX_HEAT_STYLES } from "../../client-hub/NineBoxTab";
+import { getCallLogs, relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
 
 const clientDetailById = Object.fromEntries(
   mockClients.map((c) => [c.id, mockClientDetails[c.id]])
@@ -49,6 +53,30 @@ function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function lastContactFromCallLogs(logs: CallLogEntry[]): string {
+  if (logs.length === 0) return "No contact";
+  const MONTHS: Record<string, number> = {
+    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+  };
+  const parsed = logs
+    .map((log) => {
+      const [d, m, y] = log.date.split(" ");
+      return new Date(Number(y), MONTHS[m] ?? 0, Number(d));
+    })
+    .filter((d) => !isNaN(d.getTime()));
+  if (parsed.length === 0) return "No contact";
+  const latest = new Date(Math.max(...parsed.map((d) => d.getTime())));
+  const now = new Date();
+  const days = Math.floor((now.getTime() - latest.getTime()) / (1000 * 60 * 60 * 24));
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  if (days < 14) return "1 week ago";
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+  return `${Math.floor(days / 30)} months ago`;
 }
 
 type SortDir = "none" | "asc" | "desc";
@@ -83,27 +111,14 @@ export default function ClientPage({
   const tierVariant =
     client.tier === "UHNW" ? ("blue" as const) : ("gray" as const);
 
-  // Status dot
-  const statusDot =
-    client.status === "success"
-      ? "bg-[var(--bg-success-primary)]"
-      : client.status === "error"
-        ? "bg-[var(--bg-danger-primary)]"
-        : client.status === "hold"
-          ? "bg-[var(--bg-warning-primary)]"
-          : "bg-[var(--bg-brand-primary)]";
-
-  const statusLabel =
-    client.status === "success"
-      ? "Healthy"
-      : client.status === "error"
-        ? "Urgent Action"
-        : client.status === "hold"
-          ? "Needs Attention"
-          : "In Progress";
+  // Nine Box cell for this client
+  const nineBoxCell = getNineBoxCell(client);
+  const nineBoxStyle = NINE_BOX_HEAT_STYLES[nineBoxCell.heat];
 
   // NBA action for this client (provides aiDraft + revenueImpact for AI cards)
   const nbaAction = nbaActions.find((a) => a.clientId === client.id);
+  const [callLogOpen, setCallLogOpen] = useState(false);
+  const callLogs = getCallLogs(client.id);
 
   const setHeaderSlot = useSetHeaderSlot();
 
@@ -150,18 +165,16 @@ export default function ClientPage({
                 {/* Name + Tier + Status pill */}
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <h4 className="type-h4 text-foreground leading-none">{client.name}</h4>
-                  <Tag text={client.tier} variant={tierVariant} size="small" />
                   <div className="flex items-center gap-1.5 border border-border rounded-full px-2 py-0.5 bg-background">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusDot}`} />
-                    <span className="type-caption text-foreground">{statusLabel}</span>
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${nineBoxStyle.dot}`} />
+                    <span className="type-caption text-foreground">{nineBoxCell.label}</span>
                   </div>
                 </div>
                 {/* Metadata — collapses when scrolled */}
                 <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${scrolled ? "grid-rows-[0fr]" : "grid-rows-[1fr]"}`}>
                   <div className="overflow-hidden min-h-0">
                     <div className="flex items-center gap-5 mt-0.5">
-                      <span className="type-caption text-muted-foreground">Risk: {client.riskProfile}</span>
-                      <span className="type-caption text-muted-foreground">Last Contact: {client.lastContact}</span>
+                      <span className="type-caption text-muted-foreground">Last Contact: {lastContactFromCallLogs(callLogs)}</span>
                     </div>
                   </div>
                 </div>
@@ -170,9 +183,9 @@ export default function ClientPage({
 
             {/* Action buttons */}
             <div className="flex items-center gap-2 flex-wrap">
-              <Button variant="outline" size="sm" leftIcon={<PhoneIcon size={16} />}>Call</Button>
-              <Button variant="outline" size="sm" leftIcon={<ChatCircleIcon size={16} />}>Message</Button>
-              <Button variant="primary" size="sm" leftIcon={<FileTextIcon size={16} />}>Create Proposal</Button>
+              <Button variant="outline" size="sm" leftIcon={<PhoneIcon size={16} />} onClick={() => setCallLogOpen(true)}>Call log</Button>
+              <Button variant="outline" size="sm" leftIcon={<PencilSimpleIcon size={16} />}>Notes</Button>
+              <Button variant="outline" size="sm" leftIcon={<CalendarCheckIcon size={16} />}>Reminder</Button>
             </div>
           </div>
 
@@ -506,6 +519,42 @@ export default function ClientPage({
 
       </div>
       )}{/* end tab content */}
+
+      {callLogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <Modal
+            variant="content"
+            actionLayout="none"
+            title={`Call log — ${client.name}`}
+            onClose={() => setCallLogOpen(false)}
+          >
+            <div className="flex flex-col gap-3 min-w-[420px] max-w-[520px]">
+              {callLogs.map((log: CallLogEntry) => (
+                <div key={log.id} className="flex gap-3 p-3 rounded-xl bg-[var(--bg-default-secondary)]">
+                  <div className="shrink-0 mt-0.5">
+                    {log.direction === "outbound" ? (
+                      <PhoneOutgoingIcon size={18} className="text-[var(--text-brand-primary)]" />
+                    ) : (
+                      <PhoneIncomingIcon size={18} className="text-[var(--icon-success)]" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="type-caption font-semibold text-foreground">{log.date} · {log.time}</span>
+                      <span className="type-caption font-medium text-[var(--text-brand-primary)] shrink-0">{relativeCallDate(log.date)}</span>
+                    </div>
+                    <p className="type-caption text-foreground leading-relaxed">{log.summary}</p>
+                    <p className="type-caption text-muted-foreground mt-1">{log.duration}</p>
+                  </div>
+                </div>
+              ))}
+              {callLogs.length === 0 && (
+                <p className="type-body-2 text-muted-foreground text-center py-6">No call history yet.</p>
+              )}
+            </div>
+          </Modal>
+        </div>
+      )}
     </div>
   );
 }

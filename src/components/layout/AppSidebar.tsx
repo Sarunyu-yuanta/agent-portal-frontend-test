@@ -8,11 +8,13 @@ import {
   CaretUpDownIcon,
   SquaresFourIcon,
   SidebarSimpleIcon,
+  ChartBarIcon,
 } from "@phosphor-icons/react";
 
 const workspaceItems = [
   { href: "/client-hub", label: "Client 360", icon: UsersIcon, badge: null },
   { href: "/product-catalog", label: "Product Catalog", icon: SquaresFourIcon, badge: null },
+  { href: "/house-view", label: "House View", icon: ChartBarIcon, badge: null },
 ];
 
 type NavItem = {

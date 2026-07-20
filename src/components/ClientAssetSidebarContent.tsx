@@ -366,7 +366,7 @@ export function ClientAssetSidebarContent({
   return (
     <>
       <div className="flex flex-col gap-4 w-full">
-        <div className={`bg-gradient-to-b from-white to-[#f3f4f6] ${accordionCards ? "-mx-[9999px] px-[9999px]" : ""}`}>
+        <div className={`${accordionCards ? "-mx-[9999px] px-[9999px]" : "bg-gradient-to-b from-white to-[#f3f4f6]"}`}>
           <div className={`flex flex-col gap-2 items-center p-4 w-full ${accordionCards ? "max-w-5xl mx-auto" : ""}`}>
             <HeroCard summary={summary} />
             <LiabilitiesBar
