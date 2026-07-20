@@ -20,6 +20,7 @@ import {
   PhoneListIcon,
   EnvelopeSimpleIcon,
   UserIcon,
+  UsersIcon,
   ClipboardTextIcon,
   CalendarPlusIcon,
   ArrowLeftIcon,
@@ -34,7 +35,7 @@ import { StatCardRow } from "@/components/ui/finance-ui";
 import { AssetSummarySection, type AssetHeroSummary } from "@/components/AssetSummarySection";
 import { ClientAssetSidebarContent, type AssetListViewMode } from "@/components/ClientAssetSidebarContent";
 import { HoldingDetailContent } from "@/components/HoldingDetailContent";
-import { NineBoxTab } from "./NineBoxTab";
+import { NineBoxTab, NINE_BOX_HEAT_STYLES, type NineBoxCellInfo } from "./NineBoxTab";
 import {
   getAssetAccountDetail,
   getAssetProductDetail,
@@ -368,6 +369,12 @@ export default function ClientHubPage() {
   const [productPushMounted, setProductPushMounted] = useState(false);
   const [productPushVisible, setProductPushVisible] = useState(false);
 
+  const [nineBoxCell, setNineBoxCell] = useState<NineBoxCellInfo | null>(null);
+  const [nineBoxDrawerOpen, setNineBoxDrawerOpen] = useState(false);
+  const [nineBoxPushClient, setNineBoxPushClient] = useState<Client | null>(null);
+  const [nineBoxPushMounted, setNineBoxPushMounted] = useState(false);
+  const [nineBoxPushVisible, setNineBoxPushVisible] = useState(false);
+
   const dirFor = (k: SortKey): SortDir => (sortKey === k ? sortDir : "none");
   const handleSort = (k: SortKey) => (next: SortDir) => {
     setSortKey(next === "none" ? null : k);
@@ -449,6 +456,11 @@ export default function ClientHubPage() {
       .sort((a, b) => b.totalAmountThb - a.totalAmountThb);
   }, [clients]);
 
+  const filteredProductRows = useMemo(() => {
+    const q = productSearch.trim().toLowerCase();
+    return q ? productRows.filter((r) => r.label.toLowerCase().includes(q)) : productRows;
+  }, [productRows, productSearch]);
+
   function openClient(client: Client) {
     setSelectedClient(client);
     setDrawerOpen(true);
@@ -471,7 +483,7 @@ export default function ClientHubPage() {
             <TabGroup
               items={[
                 { id: "customer", title: `Customer (${sorted.length})` },
-                { id: "product", title: `Product (${productSearch.trim() ? productRows.filter((r) => r.label.toLowerCase().includes(productSearch.toLowerCase())).length : productRows.length})` },
+                { id: "product", title: `Product (${filteredProductRows.length})` },
                 { id: "nine-box", title: "Nine Box" },
               ]}
               activeId={viewFilter}
@@ -509,7 +521,15 @@ export default function ClientHubPage() {
           </div>
 
           {viewFilter === "nine-box" ? (
-            <NineBoxTab clients={sorted} onSelectClient={(c) => setSelectedClient(c)} />
+            <div className="pt-4">
+            <NineBoxTab
+              clients={sorted}
+              onCellOpen={(info) => {
+                setNineBoxCell(info);
+                setNineBoxDrawerOpen(true);
+              }}
+            />
+            </div>
           ) : viewFilter === "customer" ? (
             <>
               {/* Customer Table */}
@@ -703,10 +723,7 @@ export default function ClientHubPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {(productSearch.trim()
-                    ? productRows.filter((r) => r.label.toLowerCase().includes(productSearch.toLowerCase()))
-                    : productRows
-                  ).map((row, index) => (
+                  {filteredProductRows.map((row, index) => (
                     <TableRow
                       key={row.label}
                       className="cursor-pointer"
@@ -764,7 +781,6 @@ export default function ClientHubPage() {
             <ClientDetailPanel
               client={selectedClient}
               onViewFull={() => router.push(`/client/${selectedClient.id}`)}
-              onBack={undefined}
             />
           )}
         </SheetContent>
@@ -986,7 +1002,6 @@ export default function ClientHubPage() {
                 );
               })()}
 
-
               {/* Push overlay: client detail */}
               {productPushMounted && productPushClient && (
                 <div
@@ -1009,6 +1024,108 @@ export default function ClientHubPage() {
               )}
             </div>
           )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Nine Box Cell Drawer */}
+      <Sheet
+        modal={false}
+        open={nineBoxDrawerOpen}
+        onOpenChange={(open) => {
+          setNineBoxDrawerOpen(open);
+          if (!open) {
+            setNineBoxCell(null);
+            setNineBoxPushVisible(false);
+            setTimeout(() => {
+              setNineBoxPushMounted(false);
+              setNineBoxPushClient(null);
+            }, 300);
+          }
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="w-full md:w-[55vw] md:max-w-[55vw] lg:w-[40vw] lg:max-w-[40vw] xl:w-[30vw] xl:max-w-[30vw] overflow-hidden p-0 flex flex-col"
+        >
+          {nineBoxCell && (() => {
+            const style = NINE_BOX_HEAT_STYLES[nineBoxCell.heat];
+            return (
+              <div className="flex flex-col h-full relative overflow-hidden">
+                {/* Header */}
+                <div className="px-5 py-4 border-b border-[var(--border-default)] shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`size-2.5 rounded-full shrink-0 ${style.dot}`} />
+                    <p className="type-subtitle-1 font-bold text-foreground">{nineBoxCell.label}</p>
+                  </div>
+                  <p className="type-caption text-muted-foreground mt-1 pl-[18px]">
+                    {nineBoxCell.aumLabel} AUM · {nineBoxCell.aiLabel} AI Score
+                  </p>
+                </div>
+
+                {/* Client list */}
+                <div className="flex-1 overflow-y-auto hide-scrollbar">
+                  {nineBoxCell.clients.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-16 gap-3">
+                      <div className="size-12 rounded-full bg-[var(--bg-default-secondary)] flex items-center justify-center">
+                        <UsersIcon size={24} className="text-muted-foreground" weight="duotone" />
+                      </div>
+                      <p className="type-body-2 text-muted-foreground">No clients in this segment</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2 p-4">
+                      <p className="type-caption text-muted-foreground px-1">
+                        {nineBoxCell.clients.length} client{nineBoxCell.clients.length !== 1 ? "s" : ""}
+                      </p>
+                      {nineBoxCell.clients.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg p-3 flex items-center gap-3 w-full text-left hover:bg-[var(--bg-default-secondary)] transition-colors cursor-pointer"
+                          onClick={() => {
+                            setNineBoxPushClient(c);
+                            setNineBoxPushMounted(true);
+                            requestAnimationFrame(() => setNineBoxPushVisible(true));
+                          }}
+                        >
+                          <Avatar type="text" initials={getInitials(c.name)} size="s" />
+                          <div className="flex-1 min-w-0">
+                            <p className="type-subtitle-2 font-semibold text-foreground truncate">{c.name}</p>
+                            <p className="type-caption text-muted-foreground">{c.tier} · {c.id}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="type-caption font-semibold text-foreground">{c.aum}</p>
+                            <p className="type-caption text-muted-foreground">AI {c.aiScore}</p>
+                          </div>
+                          <CaretRightIcon size={20} className="text-[var(--text-default-tertiary)] shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Push overlay: client detail */}
+                {nineBoxPushMounted && nineBoxPushClient && (
+                  <div
+                    className={`absolute inset-0 z-20 bg-white flex flex-col transition-transform duration-300 ease-out ${
+                      nineBoxPushVisible ? "translate-x-0" : "translate-x-full"
+                    }`}
+                  >
+                    <ClientDetailPanel
+                      client={nineBoxPushClient}
+                      onViewFull={() => router.push(`/client/${nineBoxPushClient.id}`)}
+                      onBack={() => {
+                        setNineBoxPushVisible(false);
+                        setTimeout(() => {
+                          setNineBoxPushMounted(false);
+                          setNineBoxPushClient(null);
+                        }, 300);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </SheetContent>
       </Sheet>
     </>

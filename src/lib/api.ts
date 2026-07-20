@@ -63,7 +63,7 @@ export async function fetchClients() {
     id: String(item.id),
     name: item.name,
     tier: item.tier,
-    aum: formatAUM(item.aum),
+    aum: typeof item.aum === "string" ? item.aum : formatAUM(item.aum),
     cashIdlePct: item.cashIdlePct,
     plYtd: String(item.plYtd),
     plPositive: !String(item.plYtd).startsWith("-"),
