@@ -50,12 +50,12 @@ const CELLS: { label: string; heat: 1 | 2 | 3 | 4 | 5 }[][] = [
   ],
 ];
 
-export const NINE_BOX_HEAT_STYLES: Record<number, { bg: string; dot: string; count: string }> = {
-  5: { bg: "bg-emerald-100 hover:bg-emerald-200/60", dot: "bg-emerald-500", count: "text-emerald-700" },
-  4: { bg: "bg-blue-100 hover:bg-blue-200/60",       dot: "bg-blue-500",    count: "text-blue-700"    },
-  3: { bg: "bg-sky-50 hover:bg-sky-100/70",          dot: "bg-sky-400",     count: "text-sky-700"     },
-  2: { bg: "bg-amber-50 hover:bg-amber-100/60",      dot: "bg-amber-400",   count: "text-amber-600"   },
-  1: { bg: "bg-gray-100 hover:bg-gray-200/60",       dot: "bg-gray-400",    count: "text-gray-500"    },
+export const NINE_BOX_HEAT_STYLES: Record<number, { bg: string; chipBg: string; dot: string; count: string }> = {
+  5: { bg: "bg-emerald-100 hover:bg-emerald-200/60", chipBg: "bg-emerald-100", dot: "bg-emerald-500", count: "text-emerald-700" },
+  4: { bg: "bg-blue-100 hover:bg-blue-200/60",       chipBg: "bg-blue-100",    dot: "bg-blue-500",    count: "text-blue-700"    },
+  3: { bg: "bg-sky-50 hover:bg-sky-100/70",          chipBg: "bg-sky-50",      dot: "bg-sky-400",     count: "text-sky-700"     },
+  2: { bg: "bg-amber-50 hover:bg-amber-100/60",      chipBg: "bg-amber-50",    dot: "bg-amber-400",   count: "text-amber-600"   },
+  1: { bg: "bg-gray-100 hover:bg-gray-200/60",       chipBg: "bg-gray-100",    dot: "bg-gray-400",    count: "text-gray-500"    },
 };
 
 const AUM_ROWS = [
@@ -75,6 +75,17 @@ export function getNineBoxCell(client: Client): { label: string; heat: 1 | 2 | 3
   const col = getAiTier(client.aiScore);
   const cell = CELLS[row][col];
   return { label: cell.label, heat: cell.heat, aumLabel: AUM_ROWS[row].label, aiLabel: AI_COLS[col].label };
+}
+
+export function NineBoxCellPill({ client }: { client: Parameters<typeof getNineBoxCell>[0] }) {
+  const cell = getNineBoxCell(client);
+  const style = NINE_BOX_HEAT_STYLES[cell.heat];
+  return (
+    <div className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 w-fit ${style.chipBg}`}>
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${style.dot}`} />
+      <span className="type-caption text-foreground">{cell.label}</span>
+    </div>
+  );
 }
 
 export type NineBoxCellInfo = {

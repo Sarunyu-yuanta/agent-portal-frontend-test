@@ -38,7 +38,9 @@ import { StatCardRow } from "@/components/ui/finance-ui";
 import { AssetSummarySection, type AssetHeroSummary } from "@/components/AssetSummarySection";
 import { ClientAssetSidebarContent, type AssetListViewMode } from "@/components/ClientAssetSidebarContent";
 import { HoldingDetailContent } from "@/components/HoldingDetailContent";
-import { NineBoxTab, NINE_BOX_HEAT_STYLES, type NineBoxCellInfo } from "./NineBoxTab";
+import { LiabilitiesDetailContent } from "@/components/LiabilitiesDetailModal";
+import type { LiabilitiesDetail } from "@/data/liabilities-details";
+import { NineBoxTab, NINE_BOX_HEAT_STYLES, getNineBoxCell, NineBoxCellPill, type NineBoxCellInfo } from "./NineBoxTab";
 import {
   getAssetAccountDetail,
   getAssetProductDetail,
@@ -148,6 +150,9 @@ function ClientDetailPanel({
   const [selectedViewMode, setSelectedViewMode] = useState<AssetListViewMode>("product");
   const [detailMounted, setDetailMounted] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
+  const [liabilitiesMounted, setLiabilitiesMounted] = useState(false);
+  const [liabilitiesVisible, setLiabilitiesVisible] = useState(false);
+  const [liabilitiesData, setLiabilitiesData] = useState<{ amount: string; detail: LiabilitiesDetail } | null>(null);
   const [callLogOpen, setCallLogOpen] = useState(false);
   const callLogs = getCallLogs(client.id);
 
@@ -156,6 +161,9 @@ function ClientDetailPanel({
     setDetailVisible(false);
     setDetailMounted(false);
     setSelectedItem(null);
+    setLiabilitiesVisible(false);
+    setLiabilitiesMounted(false);
+    setLiabilitiesData(null);
     scrollRef.current?.scrollTo({ top: 0 });
   }, [client.id]);
 
@@ -171,6 +179,20 @@ function ClientDetailPanel({
     setTimeout(() => {
       setDetailMounted(false);
       setSelectedItem(null);
+    }, 300);
+  };
+
+  const handleLiabilitiesOpen = (amount: string, detail: LiabilitiesDetail) => {
+    setLiabilitiesData({ amount, detail });
+    setLiabilitiesMounted(true);
+    requestAnimationFrame(() => setLiabilitiesVisible(true));
+  };
+
+  const handleLiabilitiesBack = () => {
+    setLiabilitiesVisible(false);
+    setTimeout(() => {
+      setLiabilitiesMounted(false);
+      setLiabilitiesData(null);
     }, 300);
   };
 
@@ -216,13 +238,16 @@ function ClientDetailPanel({
             size={compact ? "s" : "m"}
           />
           <div className="flex-1 min-w-0">
-            <p
-              className={`text-foreground leading-tight transition-all duration-300 ${
-                compact ? "type-subtitle-2 font-bold" : "type-subtitle-1"
-              }`}
-            >
-              {client.name}
-            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p
+                className={`text-foreground leading-tight transition-all duration-300 ${
+                  compact ? "type-subtitle-2 font-bold" : "type-subtitle-1"
+                }`}
+              >
+                {client.name}
+              </p>
+              {!compact && <NineBoxCellPill client={client} />}
+            </div>
             <p className="type-caption text-muted-foreground">{client.id}</p>
           </div>
           {compact ? (
@@ -295,6 +320,7 @@ function ClientDetailPanel({
           clientId={client.id}
           client={client}
           onItemClick={handleItemClick}
+          onLiabilitiesOpen={handleLiabilitiesOpen}
         />
       </div>
 
@@ -323,6 +349,37 @@ function ClientDetailPanel({
           </div>
         </div>
       )}
+
+      {/* Liabilities view — same slide-in pattern */}
+      {liabilitiesMounted && liabilitiesData && (
+        <div
+          className={`absolute inset-0 z-20 bg-white flex flex-col transition-transform duration-300 ease-out ${
+            liabilitiesVisible ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border-default)] shrink-0">
+            <button
+              type="button"
+              onClick={handleLiabilitiesBack}
+              className="flex items-center justify-center size-8 rounded-lg hover:bg-[var(--bg-default-secondary)] transition-colors text-[var(--text-default-primary)] cursor-pointer"
+              aria-label="Go back"
+            >
+              <ArrowLeftIcon size={20} />
+            </button>
+            <p className="type-subtitle-2 font-bold text-[var(--text-default-primary)] flex-1 min-w-0 truncate">
+              Liabilities
+            </p>
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar">
+            <div className="flex flex-col gap-4 p-4">
+              <LiabilitiesDetailContent
+                totalAmount={liabilitiesData.amount}
+                detail={liabilitiesData.detail}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
 
     {/* Call log modal */}
@@ -337,7 +394,7 @@ function ClientDetailPanel({
         >
           <div className="flex flex-col gap-3 min-w-[420px] max-w-[520px]">
             {callLogs.map((log: CallLogEntry) => (
-              <div key={log.id} className="flex gap-3 p-3 rounded-xl bg-[var(--bg-default-secondary)]">
+              <div key={log.id} className="flex gap-3 p-3 rounded-xl bg-[var(--bg-default-secondary)] border border-[rgba(0,0,0,0.07)]">
                 <div className="shrink-0 mt-0.5">
                   {log.direction === "outbound" ? (
                     <PhoneOutgoingIcon size={18} className="text-[var(--text-brand-primary)]" />
@@ -377,6 +434,7 @@ type SortKey =
   | "plYtd"
   | "liabilities"
   | "cashIdle"
+  | "nineBox"
   | null;
 
 function getSortValue(c: Client, key: SortKey): number | string {
@@ -387,6 +445,7 @@ function getSortValue(c: Client, key: SortKey): number | string {
     case "plYtd": { const m = c.plYtd.match(/([+-]?[\d.]+)/); return m ? parseFloat(m[1]) : 0; }
     case "liabilities": return parseAumToThb(c.aum) * LIABILITIES_MULTIPLIER;
     case "cashIdle": return parseAumToThb(c.aum) * (c.cashIdlePct / 100);
+    case "nineBox": return getNineBoxCell(c).heat;
     default: return 0;
   }
 }
@@ -630,8 +689,12 @@ export default function ClientHubPage() {
                       >
                         เงินสด (THB)
                       </TableHeaderCell>
-                      <TableHeaderCell className="w-[11%] whitespace-nowrap">
-                        AI Score
+                      <TableHeaderCell
+                        className="w-[11%] whitespace-nowrap"
+                        sortDirection={dirFor("nineBox")}
+                        onSortChange={handleSort("nineBox")}
+                      >
+                        Nine Box
                       </TableHeaderCell>
                     </TableRow>
                   </TableHead>
@@ -696,14 +759,7 @@ export default function ClientHubPage() {
                               </p>
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-[var(--bg-default-secondary)] flex items-center justify-center">
-                                  <span className="text-[13px] font-bold text-muted-foreground/40">—</span>
-                                </div>
-                                <span className="text-[11px] font-medium text-muted-foreground/50 italic leading-tight">
-                                  Coming<br />soon
-                                </span>
-                              </div>
+                              <NineBoxCellPill client={client} />
                             </TableCell>
                           </TableRow>
                         </Tooltip>

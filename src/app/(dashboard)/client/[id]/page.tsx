@@ -36,12 +36,23 @@ import {
   ArrowDownIcon,
   CurrencyCircleDollarIcon,
   WarningCircleIcon,
+  EnvelopeSimpleIcon,
+  ChatCircleIcon,
+  MapPinIcon,
+  BriefcaseIcon,
+  CakeIcon,
+  UsersThreeIcon,
+  IdentificationCardIcon,
+  ShieldCheckIcon,
 } from "@phosphor-icons/react";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { useClients, useNBAActions } from "@/hooks/use-api";
 import { useSetHeaderSlot } from "../../header-slot-context";
-import { getNineBoxCell, NINE_BOX_HEAT_STYLES } from "../../client-hub/NineBoxTab";
+import { NineBoxCellPill } from "../../client-hub/NineBoxTab";
 import { getCallLogs, relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
+import { getClientProfile } from "@/data/client-profiles";
+import { LiabilitiesDetailModal } from "@/components/LiabilitiesDetailModal";
+import type { LiabilitiesDetail } from "@/data/liabilities-details";
 
 const clientDetailById = Object.fromEntries(
   mockClients.map((c) => [c.id, mockClientDetails[c.id]])
@@ -112,13 +123,14 @@ export default function ClientPage({
     client.tier === "UHNW" ? ("blue" as const) : ("gray" as const);
 
   // Nine Box cell for this client
-  const nineBoxCell = getNineBoxCell(client);
-  const nineBoxStyle = NINE_BOX_HEAT_STYLES[nineBoxCell.heat];
 
   // NBA action for this client (provides aiDraft + revenueImpact for AI cards)
   const nbaAction = nbaActions.find((a) => a.clientId === client.id);
   const [callLogOpen, setCallLogOpen] = useState(false);
   const callLogs = getCallLogs(client.id);
+  const profile = getClientProfile(client.id);
+  const [liabilitiesOpen, setLiabilitiesOpen] = useState(false);
+  const [liabilitiesData, setLiabilitiesData] = useState<{ amount: string; detail: LiabilitiesDetail } | null>(null);
 
   const setHeaderSlot = useSetHeaderSlot();
 
@@ -165,15 +177,14 @@ export default function ClientPage({
                 {/* Name + Tier + Status pill */}
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <h4 className="type-h4 text-foreground leading-none">{client.name}</h4>
-                  <div className="flex items-center gap-1.5 border border-border rounded-full px-2 py-0.5 bg-background">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${nineBoxStyle.dot}`} />
-                    <span className="type-caption text-foreground">{nineBoxCell.label}</span>
-                  </div>
+                  <NineBoxCellPill client={client} />
                 </div>
                 {/* Metadata — collapses when scrolled */}
                 <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${scrolled ? "grid-rows-[0fr]" : "grid-rows-[1fr]"}`}>
                   <div className="overflow-hidden min-h-0">
-                    <div className="flex items-center gap-5 mt-0.5">
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="type-caption text-muted-foreground">{client.id}</span>
+                      <span className="type-caption text-muted-foreground/40">·</span>
                       <span className="type-caption text-muted-foreground">Last Contact: {lastContactFromCallLogs(callLogs)}</span>
                     </div>
                   </div>
@@ -186,6 +197,28 @@ export default function ClientPage({
               <Button variant="outline" size="sm" leftIcon={<PhoneIcon size={16} />} onClick={() => setCallLogOpen(true)}>Call log</Button>
               <Button variant="outline" size="sm" leftIcon={<PencilSimpleIcon size={16} />}>Notes</Button>
               <Button variant="outline" size="sm" leftIcon={<CalendarCheckIcon size={16} />}>Reminder</Button>
+            </div>
+
+            {/* Quick contact — collapses on scroll */}
+            <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${scrolled ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"}`}>
+              <div className="overflow-hidden min-h-0">
+                <div className="flex items-center gap-4 pt-1">
+                  <a href={`tel:${profile.phone}`} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
+                    <PhoneIcon size={13} />
+                    <span className="type-caption">{profile.phone}</span>
+                  </a>
+                  <a href={`mailto:${profile.email}`} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
+                    <EnvelopeSimpleIcon size={13} />
+                    <span className="type-caption">{profile.email}</span>
+                  </a>
+                  {profile.lineId && (
+                    <span className="flex items-center gap-1.5 text-muted-foreground">
+                      <ChatCircleIcon size={13} />
+                      <span className="type-caption">{profile.lineId}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -218,6 +251,7 @@ export default function ClientPage({
           <TabGroup
             items={[
               { id: "overview", title: "Overview" },
+              { id: "profile", title: "Profile" },
               { id: "assets", title: "Assets" },
             ]}
             activeId={activeTab}
@@ -228,9 +262,106 @@ export default function ClientPage({
       </div>
 
       {/* ── Body content ── */}
-      {activeTab === "assets" ? (
+      {activeTab === "profile" ? (
+        <div className="pt-10 max-w-3xl mx-auto w-full">
+
+          {/* ── Single profile card ── */}
+          <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+
+            {/* Avatar + name + info columns */}
+            <div className="flex items-start gap-6 p-6 pb-5">
+              <Avatar type="text" initials={getInitials(client.name)} size="xxl" />
+              <div className="flex flex-col gap-3 flex-1 min-w-0 pt-1">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <p className="type-h4 font-bold text-foreground leading-tight">{client.name}</p>
+                  <NineBoxCellPill client={client} />
+                </div>
+              </div>
+            </div>
+
+            {/* Stat tiles row */}
+            <div className="grid grid-cols-4 border-t border-blue-100 divide-x divide-blue-100 bg-blue-50">
+              {[
+                { icon: <CurrencyCircleDollarIcon size={22} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Total AUM", value: client.aum },
+                { icon: <IdentificationCardIcon size={22} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Client ID", value: client.id },
+                { icon: <CalendarCheckIcon size={22} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Client Since", value: profile.relationshipSince },
+                { icon: <ShieldCheckIcon size={22} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Risk Profile", value: profile.riskProfile },
+              ].map(({ icon, label, value }) => (
+                <div key={label} className="flex items-center gap-3 px-5 py-4">
+                  <div className="flex items-center justify-center shrink-0">{icon}</div>
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <p className="type-body-2 font-bold text-foreground truncate">{value}</p>
+                    <p className="type-caption text-[var(--text-brand-primary)]">{label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Detail sections */}
+            <div className="grid grid-cols-2 divide-x divide-border border-t border-border">
+
+              {/* Personal */}
+              <div className="p-5 flex flex-col gap-3">
+                <p className="type-caption font-bold text-muted-foreground uppercase tracking-widest">Personal</p>
+                <div className="flex flex-col gap-2">
+                  {[
+                    { icon: <CakeIcon size={14} weight="fill" />, label: "Birthday", value: profile.birthday },
+                    { icon: <CakeIcon size={14} weight="fill" />, label: "Age", value: `${profile.age} years old` },
+                    { icon: <UsersThreeIcon size={14} weight="fill" />, label: "Nationality", value: profile.nationality },
+                  ].map(({ icon, label, value }) => (
+                    <div key={label} className="flex flex-col gap-0.5 rounded-xl bg-[var(--bg-default-secondary)] px-3 py-2.5">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        {icon}
+                        <p className="type-caption">{label}</p>
+                      </div>
+                      <p className="type-body-2 font-semibold text-foreground pl-[22px]">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div className="p-5 flex flex-col gap-3">
+                <p className="type-caption font-bold text-muted-foreground uppercase tracking-widest">Contact</p>
+                <div className="flex flex-col gap-2">
+                  {[
+                    { icon: <PhoneIcon size={14} weight="fill" />, label: "Phone", value: profile.phone, href: `tel:${profile.phone}` },
+                    { icon: <EnvelopeSimpleIcon size={14} weight="fill" />, label: "Email", value: profile.email, href: `mailto:${profile.email}` },
+                    ...(profile.lineId ? [{ icon: <ChatCircleIcon size={14} weight="fill" />, label: "LINE", value: profile.lineId, href: undefined }] : []),
+                    { icon: <MapPinIcon size={14} weight="fill" />, label: "Address", value: profile.address, href: undefined },
+                  ].map(({ icon, label, value, href }) => (
+                    <div key={label} className="flex flex-col gap-0.5 rounded-xl bg-[var(--bg-default-secondary)] px-3 py-2.5">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        {icon}
+                        <p className="type-caption">{label}</p>
+                      </div>
+                      {href ? (
+                        <a href={href} className="type-body-2 font-semibold text-foreground hover:text-primary-action transition-colors pl-[22px] truncate">{value}</a>
+                      ) : (
+                        <p className="type-body-2 font-semibold text-foreground pl-[22px] leading-snug">{value}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+
+            </div>
+
+          </div>
+
+        </div>
+      ) : activeTab === "assets" ? (
         <div className="pt-8">
-          <ClientAssetSidebarContent clientId={client.id} client={client} accordionCards />
+          <ClientAssetSidebarContent
+            clientId={client.id}
+            client={client}
+            accordionCards
+            onLiabilitiesOpen={(amount, detail) => {
+              setLiabilitiesData({ amount, detail });
+              setLiabilitiesOpen(true);
+            }}
+          />
         </div>
       ) : (
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start pt-8">
@@ -530,7 +661,7 @@ export default function ClientPage({
           >
             <div className="flex flex-col gap-3 min-w-[420px] max-w-[520px]">
               {callLogs.map((log: CallLogEntry) => (
-                <div key={log.id} className="flex gap-3 p-3 rounded-xl bg-[var(--bg-default-secondary)]">
+                <div key={log.id} className="flex gap-3 p-3 rounded-xl bg-[var(--bg-default-secondary)] border border-[rgba(0,0,0,0.07)]">
                   <div className="shrink-0 mt-0.5">
                     {log.direction === "outbound" ? (
                       <PhoneOutgoingIcon size={18} className="text-[var(--text-brand-primary)]" />
@@ -554,6 +685,15 @@ export default function ClientPage({
             </div>
           </Modal>
         </div>
+      )}
+
+      {liabilitiesData && (
+        <LiabilitiesDetailModal
+          open={liabilitiesOpen}
+          totalAmount={liabilitiesData.amount}
+          detail={liabilitiesData.detail}
+          onClose={() => setLiabilitiesOpen(false)}
+        />
       )}
     </div>
   );

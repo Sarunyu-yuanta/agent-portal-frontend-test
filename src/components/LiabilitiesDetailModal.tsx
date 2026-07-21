@@ -146,6 +146,67 @@ function LiabilityCategoryCard({
   );
 }
 
+export function LiabilitiesDetailContent({
+  totalAmount,
+  detail,
+}: {
+  totalAmount: string;
+  detail: LiabilitiesDetail;
+}) {
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(["debt"]));
+  const allExpanded = detail.categories.length > 0 && detail.categories.every((c) => expandedIds.has(c.id));
+
+  const toggleId = (id: string) =>
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+
+  const handleExpandCollapseAll = () =>
+    setExpandedIds(allExpanded ? new Set() : new Set(detail.categories.map((c) => c.id)));
+
+  return (
+    <div className="flex flex-col gap-4 w-full">
+      <div className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg p-4 w-full">
+        <div className="flex gap-3 items-center w-full">
+          <LiabilitiesDonutChart categories={detail.categories} />
+          <div className="flex flex-1 flex-col items-start justify-center min-w-0">
+            {detail.categories.map((category) => (
+              <LiabilitiesLegendItem key={category.id} category={category} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 w-full">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleExpandCollapseAll}
+            className="type-caption text-primary-action font-medium hover:underline cursor-pointer"
+          >
+            {allExpanded ? "Collapse All" : "Expand All"}
+          </button>
+        </div>
+        {detail.categories.map((category) => (
+          <LiabilityCategoryCard
+            key={category.id}
+            category={category}
+            totalAmount={totalAmount}
+            expanded={expandedIds.has(category.id)}
+            onToggle={() => toggleId(category.id)}
+          />
+        ))}
+      </div>
+
+      <p className="type-caption text-[var(--text-default-tertiary)] leading-4 text-center w-full">
+        อัปเดตล่าสุด {detail.lastUpdated}
+      </p>
+    </div>
+  );
+}
+
 export function LiabilitiesDetailModal({
   open,
   totalAmount,
@@ -157,12 +218,7 @@ export function LiabilitiesDetailModal({
   detail: LiabilitiesDetail;
   onClose: () => void;
 }) {
-  const [expandedId, setExpandedId] = useState<string>("debt");
   const isMobile = useIsMobile();
-
-  const handleToggle = (id: string) => {
-    setExpandedId((prev) => (prev === id ? "" : id));
-  };
 
   return (
     <ResponsiveBottomSheetModal
@@ -175,35 +231,7 @@ export function LiabilitiesDetailModal({
     >
       <div className="flex-1 min-h-0 overflow-y-auto pt-4 pb-6">
         <div className={`flex flex-col gap-6 ${isMobile ? "px-2" : "px-6"}`}>
-          <div className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg p-4 w-full">
-            <div className="flex gap-3 items-center w-full">
-              <LiabilitiesDonutChart categories={detail.categories} />
-              <div className="flex flex-1 flex-col items-start justify-center min-w-0">
-                {detail.categories.map((category) => (
-                  <LiabilitiesLegendItem
-                    key={category.id}
-                    category={category}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 w-full">
-            {detail.categories.map((category) => (
-              <LiabilityCategoryCard
-                key={category.id}
-                category={category}
-                totalAmount={totalAmount}
-                expanded={expandedId === category.id}
-                onToggle={() => handleToggle(category.id)}
-              />
-            ))}
-          </div>
-
-          <p className="type-caption text-[var(--text-default-tertiary)] leading-4 text-center w-full">
-            อัปเดตล่าสุด {detail.lastUpdated}
-          </p>
+          <LiabilitiesDetailContent totalAmount={totalAmount} detail={detail} />
         </div>
       </div>
     </ResponsiveBottomSheetModal>

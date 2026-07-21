@@ -14,7 +14,6 @@ import {
   type AssetAllocationSlice,
   type AssetHeroSummary,
 } from "@/components/AssetSummarySection";
-import { LiabilitiesDetailModal } from "@/components/LiabilitiesDetailModal";
 import {
   DEFAULT_ASSET_ACCOUNTS,
   getAssetAccountDetail,
@@ -304,6 +303,7 @@ export function ClientAssetSidebarContent({
   assetAccounts = DEFAULT_ASSET_ACCOUNTS,
   accordionCards,
   onItemClick,
+  onLiabilitiesOpen,
 }: {
   clientId: string;
   client: ClientSummaryInput;
@@ -313,9 +313,9 @@ export function ClientAssetSidebarContent({
   assetAccounts?: AssetAccountItem[];
   accordionCards?: boolean;
   onItemClick?: (item: AssetAccountItem, viewMode: AssetListViewMode) => void;
+  onLiabilitiesOpen?: (amount: string, detail: ReturnType<typeof getLiabilitiesDetail>) => void;
 }) {
   const [viewMode, setViewMode] = useState<AssetListViewMode>("product");
-  const [liabilitiesOpen, setLiabilitiesOpen] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const detail = mockClientDetails[clientId];
   const summary =
@@ -371,7 +371,7 @@ export function ClientAssetSidebarContent({
             <HeroCard summary={summary} />
             <LiabilitiesBar
               amount={liabilitiesAmount}
-              onClick={() => setLiabilitiesOpen(true)}
+              onClick={() => onLiabilitiesOpen?.(liabilitiesAmount, liabilitiesDetail)}
             />
             <LastUpdated summary={summary} />
           </div>
@@ -412,12 +412,6 @@ export function ClientAssetSidebarContent({
         </div>
       </div>
 
-      <LiabilitiesDetailModal
-        open={liabilitiesOpen}
-        totalAmount={liabilitiesAmount}
-        detail={liabilitiesDetail}
-        onClose={() => setLiabilitiesOpen(false)}
-      />
     </>
   );
 }
