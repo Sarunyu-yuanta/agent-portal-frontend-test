@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { type ReactNode, use, useState, useEffect, useRef } from "react";
 import {
   Avatar,
   Tag,
@@ -12,7 +12,6 @@ import {
   TableRow,
   TableHeaderCell,
   TableCell,
-  Checkbox,
   List,
   ListItem,
   TabGroup,
@@ -23,13 +22,11 @@ import {
   PhoneIcon,
   PhoneIncomingIcon,
   PhoneOutgoingIcon,
-  DownloadSimpleIcon,
   SparkleIcon,
   FileTextIcon,
   ArrowsClockwiseIcon,
   ArrowsLeftRightIcon,
   PresentationChartIcon,
-  PlusIcon,
   CalendarCheckIcon,
   PencilSimpleIcon,
   ArrowUpIcon,
@@ -39,11 +36,16 @@ import {
   EnvelopeSimpleIcon,
   ChatCircleIcon,
   MapPinIcon,
-  BriefcaseIcon,
   CakeIcon,
   UsersThreeIcon,
   IdentificationCardIcon,
   ShieldCheckIcon,
+  HourglassIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  WarningIcon,
+  AlarmIcon,
+  FilesIcon,
 } from "@phosphor-icons/react";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { useClients, useNBAActions } from "@/hooks/use-api";
@@ -57,6 +59,10 @@ import type { LiabilitiesDetail } from "@/data/liabilities-details";
 const clientDetailById = Object.fromEntries(
   mockClients.map((c) => [c.id, mockClientDetails[c.id]])
 );
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const ALLOCATION_COLORS = ['#f59e0b','#3b82f6','#10b981','#8b5cf6','#06b6d4','#6366f1','#f97316','#ec4899'] as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -92,6 +98,165 @@ function lastContactFromCallLogs(logs: CallLogEntry[]): string {
 
 type SortDir = "none" | "asc" | "desc";
 
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function CurrentAllocationSection({ slices }: { slices: { label: string; percent: number }[] }) {
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Stacked bar */}
+      <div className="flex h-4 rounded-full overflow-hidden">
+        {slices.map((s, i) => (
+          <div key={s.label} style={{ width: `${s.percent}%`, backgroundColor: ALLOCATION_COLORS[i] }} />
+        ))}
+      </div>
+      {/* KPI tiles */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        {slices.map((s, i) => (
+          <div key={s.label} className="flex flex-col gap-1 rounded-xl p-3 bg-[var(--bg-default-secondary)]">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ALLOCATION_COLORS[i] }} />
+              <p className="text-[11px] font-semibold text-muted-foreground truncate">{s.label}</p>
+            </div>
+            <p className="type-subtitle-1 font-bold leading-none text-foreground">{s.percent}%</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TopHoldingsSection({
+  holdings,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  holdings: { asset: string; value: string; pnl: string; pnlPct: string; pct: string; positive: boolean }[];
+  sortKey: "value" | "pnlPct" | "pct" | null;
+  sortDir: SortDir;
+  onSort: (key: "value" | "pnlPct" | "pct", dir: SortDir) => void;
+}) {
+  const parseVal = (s: string) => parseFloat(s.replace(/[฿%+,M\s]/g, "")) || 0;
+  const sorted = [...holdings].sort((a, b) => {
+    if (!sortKey || sortDir === "none") return 0;
+    const field = sortKey === "value" ? "value" : sortKey === "pnlPct" ? "pnlPct" : "pct";
+    const diff = parseVal(a[field]) - parseVal(b[field]);
+    return sortDir === "asc" ? diff : -diff;
+  });
+  return (
+    <Table>
+      <colgroup>
+        <col />
+        <col style={{ width: "1px" }} />
+        <col style={{ width: "1px" }} />
+        <col style={{ width: "1px" }} />
+      </colgroup>
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell sortable={false} className="min-w-0 max-w-[160px]">Asset</TableHeaderCell>
+          <TableHeaderCell
+            className="min-w-0 whitespace-nowrap"
+            sortDirection={sortKey === "value" ? sortDir : "none"}
+            onSortChange={(d) => onSort("value", d)}
+          >Market Value</TableHeaderCell>
+          <TableHeaderCell
+            className="min-w-0 whitespace-nowrap"
+            sortDirection={sortKey === "pnlPct" ? sortDir : "none"}
+            onSortChange={(d) => onSort("pnlPct", d)}
+          >Unrealized P&L</TableHeaderCell>
+          <TableHeaderCell
+            className="min-w-0 whitespace-nowrap"
+            sortDirection={sortKey === "pct" ? sortDir : "none"}
+            onSortChange={(d) => onSort("pct", d)}
+          >% Portfolio</TableHeaderCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {sorted.map((h) => (
+          <TableRow key={h.asset}>
+            <TableCell className="min-w-0 max-w-[160px]"><span className="type-body-2 text-foreground font-medium truncate block">{h.asset}</span></TableCell>
+            <TableCell className="min-w-0 whitespace-nowrap"><span className="type-body-2 text-foreground">{h.value}</span></TableCell>
+            <TableCell className="min-w-0 whitespace-nowrap">
+              <div className="flex flex-col">
+                <span className={`type-body-2 font-medium ${h.positive ? "text-success" : "text-destructive"}`}>{h.pnl}</span>
+                <span className={`type-caption ${h.positive ? "text-success" : "text-destructive"}`}>{h.pnlPct}</span>
+              </div>
+            </TableCell>
+            <TableCell className="min-w-0 whitespace-nowrap"><span className="type-body-2 text-foreground">{h.pct}</span></TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function CallLogModal({
+  open,
+  client,
+  callLogs,
+  onClose,
+}: {
+  open: boolean;
+  client: { name: string };
+  callLogs: CallLogEntry[];
+  onClose: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+      <Modal
+        variant="content"
+        actionLayout="none"
+        title={`Call log — ${client.name}`}
+        onClose={onClose}
+      >
+        <div className="flex flex-col gap-3 min-w-[420px] max-w-[520px]">
+          {callLogs.map((log: CallLogEntry) => (
+            <div key={log.id} className="flex gap-3 p-3 rounded-xl bg-[var(--bg-default-secondary)] border border-[rgba(0,0,0,0.07)]">
+              <div className="shrink-0 mt-0.5">
+                {log.direction === "outbound" ? (
+                  <PhoneOutgoingIcon size={18} className="text-[var(--text-brand-primary)]" />
+                ) : (
+                  <PhoneIncomingIcon size={18} className="text-[var(--icon-success)]" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="type-caption font-semibold text-foreground">{log.date} · {log.time}</span>
+                  <span className="type-caption font-medium text-[var(--text-brand-primary)] shrink-0">{relativeCallDate(log.date)}</span>
+                </div>
+                <p className="type-caption text-foreground leading-relaxed">{log.summary}</p>
+                <p className="type-caption text-muted-foreground mt-1">{log.duration}</p>
+              </div>
+            </div>
+          ))}
+          {callLogs.length === 0 && (
+            <p className="type-body-2 text-muted-foreground text-center py-6">No call history yet.</p>
+          )}
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+function EmptyTabState({
+  icon,
+  title,
+  body,
+}: {
+  icon: ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 pt-24 pb-16 text-center">
+      {icon}
+      <p className="type-subtitle-1 font-semibold text-[var(--text-default-secondary)]">{title}</p>
+      <p className="type-body-2 text-[var(--text-default-tertiary)] max-w-xs">{body}</p>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ClientPage({
@@ -118,10 +283,6 @@ export default function ClientPage({
     "value" | "pnlPct" | "pct" | null
   >(null);
 
-  // Tier tag variant
-  const tierVariant =
-    client.tier === "UHNW" ? ("blue" as const) : ("gray" as const);
-
   // Nine Box cell for this client
 
   // NBA action for this client (provides aiDraft + revenueImpact for AI cards)
@@ -136,21 +297,33 @@ export default function ClientPage({
 
   // Compact sticky header on scroll
   const [scrolled, setScrolled] = useState(false);
+  const collapsedRef = useRef(false);
+
   useEffect(() => {
     const main = document.querySelector("main");
     if (!main) return;
     const onScroll = () => {
       const top = main.scrollTop;
-      setScrolled((prev) => {
-        if (prev && top <= 4) return false;   // expand only when back near top
-        if (!prev && top > 12) return true;   // collapse after 12px — dead zone prevents jitter
-        return prev;
-      });
+      const remaining = main.scrollHeight - main.clientHeight - top;
+      if (!collapsedRef.current && top > 50 && remaining > 100) {
+        collapsedRef.current = true;
+        setScrolled(true);
+      } else if (collapsedRef.current && top <= 8) {
+        collapsedRef.current = false;
+        setScrolled(false);
+      }
     };
-    onScroll();
     main.addEventListener("scroll", onScroll, { passive: true });
     return () => main.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Reset header + scroll position on tab change
+  useEffect(() => {
+    collapsedRef.current = false;
+    setScrolled(false);
+    const main = document.querySelector("main");
+    if (main) main.scrollTop = 0;
+  }, [activeTab]);
 
   useEffect(() => {
     setHeaderSlot(null);
@@ -159,44 +332,49 @@ export default function ClientPage({
 
   return (
     <div className="flex flex-col -mt-6">
-      {/* Sticky Identity + KPI bar */}
-      <div className="sticky -top-6 z-20 -mx-[9999px] px-[9999px] bg-card border-b border-border">
-        <div className={`flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 lg:gap-8 transition-[padding] duration-300 ease-out ${scrolled ? "py-3" : "py-5"}`}>
+      {/* Sticky Identity + KPI bar + Tabs */}
+      <div className="sticky -top-6 z-20 -mx-[9999px] px-[9999px] bg-card">
+        <div className={`flex flex-wrap md:flex-nowrap items-center justify-between gap-4 lg:gap-8 transition-[padding] duration-300 ease-out ${scrolled ? "py-3" : "py-5"}`}>
 
           {/* Left: identity + actions */}
-          <div className="flex flex-col gap-4">
+          <div className={`flex flex-col ${scrolled ? "justify-center" : "gap-4"}`}>
 
-            {/* Avatar + identity */}
-            <div className={`flex gap-4 ${scrolled ? "items-center" : "items-start"}`}>
-              {!scrolled && (
-                <div className="shrink-0">
-                  <Avatar type="text" initials={getInitials(client.name)} size="xxl" />
-                </div>
-              )}
-              <div className="flex flex-col">
-                {/* Name + Tier + Status pill */}
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <h4 className="type-h4 text-foreground leading-none">{client.name}</h4>
-                  <NineBoxCellPill client={client} />
-                </div>
-                {/* Metadata — collapses when scrolled */}
-                <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${scrolled ? "grid-rows-[0fr]" : "grid-rows-[1fr]"}`}>
-                  <div className="overflow-hidden min-h-0">
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="type-caption text-muted-foreground">{client.id}</span>
-                      <span className="type-caption text-muted-foreground/40">·</span>
-                      <span className="type-caption text-muted-foreground">Last Contact: {lastContactFromCallLogs(callLogs)}</span>
+            {/* Avatar + identity + actions (actions move inline when scrolled on desktop) */}
+            <div className={`flex flex-col ${scrolled ? "gap-2 lg:flex-row lg:items-center lg:gap-4" : "gap-4"}`}>
+
+              {/* Avatar + identity */}
+              <div className={`flex gap-4 ${scrolled ? "items-center" : "items-start"}`}>
+                {!scrolled && (
+                  <div className="shrink-0">
+                    <Avatar type="text" initials={getInitials(client.name)} size="xxl" />
+                  </div>
+                )}
+                <div className="flex flex-col">
+                  {/* Name + Tier + Status pill */}
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h4 className="type-h4 text-foreground leading-none">{client.name}</h4>
+                    <NineBoxCellPill client={client} />
+                  </div>
+                  {/* Metadata — collapses when scrolled */}
+                  <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${scrolled ? "grid-rows-[0fr]" : "grid-rows-[1fr]"}`}>
+                    <div className="overflow-hidden min-h-0">
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="type-caption text-muted-foreground">{client.id}</span>
+                        <span className="type-caption text-muted-foreground/40">·</span>
+                        <span className="type-caption text-muted-foreground">Last Contact: {lastContactFromCallLogs(callLogs)}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Action buttons */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button variant="outline" size="sm" leftIcon={<PhoneIcon size={16} />} onClick={() => setCallLogOpen(true)}>Call log</Button>
-              <Button variant="outline" size="sm" leftIcon={<PencilSimpleIcon size={16} />}>Notes</Button>
-              <Button variant="outline" size="sm" leftIcon={<CalendarCheckIcon size={16} />}>Reminder</Button>
+              {/* Action buttons */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button variant="outline" size="sm" leftIcon={<PhoneIcon size={16} />} onClick={() => setCallLogOpen(true)}>Call log</Button>
+                <Button variant="outline" size="sm" leftIcon={<PencilSimpleIcon size={16} />}>Notes</Button>
+                <Button variant="outline" size="sm" leftIcon={<CalendarCheckIcon size={16} />}>Reminder</Button>
+              </div>
+
             </div>
 
             {/* Quick contact — collapses on scroll */}
@@ -222,8 +400,8 @@ export default function ClientPage({
             </div>
           </div>
 
-          {/* Right: KPIs — fade between sizes */}
-          <div className="flex items-center shrink-0 w-full lg:w-auto">
+          {/* Right: KPIs — fade between sizes, hide on mobile when scrolled */}
+          <div className={`flex items-center shrink-0 w-full md:w-auto ${scrolled ? "hidden sm:flex" : ""}`}>
             <div className="flex flex-col items-end gap-1 pr-8">
               <p className="type-caption text-muted-foreground">Total AUM</p>
               <p className={`text-foreground transition-opacity duration-150 ${scrolled ? "type-subtitle-1" : "type-h3"}`}>{client.aum}</p>
@@ -243,16 +421,17 @@ export default function ClientPage({
           </div>
 
         </div>
-      </div>
 
-      {/* ── Tab navigation ── */}
-      <div className="pt-6 -mx-[9999px] px-[9999px]">
-        <div className="transparent-tabs">
+        {/* ── Tab navigation ── */}
+        <div className="transparent-tabs scrollable-tabs -mx-4 xl:-mx-6 pl-4 xl:pl-6">
           <TabGroup
             items={[
               { id: "overview", title: "Overview" },
               { id: "profile", title: "Profile" },
               { id: "assets", title: "Assets" },
+              { id: "forms", title: "Important Form" },
+              { id: "notes", title: "Notes" },
+              { id: "reminder", title: "Reminder" },
             ]}
             activeId={activeTab}
             onChange={setActiveTab}
@@ -268,29 +447,18 @@ export default function ClientPage({
           {/* ── Single profile card ── */}
           <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
 
-            {/* Avatar + name + info columns */}
-            <div className="flex items-start gap-6 p-6 pb-5">
-              <Avatar type="text" initials={getInitials(client.name)} size="xxl" />
-              <div className="flex flex-col gap-3 flex-1 min-w-0 pt-1">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <p className="type-h4 font-bold text-foreground leading-tight">{client.name}</p>
-                  <NineBoxCellPill client={client} />
-                </div>
-              </div>
-            </div>
-
             {/* Stat tiles row */}
-            <div className="grid grid-cols-4 border-t border-blue-100 divide-x divide-blue-100 bg-blue-50">
+            <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-blue-100 divide-x divide-y divide-blue-100 sm:divide-y-0 bg-blue-50">
               {[
                 { icon: <CurrencyCircleDollarIcon size={22} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Total AUM", value: client.aum },
                 { icon: <IdentificationCardIcon size={22} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Client ID", value: client.id },
-                { icon: <CalendarCheckIcon size={22} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Client Since", value: profile.relationshipSince },
+                { icon: <CalendarCheckIcon size={22} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Account Opened", value: profile.relationshipSince },
                 { icon: <ShieldCheckIcon size={22} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Risk Profile", value: profile.riskProfile },
               ].map(({ icon, label, value }) => (
-                <div key={label} className="flex items-center gap-3 px-5 py-4">
+                <div key={label} className="flex items-center gap-3 px-3 sm:px-5 py-4">
                   <div className="flex items-center justify-center shrink-0">{icon}</div>
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <p className="type-body-2 font-bold text-foreground truncate">{value}</p>
+                    <p className="type-body-2 !font-semibold text-foreground truncate">{value}</p>
                     <p className="type-caption text-[var(--text-brand-primary)]">{label}</p>
                   </div>
                 </div>
@@ -298,48 +466,52 @@ export default function ClientPage({
             </div>
 
             {/* Detail sections */}
-            <div className="grid grid-cols-2 divide-x divide-border border-t border-border">
+            <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border border-t border-border">
 
               {/* Personal */}
-              <div className="p-5 flex flex-col gap-3">
+              <div className="p-6 flex flex-col gap-4">
                 <p className="type-caption font-bold text-muted-foreground uppercase tracking-widest">Personal</p>
                 <div className="flex flex-col gap-2">
                   {[
-                    { icon: <CakeIcon size={14} weight="fill" />, label: "Birthday", value: profile.birthday },
-                    { icon: <CakeIcon size={14} weight="fill" />, label: "Age", value: `${profile.age} years old` },
-                    { icon: <UsersThreeIcon size={14} weight="fill" />, label: "Nationality", value: profile.nationality },
+                    { icon: <CakeIcon size={16} weight="fill" />, label: "Birthday", value: profile.birthday },
+                    { icon: <HourglassIcon size={16} weight="fill" />, label: "Age", value: `${profile.age} years old` },
+                    { icon: <UsersThreeIcon size={16} weight="fill" />, label: "Nationality", value: profile.nationality },
                   ].map(({ icon, label, value }) => (
-                    <div key={label} className="flex flex-col gap-0.5 rounded-xl bg-[var(--bg-default-secondary)] px-3 py-2.5">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <div key={label} className="flex items-center gap-3 rounded-xl bg-[var(--bg-default-secondary)] px-3 py-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
                         {icon}
-                        <p className="type-caption">{label}</p>
                       </div>
-                      <p className="type-body-2 font-semibold text-foreground pl-[22px]">{value}</p>
+                      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                        <p className="type-caption text-muted-foreground">{label}</p>
+                        <p className="type-body-2 !font-semibold text-foreground">{value}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Contact */}
-              <div className="p-5 flex flex-col gap-3">
+              <div className="p-6 flex flex-col gap-4">
                 <p className="type-caption font-bold text-muted-foreground uppercase tracking-widest">Contact</p>
                 <div className="flex flex-col gap-2">
                   {[
-                    { icon: <PhoneIcon size={14} weight="fill" />, label: "Phone", value: profile.phone, href: `tel:${profile.phone}` },
-                    { icon: <EnvelopeSimpleIcon size={14} weight="fill" />, label: "Email", value: profile.email, href: `mailto:${profile.email}` },
-                    ...(profile.lineId ? [{ icon: <ChatCircleIcon size={14} weight="fill" />, label: "LINE", value: profile.lineId, href: undefined }] : []),
-                    { icon: <MapPinIcon size={14} weight="fill" />, label: "Address", value: profile.address, href: undefined },
+                    { icon: <PhoneIcon size={16} weight="fill" />, label: "Phone", value: profile.phone, href: `tel:${profile.phone}` },
+                    { icon: <EnvelopeSimpleIcon size={16} weight="fill" />, label: "Email", value: profile.email, href: `mailto:${profile.email}` },
+                    ...(profile.lineId ? [{ icon: <ChatCircleIcon size={16} weight="fill" />, label: "LINE", value: profile.lineId, href: undefined }] : []),
+                    { icon: <MapPinIcon size={16} weight="fill" />, label: "Address", value: profile.address, href: undefined },
                   ].map(({ icon, label, value, href }) => (
-                    <div key={label} className="flex flex-col gap-0.5 rounded-xl bg-[var(--bg-default-secondary)] px-3 py-2.5">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <div key={label} className="flex items-start gap-3 rounded-xl bg-[var(--bg-default-secondary)] px-3 py-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 shrink-0 mt-0.5">
                         {icon}
-                        <p className="type-caption">{label}</p>
                       </div>
-                      {href ? (
-                        <a href={href} className="type-body-2 font-semibold text-foreground hover:text-primary-action transition-colors pl-[22px] truncate">{value}</a>
-                      ) : (
-                        <p className="type-body-2 font-semibold text-foreground pl-[22px] leading-snug">{value}</p>
-                      )}
+                      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                        <p className="type-caption text-muted-foreground">{label}</p>
+                        {href ? (
+                          <a href={href} className="type-body-2 !font-semibold text-foreground hover:text-primary-action transition-colors truncate">{value}</a>
+                        ) : (
+                          <p className="type-body-2 !font-semibold text-foreground leading-snug">{value}</p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -350,6 +522,53 @@ export default function ClientPage({
 
           </div>
 
+        </div>
+      ) : activeTab === "forms" ? (
+
+        <div className="pt-8 max-w-[994px] mx-auto w-full">
+          {/* Body: padding 32px 56px, rounded-xl, white bg, box-shadow per Figma */}
+          <div className="rounded-xl bg-white shadow-[0px_0px_8px_0px_rgba(0,0,0,0.02)] py-8 px-4 sm:px-14 mb-8">
+            {/* Form Card: 2 columns grid, gap 16px */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { title: "Wealth Declaration", description: "แบบแจ้งการเป็นผู้ลงทุนรายใหญ่ / รายใหญ่พิเศษ / ที่มีลักษณะเฉพาะ", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "done" as const },
+                  { title: "FATCA and CRS", description: "แบบแจ้งความเป็นบุคคลอเมริกัน และผู้มีถิ่นที่อยู่ทางภาษีในประเทศอื่น", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "pending" as const },
+                  { title: "W-8Ben", description: "แบบฟอร์มภาษีของกรมสรรพากรแห่งสหรัฐอเมริกา", date: "อัปเดตล่าสุด: 24 Jul 2024", status: null },
+                  { title: "แบบประเมินความรู้ความสามารถในการลงทุน (Knowledge Assessment)", description: "สำหรับการลงทุนในผลิตภัณฑ์ในตลาดทุนที่มีความเสี่ยงสูงหรือมีความซับซ้อน (สำหรับบัญชีกองทุน, TFEX และการจองซื้อ/ซื้อขายตราสารหนี้)", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "not-done" as const },
+                  { title: "แบบทดสอบความรู้ผู้ลงทุน เกี่ยวกับตราสารหนี้", description: "สำหรับการจองซื้อ/ซื้อขายตราสารหนี้ (Perpetual Bond)", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "not-done" as const },
+                  { title: "แบบประเมินความเหมาะสมในการลงทุน (Suitability Test)", description: "ประเมินระดับความสามารถในการรับความเสี่ยงจากการลงทุน เพื่อหาประเภทหลักทรัพย์ที่เหมาะสม", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "oncoming" as const },
+                ].map(({ title, description, date, status }) => (
+                  <div key={title} className="h-[133px]">
+                    {/* List card: row, padding 12px 16px, gap 12px, border rgba(0,0,0,0.1), borderRadius 8px */}
+                    <div className="flex flex-row items-stretch gap-3 rounded-lg border border-black/10 bg-white px-4 py-3 h-full overflow-hidden">
+                      {/* Left icon: 24x24, sits at top */}
+                      <div className="flex flex-col shrink-0">
+                        <FilesIcon size={24} className="text-[#6A7282]" />
+                      </div>
+                      {/* Content: column, fill, text group top — date bottom */}
+                      <div className="flex flex-col flex-1 justify-between gap-1 min-w-0">
+                        {/* Text group: column, gap 2px */}
+                        <div className="flex flex-col gap-0.5">
+                          <p className="text-[14px] font-bold leading-5 text-[#101828]">{title}</p>
+                          <p className="text-[14px] font-normal leading-5 text-[#4A5565] line-clamp-2">{description}</p>
+                        </div>
+                        {/* Date: 12px/16px, #6A7282 */}
+                        <p className="text-[12px] font-normal leading-4 text-[#6A7282]">{date}</p>
+                      </div>
+                      {/* Status icon: sits at top */}
+                      {status && (
+                        <div className="flex flex-col shrink-0">
+                          {status === "done"     && <CheckCircleIcon size={24} weight="fill" className="text-green-500" />}
+                          {status === "pending"  && <ClockIcon       size={24} weight="regular" className="text-[#6A7282]" />}
+                          {status === "not-done" && <WarningIcon     size={24} weight="fill" className="text-orange-500" />}
+                          {status === "oncoming" && <AlarmIcon       size={24} weight="fill" className="text-blue-500" />}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
         </div>
       ) : activeTab === "assets" ? (
         <div className="pt-8">
@@ -363,13 +582,26 @@ export default function ClientPage({
             }}
           />
         </div>
+      ) : activeTab === "notes" ? (
+        <EmptyTabState
+          icon={<FileTextIcon size={40} className="text-[var(--text-default-placeholder)]" />}
+          title="No notes yet"
+          body="Notes for this client will appear here."
+        />
+      ) : activeTab === "reminder" ? (
+        <EmptyTabState
+          icon={<AlarmIcon size={40} className="text-[var(--text-default-placeholder)]" />}
+          title="No reminders yet"
+          body="Reminders for this client will appear here."
+        />
       ) : (
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start pt-8">
 
         {/* ── Left column (main) ── */}
         <div className="flex-[3] min-w-0 flex flex-col gap-6">
 
-        {/* AI Intelligence */}
+        {/* AI Intelligence — hidden for now */}
+        {false && (
         <section className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <SparkleIcon size={18} weight="fill" className="text-primary-action" />
@@ -382,31 +614,31 @@ export default function ClientPage({
               <div className="flex-1 min-w-0 flex flex-col">
                 <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
                   <div className="flex flex-col gap-1.5">
-                    <p className="type-subtitle-2 text-foreground leading-snug">{detail.aiHighPriority.title}</p>
+                    <p className="type-subtitle-2 text-foreground leading-snug">{detail.aiHighPriority?.title}</p>
                     <Tag text="Revenue Opportunity" variant="green" size="small" />
                   </div>
                   <Tag text="HIGH" variant="red" size="small" />
                 </div>
                 <div className="mx-4 border-t border-[var(--border-divider)]" />
                 <div className="px-4 py-3 flex flex-col gap-3">
-                  <p className="type-body-2 text-muted-foreground leading-snug">{detail.aiHighPriority.message}</p>
+                  <p className="type-body-2 text-muted-foreground leading-snug">{detail.aiHighPriority?.message}</p>
                   {nbaAction?.aiDraft && (
                     <div className="flex gap-2 bg-primary-action-light rounded-lg px-3 py-2.5">
                       <SparkleIcon size={14} className="text-primary-action shrink-0 mt-0.5" weight="fill" />
-                      <p className="text-[13px] text-foreground leading-relaxed">{nbaAction.aiDraft}</p>
+                      <p className="text-[13px] text-foreground leading-relaxed">{nbaAction?.aiDraft}</p>
                     </div>
                   )}
                   <div className="flex items-center justify-between gap-2 pt-0.5">
                     {nbaAction?.revenueImpact.startsWith("฿") ? (
                       <div className="flex items-baseline gap-1.5">
                         <CurrencyCircleDollarIcon size={13} className="text-success shrink-0 translate-y-[1px]" weight="fill" />
-                        <span className="text-[14px] font-bold text-success leading-none">{nbaAction.revenueImpact.replace(" est. revenue", "")}</span>
+                        <span className="text-[14px] font-bold text-success leading-none">{nbaAction?.revenueImpact.replace(" est. revenue", "")}</span>
                         <span className="text-[11px] text-muted-foreground leading-none">est. revenue</span>
                       </div>
                     ) : <span />}
                     <div className="flex items-center gap-2">
-                      <Button variant="plain" size="sm">{detail.aiHighPriority.secondaryAction}</Button>
-                      <Button variant="primary" size="sm">{detail.aiHighPriority.primaryAction}</Button>
+                      <Button variant="plain" size="sm">{detail.aiHighPriority?.secondaryAction}</Button>
+                      <Button variant="primary" size="sm">{detail.aiHighPriority?.primaryAction}</Button>
                     </div>
                   </div>
                 </div>
@@ -420,20 +652,20 @@ export default function ClientPage({
               <div className="flex-1 min-w-0 flex flex-col">
                 <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
                   <div className="flex flex-col gap-1.5">
-                    <p className="type-subtitle-2 text-foreground leading-snug">{detail.aiRiskAlert.title}</p>
+                    <p className="type-subtitle-2 text-foreground leading-snug">{detail.aiRiskAlert?.title}</p>
                     <Tag text="Compliance Risk" variant="red" size="small" />
                   </div>
                   <Tag text="MEDIUM" variant="yellow" size="small" />
                 </div>
                 <div className="mx-4 border-t border-[var(--border-divider)]" />
                 <div className="px-4 py-3 flex flex-col gap-3">
-                  <p className="type-body-2 text-muted-foreground leading-snug">{detail.aiRiskAlert.message}</p>
+                  <p className="type-body-2 text-muted-foreground leading-snug">{detail.aiRiskAlert?.message}</p>
                   <div className="flex items-center justify-between gap-2 pt-0.5">
                     <div className="flex items-center gap-1.5">
                       <WarningCircleIcon size={13} className="text-warning shrink-0" weight="fill" />
                       <span className="text-[12px] font-medium text-warning leading-none">Requires immediate review</span>
                     </div>
-                    <Button variant="outline" size="sm">{detail.aiRiskAlert.action}</Button>
+                    <Button variant="outline" size="sm">{detail.aiRiskAlert?.action}</Button>
                   </div>
                 </div>
               </div>
@@ -450,51 +682,13 @@ export default function ClientPage({
             </div>
           )}
         </section>
+        )}
 
           {/* Current Allocation */}
           <Card variant="default">
             <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-2">
-                <h6 className="type-h6 text-foreground">Current Allocation</h6>
-                <Button variant="outline-black" size="sm" rightIcon={<DownloadSimpleIcon size={15} />}>Report</Button>
-              </div>
-              {/* Stacked allocation bar */}
-              <div className="flex flex-col gap-3">
-                <div className="flex h-4 rounded-full overflow-hidden">
-                  {detail.allocationData.map((slice) => (
-                    <div key={slice.name} style={{ width: `${slice.value}%`, backgroundColor: slice.fill }} />
-                  ))}
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  {detail.allocationData.map((slice) => (
-                    <div key={slice.name} className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: slice.fill }} />
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
-                        {slice.name} ({slice.value}%)
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Allocation KPI tiles */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                {detail.allocationBreakdown.map((kpi) => (
-                  <div
-                    key={kpi.label}
-                    className={`flex flex-col gap-1 rounded-xl p-3 ${kpi.warning ? "bg-[var(--bg-warning-light)] border border-[var(--border-warning)]" : "bg-[var(--bg-default-secondary)]"}`}
-                  >
-                    <div className="flex items-center justify-between gap-1">
-                      <p className={`text-[11px] font-semibold uppercase tracking-wide ${kpi.warning ? "text-[var(--text-warning-primary)]" : "text-muted-foreground"}`}>{kpi.label}</p>
-                      {kpi.warning && <WarningCircleIcon size={13} className="text-[var(--text-warning-primary)] shrink-0" weight="fill" />}
-                    </div>
-                    <p className={`type-subtitle-1 font-bold leading-none ${kpi.warning ? "text-[var(--text-warning-primary)]" : "text-foreground"}`}>{kpi.value}</p>
-                    <p className={`text-[12px] font-medium leading-none ${kpi.ytdPositive ? "text-success" : "text-destructive"}`}>
-                      {kpi.warning ? kpi.warning : `${kpi.ytd} YTD`}
-                    </p>
-                  </div>
-                ))}
-              </div>
+              <h6 className="type-h6 text-foreground">Current Allocation</h6>
+              <CurrentAllocationSection slices={detail.assetSummary?.allocationSlices ?? []} />
             </div>
           </Card>
 
@@ -502,46 +696,15 @@ export default function ClientPage({
           <Card variant="default">
             <div className="flex flex-col gap-4">
               <h6 className="type-h6 text-foreground">Top Holdings</h6>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeaderCell sortable={false}>Asset</TableHeaderCell>
-                    <TableHeaderCell
-                      sortDirection={holdingsSortKey === "value" ? holdingsSortDir : "none"}
-                      onSortChange={(d) => { setHoldingsSortKey(d === "none" ? null : "value"); setHoldingsSortDir(d); }}
-                    >
-                      Market Value
-                    </TableHeaderCell>
-                    <TableHeaderCell
-                      sortDirection={holdingsSortKey === "pnlPct" ? holdingsSortDir : "none"}
-                      onSortChange={(d) => { setHoldingsSortKey(d === "none" ? null : "pnlPct"); setHoldingsSortDir(d); }}
-                    >
-                      Unrealized P&L
-                    </TableHeaderCell>
-                    <TableHeaderCell
-                      sortDirection={holdingsSortKey === "pct" ? holdingsSortDir : "none"}
-                      onSortChange={(d) => { setHoldingsSortKey(d === "none" ? null : "pct"); setHoldingsSortDir(d); }}
-                    >
-                      % Portfolio
-                    </TableHeaderCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {detail.topHoldings.map((h) => (
-                    <TableRow key={h.asset}>
-                      <TableCell><span className="type-body-2 text-foreground font-medium">{h.asset}</span></TableCell>
-                      <TableCell><span className="type-body-2 text-foreground">{h.value}</span></TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className={`type-body-2 font-medium ${h.positive ? "text-success" : "text-destructive"}`}>{h.pnl}</span>
-                          <span className={`type-caption ${h.positive ? "text-success" : "text-destructive"}`}>{h.pnlPct}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell><span className="type-body-2 text-foreground">{h.pct}</span></TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <TopHoldingsSection
+                holdings={detail.topHoldings}
+                sortKey={holdingsSortKey}
+                sortDir={holdingsSortDir}
+                onSort={(key, dir) => {
+                  setHoldingsSortKey(dir === "none" ? null : key);
+                  setHoldingsSortDir(dir);
+                }}
+              />
             </div>
           </Card>
 
@@ -550,7 +713,8 @@ export default function ClientPage({
         {/* ── Right column (sidebar) ── */}
         <div className="flex-[2] min-w-0 flex flex-col gap-5">
 
-          {/* Quick Trade & Propose */}
+          {/* Quick Trade & Propose — hidden for now */}
+          {false && (
           <Card variant="default">
             <div className="flex flex-col gap-3">
               <h6 className="type-h6 text-foreground">Quick Trade & Propose</h6>
@@ -579,8 +743,10 @@ export default function ClientPage({
               </div>
             </div>
           </Card>
+          )}
 
-          {/* Behavioral Profile */}
+          {/* Behavioral Profile — hidden for now */}
+          {false && (
           <Card variant="default">
             <div className="flex flex-col gap-4">
               <h6 className="type-h6 text-foreground">Behavioral Profile</h6>
@@ -591,29 +757,16 @@ export default function ClientPage({
               </List>
             </div>
           </Card>
+          )}
 
-          {/* Tasks & Reminders */}
+          {/* Reminders */}
           <Card variant="default">
             <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-2">
-                <h6 className="type-h6 text-foreground">Tasks & Reminders</h6>
-                <Button variant="plain" size="sm" leftIcon={<PlusIcon size={14} />}>Add Task</Button>
-              </div>
-              <div className="flex flex-col gap-3">
-                {tasks.map((task) => (
-                  <div key={task.id} className="flex items-start gap-3">
-                    <div className="mt-0.5">
-                      <Checkbox
-                        checked={task.done}
-                        onChange={(checked) => setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, done: !!checked } : t))}
-                      />
-                    </div>
-                    <span className={`type-body-2 flex-1 leading-snug ${task.done ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                      {task.task}
-                    </span>
-                    {task.urgent && !task.done && <Tag variant="red" size="small" text="Urgent" />}
-                  </div>
-                ))}
+              <h6 className="type-h6 text-foreground">Reminders</h6>
+              <div className="flex flex-col items-center gap-2 py-4 text-center">
+                <CalendarCheckIcon size={32} className="text-muted-foreground/40" weight="duotone" />
+                <p className="type-body-2 text-muted-foreground">ยังไม่มี reminder</p>
+                <p className="type-caption text-muted-foreground/60">ฟีเจอร์นี้กำลังจะมาเร็วๆ นี้</p>
               </div>
             </div>
           </Card>
@@ -623,7 +776,6 @@ export default function ClientPage({
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-2">
                 <h6 className="type-h6 text-foreground">Recent Activity</h6>
-                <Button variant="plain" size="sm" leftIcon={<PencilSimpleIcon size={14} />}>Add Note</Button>
               </div>
               <div className="flex flex-col">
                 {detail.recentActivity.map((item, i) => (
@@ -651,41 +803,12 @@ export default function ClientPage({
       </div>
       )}{/* end tab content */}
 
-      {callLogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <Modal
-            variant="content"
-            actionLayout="none"
-            title={`Call log — ${client.name}`}
-            onClose={() => setCallLogOpen(false)}
-          >
-            <div className="flex flex-col gap-3 min-w-[420px] max-w-[520px]">
-              {callLogs.map((log: CallLogEntry) => (
-                <div key={log.id} className="flex gap-3 p-3 rounded-xl bg-[var(--bg-default-secondary)] border border-[rgba(0,0,0,0.07)]">
-                  <div className="shrink-0 mt-0.5">
-                    {log.direction === "outbound" ? (
-                      <PhoneOutgoingIcon size={18} className="text-[var(--text-brand-primary)]" />
-                    ) : (
-                      <PhoneIncomingIcon size={18} className="text-[var(--icon-success)]" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="type-caption font-semibold text-foreground">{log.date} · {log.time}</span>
-                      <span className="type-caption font-medium text-[var(--text-brand-primary)] shrink-0">{relativeCallDate(log.date)}</span>
-                    </div>
-                    <p className="type-caption text-foreground leading-relaxed">{log.summary}</p>
-                    <p className="type-caption text-muted-foreground mt-1">{log.duration}</p>
-                  </div>
-                </div>
-              ))}
-              {callLogs.length === 0 && (
-                <p className="type-body-2 text-muted-foreground text-center py-6">No call history yet.</p>
-              )}
-            </div>
-          </Modal>
-        </div>
-      )}
+      <CallLogModal
+        open={callLogOpen}
+        client={client}
+        callLogs={callLogs}
+        onClose={() => setCallLogOpen(false)}
+      />
 
       {liabilitiesData && (
         <LiabilitiesDetailModal
