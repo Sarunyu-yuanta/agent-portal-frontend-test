@@ -13,8 +13,19 @@ import {
 
 const workspaceItems = [
   { href: "/client-hub", label: "Client 360", icon: UsersIcon, badge: null },
-  { href: "/product-catalog", label: "Product Catalog", icon: SquaresFourIcon, badge: null },
-  { href: "/house-view", label: "House View", icon: ChartBarIcon, badge: null },
+  {
+    href: "/product-catalog",
+    label: "Product Catalog",
+    icon: SquaresFourIcon,
+    badge: null,
+  },
+  // { href: "/house-view", label: "House View", icon: ChartBarIcon, badge: null },
+  {
+    href: "/house-view-mvp",
+    label: "House View",
+    icon: ChartBarIcon,
+    badge: null,
+  },
 ];
 
 type NavItem = {
@@ -56,7 +67,8 @@ function NavSection({
 
       {items.map((item) => {
         const Icon = item.icon;
-        const isActive = pathname.startsWith(item.href);
+        const isActive =
+          pathname === item.href || pathname.startsWith(item.href + "/");
         return (
           <Link
             key={item.href}
@@ -91,7 +103,9 @@ function NavSection({
               {item.badge != null && (
                 <span
                   className={`bg-slate-700 text-slate-300 text-[11px] font-semibold px-2 py-0.5 rounded-full tabular-nums whitespace-nowrap transition-all duration-300 ease-in-out ${
-                    collapsed ? "w-0 opacity-0 overflow-hidden p-0" : "opacity-100"
+                    collapsed
+                      ? "w-0 opacity-0 overflow-hidden p-0"
+                      : "opacity-100"
                   }`}
                 >
                   {item.badge}
@@ -116,7 +130,6 @@ export function AppSidebar({
 }) {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
-
       {/* Toggle button — icon zone keeps it still */}
       {onToggleCollapse && (
         <div className="flex shrink-0 pt-5 pb-1 px-2">
@@ -182,7 +195,6 @@ export function AppSidebar({
           </div>
         </div>
       </div>
-
     </div>
   );
 }

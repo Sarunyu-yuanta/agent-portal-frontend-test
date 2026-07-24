@@ -427,9 +427,8 @@ export default function ClientPage({
           <TabGroup
             items={[
               { id: "overview", title: "Overview" },
-              { id: "profile", title: "Profile" },
+              { id: "kyc", title: "KYC" },
               { id: "assets", title: "Assets" },
-              { id: "forms", title: "Important Form" },
               { id: "notes", title: "Notes" },
               { id: "reminder", title: "Reminder" },
             ]}
@@ -441,7 +440,7 @@ export default function ClientPage({
       </div>
 
       {/* ── Body content ── */}
-      {activeTab === "profile" ? (
+      {activeTab === "kyc" ? (
         <div className="pt-10 max-w-3xl mx-auto w-full">
 
           {/* ── Single profile card ── */}
@@ -522,53 +521,40 @@ export default function ClientPage({
 
           </div>
 
-        </div>
-      ) : activeTab === "forms" ? (
-
-        <div className="pt-8 max-w-[994px] mx-auto w-full">
-          {/* Body: padding 32px 56px, rounded-xl, white bg, box-shadow per Figma */}
-          <div className="rounded-xl bg-white shadow-[0px_0px_8px_0px_rgba(0,0,0,0.02)] py-8 px-4 sm:px-14 mb-8">
-            {/* Form Card: 2 columns grid, gap 16px */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* ── Important Forms ── */}
+          <div className="pt-6 pb-2 max-w-3xl mx-auto w-full">
+            <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-border">
+                <p className="type-subtitle-2 font-bold text-foreground">Important Forms</p>
+              </div>
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   { title: "Wealth Declaration", description: "แบบแจ้งการเป็นผู้ลงทุนรายใหญ่ / รายใหญ่พิเศษ / ที่มีลักษณะเฉพาะ", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "done" as const },
                   { title: "FATCA and CRS", description: "แบบแจ้งความเป็นบุคคลอเมริกัน และผู้มีถิ่นที่อยู่ทางภาษีในประเทศอื่น", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "pending" as const },
                   { title: "W-8Ben", description: "แบบฟอร์มภาษีของกรมสรรพากรแห่งสหรัฐอเมริกา", date: "อัปเดตล่าสุด: 24 Jul 2024", status: null },
-                  { title: "แบบประเมินความรู้ความสามารถในการลงทุน (Knowledge Assessment)", description: "สำหรับการลงทุนในผลิตภัณฑ์ในตลาดทุนที่มีความเสี่ยงสูงหรือมีความซับซ้อน (สำหรับบัญชีกองทุน, TFEX และการจองซื้อ/ซื้อขายตราสารหนี้)", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "not-done" as const },
+                  { title: "แบบประเมินความรู้ความสามารถในการลงทุน (Knowledge Assessment)", description: "สำหรับการลงทุนในผลิตภัณฑ์ในตลาดทุนที่มีความเสี่ยงสูงหรือมีความซับซ้อน", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "not-done" as const },
                   { title: "แบบทดสอบความรู้ผู้ลงทุน เกี่ยวกับตราสารหนี้", description: "สำหรับการจองซื้อ/ซื้อขายตราสารหนี้ (Perpetual Bond)", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "not-done" as const },
                   { title: "แบบประเมินความเหมาะสมในการลงทุน (Suitability Test)", description: "ประเมินระดับความสามารถในการรับความเสี่ยงจากการลงทุน เพื่อหาประเภทหลักทรัพย์ที่เหมาะสม", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "oncoming" as const },
                 ].map(({ title, description, date, status }) => (
-                  <div key={title} className="h-[133px]">
-                    {/* List card: row, padding 12px 16px, gap 12px, border rgba(0,0,0,0.1), borderRadius 8px */}
-                    <div className="flex flex-row items-stretch gap-3 rounded-lg border border-black/10 bg-white px-4 py-3 h-full overflow-hidden">
-                      {/* Left icon: 24x24, sits at top */}
-                      <div className="flex flex-col shrink-0">
-                        <FilesIcon size={24} className="text-[#6A7282]" />
+                  <div key={title} className="flex items-start gap-3 rounded-xl border border-border bg-background px-4 py-3">
+                    <FilesIcon size={20} className="text-muted-foreground shrink-0 mt-0.5" />
+                    <div className="flex flex-col flex-1 min-w-0 gap-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="type-body-2 font-bold text-foreground leading-snug">{title}</p>
+                        {status === "done"     && <CheckCircleIcon size={18} weight="fill" className="text-green-500 shrink-0 mt-0.5" />}
+                        {status === "pending"  && <ClockIcon       size={18} weight="regular" className="text-muted-foreground shrink-0 mt-0.5" />}
+                        {status === "not-done" && <WarningIcon     size={18} weight="fill" className="text-orange-500 shrink-0 mt-0.5" />}
+                        {status === "oncoming" && <AlarmIcon       size={18} weight="fill" className="text-blue-500 shrink-0 mt-0.5" />}
                       </div>
-                      {/* Content: column, fill, text group top — date bottom */}
-                      <div className="flex flex-col flex-1 justify-between gap-1 min-w-0">
-                        {/* Text group: column, gap 2px */}
-                        <div className="flex flex-col gap-0.5">
-                          <p className="text-[14px] font-bold leading-5 text-[#101828]">{title}</p>
-                          <p className="text-[14px] font-normal leading-5 text-[#4A5565] line-clamp-2">{description}</p>
-                        </div>
-                        {/* Date: 12px/16px, #6A7282 */}
-                        <p className="text-[12px] font-normal leading-4 text-[#6A7282]">{date}</p>
-                      </div>
-                      {/* Status icon: sits at top */}
-                      {status && (
-                        <div className="flex flex-col shrink-0">
-                          {status === "done"     && <CheckCircleIcon size={24} weight="fill" className="text-green-500" />}
-                          {status === "pending"  && <ClockIcon       size={24} weight="regular" className="text-[#6A7282]" />}
-                          {status === "not-done" && <WarningIcon     size={24} weight="fill" className="text-orange-500" />}
-                          {status === "oncoming" && <AlarmIcon       size={24} weight="fill" className="text-blue-500" />}
-                        </div>
-                      )}
+                      <p className="type-caption text-muted-foreground leading-snug line-clamp-2">{description}</p>
+                      <p className="type-caption text-muted-foreground/60">{date}</p>
                     </div>
                   </div>
                 ))}
+              </div>
             </div>
           </div>
+
         </div>
       ) : activeTab === "assets" ? (
         <div className="pt-8">

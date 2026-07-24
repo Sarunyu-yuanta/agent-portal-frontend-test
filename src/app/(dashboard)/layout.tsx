@@ -23,6 +23,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/performance": "Performance & Targets",
   "/compliance": "Compliance & Risk",
   "/house-view": "House View & Strategy",
+  "/house-view-mvp": "House View",
   "/product-catalog": "Product Catalog",
 };
 
@@ -68,7 +69,7 @@ function usePageInfo(): PageInfo {
     };
   }
 
-  const key = Object.keys(PAGE_TITLES).find((k) => pathname.startsWith(k));
+  const key = Object.keys(PAGE_TITLES).sort((a, b) => b.length - a.length).find((k) => pathname.startsWith(k));
   return {
     title: key ? PAGE_TITLES[key] : "",
     clientBreadcrumb: null,
