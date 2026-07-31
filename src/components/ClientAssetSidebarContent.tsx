@@ -43,6 +43,7 @@ function HoldingItemRow({
   onToggle: () => void;
 }) {
   const hasPosition = item.position && item.position.fields.length > 0;
+  const avgCost = item.position?.fields.find((f) => f.label.startsWith("Average Cost"))?.value;
 
   return (
     <div className={`rounded-md overflow-hidden border ${open ? "border-[rgba(0,0,0,0.1)] bg-[var(--bg-default-secondary)]" : "border-transparent"}`}>
@@ -64,6 +65,11 @@ function HoldingItemRow({
           <p className="type-caption font-bold text-[var(--text-default-primary)]">
             {item.value}
           </p>
+          {avgCost && (
+            <p className="type-caption text-[var(--text-default-tertiary)] leading-4 whitespace-nowrap">
+              ราคาทุนเฉลี่ย {avgCost}
+            </p>
+          )}
           <ProfitLossBadge
             changeAmount={item.changeAmount}
             changePercent={item.changePercent}
@@ -318,20 +324,7 @@ export function ClientAssetSidebarContent({
   const [viewMode, setViewMode] = useState<AssetListViewMode>("product");
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const detail = mockClientDetails[clientId];
-  const summary =
-    heroSummary ??
-    (detail?.assetSummary
-      ? {
-          netValue: detail.assetSummary.netValue,
-          changeAmount: detail.assetSummary.changeAmount,
-          changePercent: detail.assetSummary.changePercent,
-          changePositive: detail.assetSummary.changePositive,
-          lineAvailable: detail.assetSummary.lineAvailable,
-          cash: detail.assetSummary.cash,
-          lastUpdatedDate: detail.assetSummary.lastUpdatedDate,
-          lastUpdatedTime: detail.assetSummary.lastUpdatedTime,
-        }
-      : buildHeroSummaryFromClient(client));
+  const summary = heroSummary ?? detail?.assetSummary ?? buildHeroSummaryFromClient(client);
 
   const liabilitiesAmount =
     liabilities ?? formatLiabilitiesStr(client.aum);
@@ -364,54 +357,51 @@ export function ClientAssetSidebarContent({
     setExpandedCards(allExpanded ? new Set() : new Set(cardKeys));
 
   return (
-    <>
-      <div className="flex flex-col gap-4 w-full">
-        <div className={`${accordionCards ? "-mx-[9999px] px-[9999px]" : "bg-gradient-to-b from-white to-[#f3f4f6]"}`}>
-          <div className={`flex flex-col gap-2 items-center p-4 w-full ${accordionCards ? "max-w-5xl mx-auto" : ""}`}>
-            <HeroCard summary={summary} />
-            <LiabilitiesBar
-              amount={liabilitiesAmount}
-              onClick={() => onLiabilitiesOpen?.(liabilitiesAmount, liabilitiesDetail)}
-            />
-            <LastUpdated summary={summary} />
-          </div>
-        </div>
-
-        <div className={`flex flex-col gap-4 items-center py-4 bg-white rounded-t-2xl ${accordionCards ? "max-w-2xl mx-auto w-full" : ""}`}>
-          <AssetListHeader
-            viewMode={viewMode}
-            onViewModeChange={(mode) => { setViewMode(mode); setExpandedCards(new Set()); }}
+    <div className="flex flex-col gap-4 w-full">
+      <div className={`${accordionCards ? "-mx-[9999px] px-[9999px]" : "bg-gradient-to-b from-white to-[#f3f4f6]"}`}>
+        <div className={`flex flex-col gap-2 items-center p-4 w-full ${accordionCards ? "max-w-5xl mx-auto" : ""}`}>
+          <HeroCard summary={summary} />
+          <LiabilitiesBar
+            amount={liabilitiesAmount}
+            onClick={() => onLiabilitiesOpen?.(liabilitiesAmount, liabilitiesDetail)}
           />
-          <div className="flex flex-col gap-4 items-start px-4 w-full">
-            <AllocationBreakdownSidebar slices={slices} />
-            {accordionCards && (
-              <div className="flex justify-end w-full">
-                <button
-                  type="button"
-                  onClick={handleExpandCollapseAll}
-                  className="type-caption text-primary-action font-medium hover:underline cursor-pointer"
-                >
-                  {allExpanded ? "Collapse All" : "Expand All"}
-                </button>
-              </div>
-            )}
-            <div className="flex flex-col gap-4 w-full">
-              {listItems.map((item, i) => (
-                <AssetAccountCard
-                  key={cardKeys[i]}
-                  account={item}
-                  viewMode={viewMode}
-                  accordion={accordionCards}
-                  open={accordionCards ? expandedCards.has(cardKeys[i]) : undefined}
-                  onToggle={accordionCards ? () => toggleCard(cardKeys[i]) : undefined}
-                  onClick={() => onItemClick?.(item, viewMode)}
-                />
-              ))}
-            </div>
-          </div>
+          <LastUpdated summary={summary} />
         </div>
       </div>
 
-    </>
+      <div className={`flex flex-col gap-4 items-center py-4 bg-white rounded-t-2xl ${accordionCards ? "max-w-2xl mx-auto w-full" : ""}`}>
+        <AssetListHeader
+          viewMode={viewMode}
+          onViewModeChange={(mode) => { setViewMode(mode); setExpandedCards(new Set()); }}
+        />
+        <div className="flex flex-col gap-4 items-start px-4 w-full">
+          <AllocationBreakdownSidebar slices={slices} />
+          {accordionCards && (
+            <div className="flex justify-end w-full">
+              <button
+                type="button"
+                onClick={handleExpandCollapseAll}
+                className="type-caption text-primary-action font-medium hover:underline cursor-pointer"
+              >
+                {allExpanded ? "Collapse All" : "Expand All"}
+              </button>
+            </div>
+          )}
+          <div className="flex flex-col gap-4 w-full">
+            {listItems.map((item, i) => (
+              <AssetAccountCard
+                key={cardKeys[i]}
+                account={item}
+                viewMode={viewMode}
+                accordion={accordionCards}
+                open={accordionCards ? expandedCards.has(cardKeys[i]) : undefined}
+                onToggle={accordionCards ? () => toggleCard(cardKeys[i]) : undefined}
+                onClick={() => onItemClick?.(item, viewMode)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

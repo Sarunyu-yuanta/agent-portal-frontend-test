@@ -28,6 +28,8 @@ import {
   ArrowLeftIcon,
   CaretRightIcon,
   CaretDownIcon,
+  SlidersHorizontalIcon,
+  CheckIcon,
 } from "@phosphor-icons/react";
 import { getCallLogs, relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
@@ -431,17 +433,40 @@ type SortKey =
   | "id"
   | "name"
   | "aum"
+  | "thaiStock"
+  | "foreignStock"
+  | "derivatives"
+  | "mutualFund"
+  | "bond"
+  | "foreignBond"
+  | "structuredBond"
   | "plYtd"
   | "liabilities"
   | "cashIdle"
   | "nineBox"
   | null;
 
+function getClientSliceAmount(c: Client, label: string): number {
+  const detail = mockClientDetails[c.id];
+  const slices = detail?.assetSummary?.allocationSlices?.length
+    ? detail.assetSummary.allocationSlices
+    : ALLOCATION_SLICES;
+  const pct = slices.find((s) => s.label === label)?.percent ?? 0;
+  return parseAumToThb(c.aum) * (pct / 100);
+}
+
 function getSortValue(c: Client, key: SortKey): number | string {
   switch (key) {
     case "id": return c.id;
     case "name": return c.name;
     case "aum": return parseAumToThb(c.aum);
+    case "thaiStock": return getClientSliceAmount(c, "หุ้นไทย");
+    case "foreignStock": return getClientSliceAmount(c, "หุ้นต่างประเทศ");
+    case "derivatives": return getClientSliceAmount(c, "อนุพันธ์");
+    case "mutualFund": return getClientSliceAmount(c, "กองทุนรวม");
+    case "bond": return getClientSliceAmount(c, "ตราสารหนี้");
+    case "foreignBond": return getClientSliceAmount(c, "ตราสารหนี้ต่างประเทศ");
+    case "structuredBond": return getClientSliceAmount(c, "หุ้นกู้ที่มีอนุพันธ์แฝง");
     case "plYtd": { const m = c.plYtd.match(/([+-]?[\d.]+)/); return m ? parseFloat(m[1]) : 0; }
     case "liabilities": return parseAumToThb(c.aum) * LIABILITIES_MULTIPLIER;
     case "cashIdle": return parseAumToThb(c.aum) * (c.cashIdlePct / 100);
@@ -451,6 +476,41 @@ function getSortValue(c: Client, key: SortKey): number | string {
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+
+// ─── Column visibility ─────────────────────────────────────────────────────────
+
+type ColumnId =
+  | "clientId"
+  | "client"
+  | "aum"
+  | "thaiStock"
+  | "foreignStock"
+  | "derivatives"
+  | "mutualFund"
+  | "bond"
+  | "foreignBond"
+  | "structuredBond"
+  | "cashIdle"
+  | "plYtd"
+  | "liabilities"
+  | "nineBox";
+
+const CUSTOMER_COLUMNS: { id: ColumnId; label: string; width: number }[] = [
+  { id: "clientId",       label: "Client ID",                                            width: 100 },
+  { id: "client",         label: "Client",                                               width: 180 },
+  { id: "aum",            label: "AUM (THB)",                                            width: 150 },
+  { id: "thaiStock",      label: "หุ้นไทย (บาท)",                                        width: 150 },
+  { id: "foreignStock",   label: "หุ้นต่างประเทศ (บาท)",                                  width: 170 },
+  { id: "derivatives",    label: "อนุพันธ์ (บาท)",                                        width: 140 },
+  { id: "mutualFund",     label: "กองทุนรวม (บาท)",                                       width: 150 },
+  { id: "bond",           label: "ตราสารหนี้ (บาท)",                                      width: 150 },
+  { id: "foreignBond",    label: "ตราสารหนี้ต่างประเทศ (บาท)",                             width: 200 },
+  { id: "structuredBond", label: "หุ้นกู้ที่มีอนุพันธ์แฝง (บาท)",                           width: 210 },
+  { id: "cashIdle",       label: "เงินสด (บาท)",                                          width: 140 },
+  { id: "plYtd",          label: "กำไร/ขาดทุน (บาท)",                                     width: 150 },
+  { id: "liabilities",    label: "Liabilities",                                          width: 140 },
+  { id: "nineBox",        label: "Nine Box",                                             width: 110 },
+];
 
 export default function ClientHubPage() {
   const router = useRouter();
@@ -477,6 +537,40 @@ export default function ClientHubPage() {
   const [nineBoxPushClient, setNineBoxPushClient] = useState<Client | null>(null);
   const [nineBoxPushMounted, setNineBoxPushMounted] = useState(false);
   const [nineBoxPushVisible, setNineBoxPushVisible] = useState(false);
+
+  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnId>>(
+    () => new Set(CUSTOMER_COLUMNS.map((c) => c.id)),
+  );
+  const [showColumnMenu, setShowColumnMenu] = useState(false);
+  const columnMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showColumnMenu) return;
+    function handleOutside(e: MouseEvent) {
+      if (columnMenuRef.current && !columnMenuRef.current.contains(e.target as Node)) {
+        setShowColumnMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [showColumnMenu]);
+
+  const toggleColumn = (id: ColumnId) =>
+    setVisibleColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+
+  const col = (id: ColumnId) => visibleColumns.has(id);
+
+  const tableWidth = useMemo(() => {
+    const NO_COL_WIDTH = 60;
+    return NO_COL_WIDTH + CUSTOMER_COLUMNS.reduce(
+      (sum, c) => sum + (visibleColumns.has(c.id) ? c.width : 0),
+      0,
+    );
+  }, [visibleColumns]);
 
   const dirFor = (k: SortKey): SortDir => (sortKey === k ? sortDir : "none");
   const handleSort = (k: SortKey) => (next: SortDir) => {
@@ -525,7 +619,7 @@ export default function ClientHubPage() {
   const heroSummary = useMemo(() => {
     const visible = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
     return buildHeroSummaryFromClients(visible);
-  }, [sorted, safePage]);
+  }, [sorted, safePage, pageSize]);
 
   const productRows = useMemo((): ProductRow[] => {
     const map = new Map<string, { statusIcon: string; holders: ProductHolder[] }>();
@@ -594,20 +688,82 @@ export default function ClientHubPage() {
               onChange={(id) => setViewFilter(id as ViewFilter)}
             />
             {viewFilter === "customer" && (
-              <div className="w-full lg:w-56 lg:ml-auto">
-                <SearchInput
-                  placeholder="Search clients…"
-                  value={search}
-                  onChange={(val) => {
-                    setSearch(val);
-                    setCurrentPage(1);
-                  }}
-                  onClear={() => {
-                    setSearch("");
-                    setCurrentPage(1);
-                  }}
-                  size="sm"
-                />
+              <div className="flex items-center gap-2 w-full lg:w-auto lg:ml-auto">
+                <div className="relative shrink-0" ref={columnMenuRef}>
+                  <Button
+                    variant="outline"
+                    size="xl"
+                    leftIcon={<SlidersHorizontalIcon size={18} />}
+                    onClick={() => setShowColumnMenu((p) => !p)}
+                  >
+                    Columns
+                    {visibleColumns.size < CUSTOMER_COLUMNS.length && (
+                      <span className="ml-1 inline-flex items-center justify-center rounded-full bg-primary-action text-white text-[10px] font-bold w-4 h-4 leading-none">
+                        {CUSTOMER_COLUMNS.length - visibleColumns.size}
+                      </span>
+                    )}
+                  </Button>
+                  {showColumnMenu && (
+                    <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-[var(--border-default)] rounded-xl shadow-lg w-[260px] overflow-hidden">
+                      <div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border-default)]">
+                        <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Show / Hide Columns
+                        </p>
+                        <button
+                          type="button"
+                          className="text-[12px] text-primary-action hover:underline font-medium"
+                          onClick={() =>
+                            setVisibleColumns(new Set(CUSTOMER_COLUMNS.map((c) => c.id)))
+                          }
+                        >
+                          Reset
+                        </button>
+                      </div>
+                      <div className="py-1 max-h-[360px] overflow-y-auto">
+                        {CUSTOMER_COLUMNS.map((column) => {
+                          const checked = visibleColumns.has(column.id);
+                          return (
+                            <button
+                              key={column.id}
+                              type="button"
+                              className="flex items-center gap-2.5 w-full px-3 py-2 text-left hover:bg-[var(--bg-default-secondary)] transition-colors"
+                              onClick={() => toggleColumn(column.id)}
+                            >
+                              <span
+                                className={`flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0 ${
+                                  checked
+                                    ? "bg-primary-action border-primary-action"
+                                    : "border-[rgba(0,0,0,0.2)] bg-white"
+                                }`}
+                              >
+                                {checked && <CheckIcon size={10} weight="bold" color="white" />}
+                              </span>
+                              <span className="text-[13px] text-foreground leading-tight">
+                                {column.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 lg:w-64">
+                  <SearchInput
+                    size="sm"
+                    className="!h-10"
+                    placeholder="Search clients…"
+                    value={search}
+                    onChange={(val) => {
+                      setSearch(val);
+                      setCurrentPage(1);
+                    }}
+                    onClear={() => {
+                      setSearch("");
+                      setCurrentPage(1);
+                    }}
+                  />
+                </div>
               </div>
             )}
             {viewFilter === "product" && (
@@ -637,65 +793,154 @@ export default function ClientHubPage() {
             <>
               {/* Customer Table */}
               <div className="overflow-hidden overflow-x-auto rounded-lg border border-[var(--border-default)]">
-                <Table className="table-fixed min-w-[960px]">
+                <Table className="table-fixed" style={{ width: tableWidth }}>
                   <TableHead>
                     <TableRow>
                       <TableHeaderCell
-                        className="w-[6%]"
+                        style={{ width: 60 }}
                         sortDirection={dirFor("rowIndex")}
                         onSortChange={handleSort("rowIndex")}
                       >
                         No.
                       </TableHeaderCell>
-                      <TableHeaderCell
-                        className="w-[9%] whitespace-nowrap"
-                        sortDirection={dirFor("id")}
-                        onSortChange={handleSort("id")}
-                      >
-                        Client ID
-                      </TableHeaderCell>
-                      <TableHeaderCell
-                        className="w-[20%]"
-                        sortDirection={dirFor("name")}
-                        onSortChange={handleSort("name")}
-                      >
-                        Client
-                      </TableHeaderCell>
-                      <TableHeaderCell
-                        className="w-[14%]"
-                        sortDirection={dirFor("aum")}
-                        onSortChange={handleSort("aum")}
-                      >
-                        AUM (THB)
-                      </TableHeaderCell>
-                      <TableHeaderCell
-                        className="w-[11%]"
-                        sortDirection={dirFor("plYtd")}
-                        onSortChange={handleSort("plYtd")}
-                      >
-                        P&L (YTD)
-                      </TableHeaderCell>
-                      <TableHeaderCell
-                        className="w-[13%]"
-                        sortDirection={dirFor("liabilities")}
-                        onSortChange={handleSort("liabilities")}
-                      >
-                        Liabilities (THB)
-                      </TableHeaderCell>
-                      <TableHeaderCell
-                        className="whitespace-nowrap"
-                        sortDirection={dirFor("cashIdle")}
-                        onSortChange={handleSort("cashIdle")}
-                      >
-                        เงินสด (THB)
-                      </TableHeaderCell>
-                      <TableHeaderCell
-                        className="w-[11%] whitespace-nowrap"
-                        sortDirection={dirFor("nineBox")}
-                        onSortChange={handleSort("nineBox")}
-                      >
-                        Nine Box
-                      </TableHeaderCell>
+                      {col("clientId") && (
+                        <TableHeaderCell
+                          style={{ width: 100 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("id")}
+                          onSortChange={handleSort("id")}
+                        >
+                          Client ID
+                        </TableHeaderCell>
+                      )}
+                      {col("client") && (
+                        <TableHeaderCell
+                          style={{ width: 180 }}
+                          sortDirection={dirFor("name")}
+                          onSortChange={handleSort("name")}
+                        >
+                          Client
+                        </TableHeaderCell>
+                      )}
+                      {col("aum") && (
+                        <TableHeaderCell
+                          style={{ width: 150 }}
+                          sortDirection={dirFor("aum")}
+                          onSortChange={handleSort("aum")}
+                        >
+                          AUM (THB)
+                        </TableHeaderCell>
+                      )}
+                      {col("thaiStock") && (
+                        <TableHeaderCell
+                          style={{ width: 150 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("thaiStock")}
+                          onSortChange={handleSort("thaiStock")}
+                        >
+                          หุ้นไทย (บาท)
+                        </TableHeaderCell>
+                      )}
+                      {col("foreignStock") && (
+                        <TableHeaderCell
+                          style={{ width: 170 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("foreignStock")}
+                          onSortChange={handleSort("foreignStock")}
+                        >
+                          หุ้นต่างประเทศ (บาท)
+                        </TableHeaderCell>
+                      )}
+                      {col("derivatives") && (
+                        <TableHeaderCell
+                          style={{ width: 140 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("derivatives")}
+                          onSortChange={handleSort("derivatives")}
+                        >
+                          อนุพันธ์ (บาท)
+                        </TableHeaderCell>
+                      )}
+                      {col("mutualFund") && (
+                        <TableHeaderCell
+                          style={{ width: 150 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("mutualFund")}
+                          onSortChange={handleSort("mutualFund")}
+                        >
+                          กองทุนรวม (บาท)
+                        </TableHeaderCell>
+                      )}
+                      {col("bond") && (
+                        <TableHeaderCell
+                          style={{ width: 150 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("bond")}
+                          onSortChange={handleSort("bond")}
+                        >
+                          ตราสารหนี้ (บาท)
+                        </TableHeaderCell>
+                      )}
+                      {col("foreignBond") && (
+                        <TableHeaderCell
+                          style={{ width: 200 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("foreignBond")}
+                          onSortChange={handleSort("foreignBond")}
+                        >
+                          ตราสารหนี้ต่างประเทศ (บาท)
+                        </TableHeaderCell>
+                      )}
+                      {col("structuredBond") && (
+                        <TableHeaderCell
+                          style={{ width: 210 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("structuredBond")}
+                          onSortChange={handleSort("structuredBond")}
+                        >
+                          หุ้นกู้ที่มีอนุพันธ์แฝง (บาท)
+                        </TableHeaderCell>
+                      )}
+                      {col("cashIdle") && (
+                        <TableHeaderCell
+                          style={{ width: 140 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("cashIdle")}
+                          onSortChange={handleSort("cashIdle")}
+                        >
+                          เงินสด (บาท)
+                        </TableHeaderCell>
+                      )}
+                      {col("plYtd") && (
+                        <TableHeaderCell
+                          style={{ width: 150 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("plYtd")}
+                          onSortChange={handleSort("plYtd")}
+                        >
+                          กำไร/ขาดทุน (บาท)
+                        </TableHeaderCell>
+                      )}
+                      {col("liabilities") && (
+                        <TableHeaderCell
+                          style={{ width: 140 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("liabilities")}
+                          onSortChange={handleSort("liabilities")}
+                        >
+                          Liabilities
+                        </TableHeaderCell>
+                      )}
+                      {col("nineBox") && (
+                        <TableHeaderCell
+                          style={{ width: 110 }}
+                          className="whitespace-nowrap"
+                          sortDirection={dirFor("nineBox")}
+                          onSortChange={handleSort("nineBox")}
+                        >
+                          Nine Box
+                        </TableHeaderCell>
+                      )}
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -719,48 +964,111 @@ export default function ClientHubPage() {
                                 {rowNo}
                               </p>
                             </TableCell>
-                            <TableCell>
-                              <p className="text-[13px] text-muted-foreground font-mono">
-                                {client.id}
-                              </p>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                <Avatar
-                                  type="text"
-                                  initials={getInitials(client.name)}
-                                  size="s"
-                                />
-                                <p className="text-[14px] font-semibold text-foreground leading-tight truncate">
-                                  {client.name}
+                            {col("clientId") && (
+                              <TableCell>
+                                <p className="text-[13px] text-muted-foreground font-mono">
+                                  {client.id}
                                 </p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <p className="text-[14px] font-semibold text-foreground">
-                                {formatThbAmount(parseAumToThb(client.aum))}
-                              </p>
-                            </TableCell>
-                            <TableCell>
-                              <p
-                                className={`text-[14px] font-semibold leading-tight ${client.plPositive ? "text-success" : "text-destructive"}`}
-                              >
-                                {client.plYtd}
-                              </p>
-                            </TableCell>
-                            <TableCell>
-                              <p className="text-[14px] font-semibold text-foreground">
-                                {formatThbAmount(parseAumToThb(client.aum) * LIABILITIES_MULTIPLIER)}
-                              </p>
-                            </TableCell>
-                            <TableCell>
-                              <p className="text-[14px] font-semibold text-foreground">
-                                {formatThbAmount(parseAumToThb(client.aum) * (client.cashIdlePct / 100))}
-                              </p>
-                            </TableCell>
-                            <TableCell>
-                              <NineBoxCellPill client={client} />
-                            </TableCell>
+                              </TableCell>
+                            )}
+                            {col("client") && (
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <Avatar
+                                    type="text"
+                                    initials={getInitials(client.name)}
+                                    size="s"
+                                  />
+                                  <p className="text-[14px] font-semibold text-foreground leading-tight truncate">
+                                    {client.name}
+                                  </p>
+                                </div>
+                              </TableCell>
+                            )}
+                            {col("aum") && (
+                              <TableCell>
+                                <p className="text-[14px] font-semibold text-foreground">
+                                  {formatThbAmount(parseAumToThb(client.aum))}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("thaiStock") && (
+                              <TableCell>
+                                <p className="text-[14px] font-semibold text-foreground">
+                                  {formatThbAmount(getClientSliceAmount(client, "หุ้นไทย"))}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("foreignStock") && (
+                              <TableCell>
+                                <p className="text-[14px] font-semibold text-foreground">
+                                  {formatThbAmount(getClientSliceAmount(client, "หุ้นต่างประเทศ"))}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("derivatives") && (
+                              <TableCell>
+                                <p className="text-[14px] font-semibold text-foreground">
+                                  {formatThbAmount(getClientSliceAmount(client, "อนุพันธ์"))}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("mutualFund") && (
+                              <TableCell>
+                                <p className="text-[14px] font-semibold text-foreground">
+                                  {formatThbAmount(getClientSliceAmount(client, "กองทุนรวม"))}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("bond") && (
+                              <TableCell>
+                                <p className="text-[14px] font-semibold text-foreground">
+                                  {formatThbAmount(getClientSliceAmount(client, "ตราสารหนี้"))}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("foreignBond") && (
+                              <TableCell>
+                                <p className="text-[14px] font-semibold text-foreground">
+                                  {formatThbAmount(getClientSliceAmount(client, "ตราสารหนี้ต่างประเทศ"))}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("structuredBond") && (
+                              <TableCell>
+                                <p className="text-[14px] font-semibold text-foreground">
+                                  {formatThbAmount(getClientSliceAmount(client, "หุ้นกู้ที่มีอนุพันธ์แฝง"))}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("cashIdle") && (
+                              <TableCell>
+                                <p className="text-[14px] font-semibold text-foreground">
+                                  {formatThbAmount(parseAumToThb(client.aum) * (client.cashIdlePct / 100))}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("plYtd") && (
+                              <TableCell>
+                                <p
+                                  className={`text-[14px] font-semibold leading-tight ${client.plPositive ? "text-success" : "text-destructive"}`}
+                                >
+                                  {client.plYtd}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("liabilities") && (
+                              <TableCell>
+                                <p className="text-[14px] font-semibold text-foreground">
+                                  {formatThbAmount(parseAumToThb(client.aum) * LIABILITIES_MULTIPLIER)}
+                                </p>
+                              </TableCell>
+                            )}
+                            {col("nineBox") && (
+                              <TableCell>
+                                <NineBoxCellPill client={client} />
+                              </TableCell>
+                            )}
                           </TableRow>
                         </Tooltip>
                       );

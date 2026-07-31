@@ -91,6 +91,8 @@ export type HoldingItem = {
   changePercent: string;
   changePositive: boolean;
   collateral?: boolean;
+  /** Units held. Combined with value/changeAmount to derive average cost, current price, etc. */
+  quantity?: number;
   position?: PositionSummary;
 };
 
@@ -112,10 +114,11 @@ const THAI_STOCK_SECTION: HoldingSection = {
       symbol: "AE",
       fullName: "All Energy & Utilities public company limited",
       value: "10,000.00",
-      changeAmount: "+56,498.10",
+      changeAmount: "+2,498.10",
       changePercent: "0.05",
       changePositive: true,
       collateral: true,
+      quantity: 100000,
     },
     {
       id: "ae-2",
@@ -125,24 +128,17 @@ const THAI_STOCK_SECTION: HoldingSection = {
       changeAmount: "-2,000.00",
       changePercent: "0.05",
       changePositive: false,
+      quantity: 100000,
     },
     {
       id: "ae-3",
       symbol: "AE",
       fullName: "All Energy & Utilities public company limited",
       value: "10,000.00",
-      changeAmount: "+56,498.10",
+      changeAmount: "+2,998.10",
       changePercent: "0.05",
       changePositive: true,
-      position: {
-        fields: [
-          { label: "Average Cost (THB)", value: "0.12" },
-          { label: "Current Price (THB)", value: "0.10" },
-          { label: "Cost Amount (THB)", value: "12,000.00" },
-          { label: "Market Value (THB)", value: "10,000.00" },
-          { label: "Quantity", value: "100,000" },
-        ],
-      },
+      quantity: 100000,
     },
     {
       id: "ae-4",
@@ -152,6 +148,7 @@ const THAI_STOCK_SECTION: HoldingSection = {
       changeAmount: "-2,000.00",
       changePercent: "0.05",
       changePositive: false,
+      quantity: 100000,
     },
   ],
 };
@@ -167,6 +164,7 @@ const MUTUAL_FUND_SECTION: HoldingSection = {
       changeAmount: "-498.10",
       changePercent: "0.05",
       changePositive: false,
+      quantity: 20000,
     },
     {
       id: "kflt-2",
@@ -176,6 +174,7 @@ const MUTUAL_FUND_SECTION: HoldingSection = {
       changeAmount: "+8,000.00",
       changePercent: "0.05",
       changePositive: true,
+      quantity: 20000,
     },
   ],
 };
@@ -223,15 +222,7 @@ export const ASSET_ACCOUNT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "+4,200.00",
             changePercent: "0.12",
             changePositive: true,
-            position: {
-              fields: [
-                { label: "Average Cost (THB)", value: "175.20" },
-                { label: "Current Price (THB)", value: "182.50" },
-                { label: "Cost Amount (THB)", value: "105,120.00" },
-                { label: "Market Value (THB)", value: "120,000.00" },
-                { label: "Quantity", value: "657" },
-              ],
-            },
+            quantity: 657,
           },
           {
             id: "msft",
@@ -241,6 +232,7 @@ export const ASSET_ACCOUNT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "-6,300.00",
             changePercent: "0.08",
             changePositive: false,
+            quantity: 250,
           },
         ],
       },
@@ -283,6 +275,7 @@ export const ASSET_ACCOUNT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "-320.00",
             changePercent: "0.04",
             changePositive: false,
+            quantity: 300,
           },
           {
             id: "der-2",
@@ -292,6 +285,7 @@ export const ASSET_ACCOUNT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "-180.00",
             changePercent: "0.03",
             changePositive: false,
+            quantity: 200,
           },
         ],
       },
@@ -311,15 +305,7 @@ export const ASSET_ACCOUNT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "+1,200.00",
             changePercent: "0.02",
             changePositive: true,
-            position: {
-              fields: [
-                { label: "Average Cost (THB)", value: "98.50" },
-                { label: "Current Price (THB)", value: "99.20" },
-                { label: "Cost Amount (THB)", value: "147,750.00" },
-                { label: "Market Value (THB)", value: "150,000.00" },
-                { label: "Quantity", value: "1,500" },
-              ],
-            },
+            quantity: 1500,
           },
           {
             id: "bond-2",
@@ -329,6 +315,7 @@ export const ASSET_ACCOUNT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "+980.00",
             changePercent: "0.03",
             changePositive: true,
+            quantity: 1300,
           },
         ],
       },
@@ -348,6 +335,7 @@ export const ASSET_ACCOUNT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "+120.00",
             changePercent: "0.05",
             changePositive: true,
+            quantity: 300,
           },
         ],
       },
@@ -393,6 +381,7 @@ const ASSET_PRODUCT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "+3,200.00",
             changePercent: "0.05",
             changePositive: true,
+            quantity: 657,
           },
           {
             id: "global-p-2",
@@ -402,6 +391,7 @@ const ASSET_PRODUCT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "-1,500.00",
             changePercent: "0.05",
             changePositive: false,
+            quantity: 250,
           },
         ],
       },
@@ -425,6 +415,7 @@ const ASSET_PRODUCT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "+890.00",
             changePercent: "0.05",
             changePositive: true,
+            quantity: 1800,
           },
         ],
       },
@@ -444,6 +435,7 @@ const ASSET_PRODUCT_DETAILS: Record<string, AssetAccountDetail> = {
             changeAmount: "+120.00",
             changePercent: "0.05",
             changePositive: true,
+            quantity: 300,
           },
         ],
       },
@@ -471,14 +463,30 @@ export function getAssetProductDetail(productName: string): AssetAccountDetail {
   return enrichDetailWithPositions(detail);
 }
 
-function defaultPosition(value: string): PositionSummary {
+function parseAmount(value: string): number {
+  return parseFloat(value.replace(/,/g, "")) || 0;
+}
+
+function formatAmount(n: number): string {
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function computePosition(item: HoldingItem): PositionSummary | undefined {
+  if (item.quantity == null) return undefined;
+
+  const marketValue = parseAmount(item.value);
+  const changeAmount = parseAmount(item.changeAmount);
+  const currentPrice = marketValue / item.quantity;
+  const costAmount = marketValue - changeAmount;
+  const avgCost = costAmount / item.quantity;
+
   return {
     fields: [
-      { label: "Average Cost (THB)", value: "0.12" },
-      { label: "Current Price (THB)", value: "0.10" },
-      { label: "Cost Amount (THB)", value: "12,000.00" },
-      { label: "Market Value (THB)", value },
-      { label: "Quantity", value: "100,000" },
+      { label: "Average Cost (THB)", value: formatAmount(avgCost) },
+      { label: "Current Price (THB)", value: formatAmount(currentPrice) },
+      { label: "Cost Amount (THB)", value: formatAmount(costAmount) },
+      { label: "Market Value (THB)", value: formatAmount(marketValue) },
+      { label: "Quantity", value: item.quantity.toLocaleString("en-US") },
     ],
   };
 }
@@ -490,7 +498,7 @@ function enrichDetailWithPositions(detail: AssetAccountDetail): AssetAccountDeta
       ...section,
       items: section.items.map((item) => ({
         ...item,
-        position: item.position ?? defaultPosition(item.value),
+        position: item.position ?? computePosition(item),
       })),
     })),
   };

@@ -36,17 +36,20 @@ import {
   ArrowRightIcon,
   FireIcon,
 } from "@phosphor-icons/react";
-const A = {
-  imgSecureIncome: "/invest-secure-income.png",
-  imgBalancedGrowth: "/invest-balanced-growth.png",
-  imgHighConvBg: "/invest-high-conviction.png",
-  recommendBg: "/investment-solution-bg.jpg",
-};
+const IMG_SECURE_INCOME = "/invest-secure-income.png";
+const IMG_BALANCED_GROWTH = "/invest-balanced-growth.png";
+const IMG_HIGH_CONVICTION = "/invest-high-conviction.png";
+const IMG_RECOMMEND_BG = "/investment-solution-bg.jpg";
 
 const PRODUCT_TABS = [
   {
     id: "structured",
-    title: "Structured Product",
+    title: "Global Structured Product",
+    icon: <ShapesIcon size={18} />,
+  },
+  {
+    id: "thai-structured",
+    title: "Thai Structured Product",
     icon: <ShapesIcon size={18} />,
   },
   {
@@ -80,7 +83,7 @@ function InvestmentCard({
   imgLeft,
   imgW,
   imgH,
-  imgRotation,
+  highConviction,
   crop,
   onClick,
 }: {
@@ -93,11 +96,11 @@ function InvestmentCard({
   imgLeft: number;
   imgW: number;
   imgH: number;
-  imgRotation?: number;
+  highConviction?: boolean;
   crop?: CropTransform;
   onClick?: () => void;
 }) {
-  const isHighConviction = imgRotation === 180;
+  const isHighConviction = !!highConviction;
   return (
     <div
       role={onClick ? "button" : undefined}
@@ -352,7 +355,6 @@ export function ProductCatalogTab({
   const [showAllTopIdeas, setShowAllTopIdeas] = useState(false);
   const [showAllStructuredProducts, setShowAllStructuredProducts] =
     useState(false);
-  const [globalOrThai, setGlobalOrThai] = useState<"Global" | "Thai">("Global");
 
   const [searchValueInternal, setSearchValueInternal] = useState("");
   const searchValue = searchValueProp ?? searchValueInternal;
@@ -622,63 +624,12 @@ export function ProductCatalogTab({
         />
       )}
 
-      {activeProductTab === "structured" && (
+      {(activeProductTab === "structured" ||
+        activeProductTab === "thai-structured") && (
         <div
           className="flex flex-col gap-6 items-center w-full"
           style={{ paddingTop: 24 }}
         >
-          {/* ── Recommend 1 — bg-white (Switch + Waiting) ─────────────────────── */}
-          <div
-            className="flex flex-col items-center shrink-0 w-full"
-            style={{ backgroundColor: "white" }}
-          >
-            <div className="flex flex-col gap-4 items-center shrink-0 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
-              {/* Global/Thai + รายการคำสั่ง */}
-              <div className="flex gap-4 items-center shrink-0 w-full">
-                <div
-                  className="flex gap-1 items-center justify-center overflow-hidden flex-1"
-                  style={{
-                    backgroundColor: "#f9fafb",
-                    borderRadius: 40,
-                    padding: 6,
-                  }}
-                >
-                  {(["Global", "Thai"] as const).map((option) => {
-                    const sel = globalOrThai === option;
-                    return (
-                      <button
-                        key={option}
-                        onClick={() => setGlobalOrThai(option)}
-                        className="flex items-center justify-center overflow-hidden cursor-pointer transition-all flex-1"
-                        style={{
-                          borderRadius: 40,
-                          padding: 8,
-                          backgroundColor: sel ? "white" : "transparent",
-                          border: "none",
-                          boxShadow: sel
-                            ? "0px 4px 6px -1px rgba(0,0,0,0.1),0px 2px 4px -2px rgba(0,0,0,0.1)"
-                            : "none",
-                        }}
-                      >
-                        <p
-                          style={{
-                            fontSize: 14,
-                            lineHeight: "20px",
-                            fontWeight: sel ? 700 : 400,
-                            color: sel ? "#101828" : "#6a7282",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {option}
-                        </p>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* ── Recommend 2 — bg-white (Top Idea) ────────────────────────────── */}
           <div
             className="flex flex-col gap-4 items-start shrink-0 w-full"
@@ -740,7 +691,7 @@ export function ProductCatalogTab({
             <img
               alt=""
               className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-              src={A.recommendBg}
+              src={IMG_RECOMMEND_BG}
             />
             <div className="flex flex-col gap-4 items-start shrink-0 w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-6">
               <p
@@ -763,10 +714,10 @@ export function ProductCatalogTab({
                         tenor={solution.tenor}
                         imgSrc={
                           isHighConviction
-                            ? A.imgHighConvBg
+                            ? IMG_HIGH_CONVICTION
                             : isBalanced
-                              ? A.imgBalancedGrowth
-                              : A.imgSecureIncome
+                              ? IMG_BALANCED_GROWTH
+                              : IMG_SECURE_INCOME
                         }
                         gradient={
                           isHighConviction
@@ -778,7 +729,7 @@ export function ProductCatalogTab({
                         imgLeft={isHighConviction ? -67 : 12}
                         imgW={isHighConviction ? 198 : 72}
                         imgH={isHighConviction ? 132 : isBalanced ? 103 : 92}
-                        imgRotation={isHighConviction ? 180 : undefined}
+                        highConviction={isHighConviction}
                         crop={
                           !isHighConviction
                             ? {

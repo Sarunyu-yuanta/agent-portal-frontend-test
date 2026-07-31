@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
 import { Tag, useIsMobile } from "@sarunyu/system-one";
 import { ProfitLossBadge, DashedDivider, StatCardRow } from "@/components/ui/finance-ui";
@@ -10,10 +10,7 @@ import type {
   HoldingSection,
   PositionSummary,
 } from "@/data/asset-account-details";
-
-function parseNum(v: string): number {
-  return parseFloat(v.replace(/,/g, "")) || 0;
-}
+import { parseAmount } from "@/lib/client-utils";
 
 function formatNum(n: number): string {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -21,10 +18,10 @@ function formatNum(n: number): string {
 
 function HoldingSummary({ sections }: { sections: HoldingSection[] }) {
   const allItems = sections.flatMap((s) => s.items);
-  const totalValue = allItems.reduce((sum, item) => sum + parseNum(item.value), 0);
+  const totalValue = allItems.reduce((sum, item) => sum + parseAmount(item.value), 0);
   const totalChange = allItems.reduce((sum, item) => {
     if (!item.changeAmount) return sum;
-    return sum + parseNum(item.changeAmount);
+    return sum + parseAmount(item.changeAmount);
   }, 0);
   const isPositive = totalChange >= 0;
 
@@ -87,6 +84,8 @@ function HoldingCard({
   expanded: boolean;
   onToggle: () => void;
 }) {
+  const avgCost = item.position?.fields.find((f) => f.label.startsWith("Average Cost"))?.value;
+
   const header = (
     <>
       <div className="flex flex-1 flex-col items-end justify-center min-w-0">
@@ -116,6 +115,13 @@ function HoldingCard({
             changePositive={item.changePositive}
           />
         </div>
+        {avgCost && (
+          <div className="flex items-center justify-end w-full">
+            <p className="type-caption text-[var(--text-default-tertiary)] leading-4 whitespace-nowrap">
+              ราคาทุนเฉลี่ย {avgCost}
+            </p>
+          </div>
+        )}
       </div>
       {expanded ? (
         <CaretUpIcon size={20} className="text-[var(--text-default-tertiary)] shrink-0" />
