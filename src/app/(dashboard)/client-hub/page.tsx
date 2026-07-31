@@ -547,6 +547,7 @@ export default function ClientHubPage() {
   useEffect(() => {
     if (!showColumnMenu) return;
     function handleOutside(e: MouseEvent) {
+      if (window.innerWidth < 1024) return; // tablet uses Modal, mobile uses Sheet — both handle their own closing
       if (columnMenuRef.current && !columnMenuRef.current.contains(e.target as Node)) {
         setShowColumnMenu(false);
       }
@@ -703,8 +704,9 @@ export default function ClientHubPage() {
                       </span>
                     )}
                   </Button>
+                  {/* Desktop dropdown (lg+) */}
                   {showColumnMenu && (
-                    <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-[var(--border-default)] rounded-xl shadow-lg w-[260px] overflow-hidden">
+                    <div className="hidden lg:block absolute right-0 top-full mt-1 z-50 bg-white border border-[var(--border-default)] rounded-xl shadow-lg w-[260px] overflow-hidden">
                       <div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border-default)]">
                         <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Show / Hide Columns
@@ -747,6 +749,103 @@ export default function ClientHubPage() {
                       </div>
                     </div>
                   )}
+                  {/* Tablet modal (md–lg) */}
+                  {showColumnMenu && (
+                    <div
+                      className="hidden md:flex lg:hidden fixed inset-0 z-50 items-center justify-center bg-black/30 p-4"
+                      onMouseDown={(e) => { if (e.target === e.currentTarget) setShowColumnMenu(false); }}
+                    >
+                      <Modal
+                        variant="content"
+                        actionLayout="none"
+                        title="Show / Hide Columns"
+                        onClose={() => setShowColumnMenu(false)}
+                      >
+                        <div className="w-[300px]">
+                          <button
+                            type="button"
+                            className="text-[12px] text-primary-action hover:underline font-medium mb-2 block"
+                            onClick={() =>
+                              setVisibleColumns(new Set(CUSTOMER_COLUMNS.map((c) => c.id)))
+                            }
+                          >
+                            Reset
+                          </button>
+                          <div className="max-h-[50vh] overflow-y-auto -mx-1">
+                            {CUSTOMER_COLUMNS.map((column) => {
+                              const checked = visibleColumns.has(column.id);
+                              return (
+                                <button
+                                  key={column.id}
+                                  type="button"
+                                  className="flex items-center gap-2.5 w-full px-1 py-2 text-left hover:bg-[var(--bg-default-secondary)] rounded transition-colors"
+                                  onClick={() => toggleColumn(column.id)}
+                                >
+                                  <span
+                                    className={`flex items-center justify-center w-4 h-4 rounded border transition-colors shrink-0 ${
+                                      checked
+                                        ? "bg-primary-action border-primary-action"
+                                        : "border-[rgba(0,0,0,0.2)] bg-white"
+                                    }`}
+                                  >
+                                    {checked && <CheckIcon size={10} weight="bold" color="white" />}
+                                  </span>
+                                  <span className="text-[13px] text-foreground leading-tight">
+                                    {column.label}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </Modal>
+                    </div>
+                  )}
+                  {/* Mobile bottom sheet (< md) */}
+                  <Sheet open={showColumnMenu} onOpenChange={setShowColumnMenu}>
+                    <SheetContent side="bottom" showCloseButton={false} className="md:hidden rounded-t-2xl px-0 pb-safe">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)]">
+                        <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Show / Hide Columns
+                        </p>
+                        <button
+                          type="button"
+                          className="text-[12px] text-primary-action hover:underline font-medium"
+                          onClick={() =>
+                            setVisibleColumns(new Set(CUSTOMER_COLUMNS.map((c) => c.id)))
+                          }
+                        >
+                          Reset
+                        </button>
+                      </div>
+                      <div className="py-1 max-h-[60vh] overflow-y-auto">
+                        {CUSTOMER_COLUMNS.map((column) => {
+                          const checked = visibleColumns.has(column.id);
+                          return (
+                            <button
+                              key={column.id}
+                              type="button"
+                              className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-[var(--bg-default-secondary)] transition-colors"
+                              onClick={() => toggleColumn(column.id)}
+                            >
+                              <span
+                                className={`flex items-center justify-center w-5 h-5 rounded border transition-colors shrink-0 ${
+                                  checked
+                                    ? "bg-primary-action border-primary-action"
+                                    : "border-[rgba(0,0,0,0.2)] bg-white"
+                                }`}
+                              >
+                                {checked && <CheckIcon size={12} weight="bold" color="white" />}
+                              </span>
+                              <span className="text-[14px] text-foreground leading-tight">
+                                {column.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </SheetContent>
+                  </Sheet>
                 </div>
                 <div className="flex-1 lg:w-64">
                   <SearchInput

@@ -585,6 +585,7 @@ export function ProductCatalogTab({
             activeId={activeProductTab}
             onChange={handleProductTabChange}
             size="md"
+            className="w-max"
           />
         </div>
       </div>
@@ -602,12 +603,16 @@ export function ProductCatalogTab({
         />
       </div>
       <div className="hidden lg:block sticky top-0 z-10 bg-white pt-4">
-        <div className="max-w-[1280px] mx-auto px-4 lg:px-6">
+        <div
+          className="max-w-[1280px] mx-auto px-4 lg:px-6 overflow-x-auto"
+          style={{ scrollbarWidth: "none" }}
+        >
           <TabGroup
             items={PRODUCT_TABS}
             activeId={activeProductTab}
             onChange={handleProductTabChange}
             size="md"
+            className="w-max"
           />
         </div>
       </div>
