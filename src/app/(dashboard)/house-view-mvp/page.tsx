@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { Tag, Button, Chip, TabGroup, Modal } from "@sarunyu/system-one";
+import { useState, useEffect } from "react";
+import { Tag, Button, Chip, TabGroup, Modal, BottomSheet, Dropdown, DateInput } from "@sarunyu/system-one";
 import {
   SparkleIcon,
   TrendUpIcon,
@@ -149,6 +149,14 @@ function PlaybookCardCompact({ strategy, noBorder }: { strategy: (typeof mockHou
 function StrategyPlaybooks() {
   const [filter, setFilter] = useState<AssetClassFilter>("All");
   const [modalGroup, setModalGroup] = useState<ModalGroup>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   const all = mockHouseViewStrategies as unknown as StrategyItem[];
   const filtered = filter === "All" ? all : all.filter((s) => s.category === filter);
@@ -156,11 +164,15 @@ function StrategyPlaybooks() {
   const groups = groupByPeriodLabel(filtered);
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex items-center gap-2 flex-wrap">
-        {ASSET_FILTERS.map((f) => (
-          <Chip key={f} label={f} type="single" size="small" selected={filter === f} onClick={() => setFilter(f)} />
-        ))}
+    <div className="flex flex-col gap-8 w-full">
+      <div className="-mx-4 xl:-mx-6 overflow-x-auto hide-scrollbar">
+        <div className="flex items-center gap-2 flex-nowrap md:flex-wrap px-4 xl:px-6">
+          {ASSET_FILTERS.map((f) => (
+            <span key={f} className="shrink-0">
+              <Chip label={f} type="single" size="small" selected={filter === f} onClick={() => setFilter(f)} />
+            </span>
+          ))}
+        </div>
       </div>
 
       {groups.map((group, idx) => {
@@ -174,31 +186,42 @@ function StrategyPlaybooks() {
           <div key={`${group.period}-${group.periodLabel}`} className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <span className="px-2.5 py-1 rounded bg-[var(--bg-brand-primary)] text-white text-[11px] font-bold">{periodBadge}</span>
+                <span className="px-2.5 py-1 rounded bg-primary-action-light text-primary-action text-[11px] font-bold">{periodBadge}</span>
                 <p className="type-subtitle-1 font-bold text-foreground">{group.periodLabel}</p>
               </div>
-              {hasMore && !isFirstMonthly && (
-                <Button size="sm" variant="plain" rightIcon={<ArrowRightIcon size={12} />} onClick={() => setModalGroup(group)}>
+              {(hasMore && !isFirstMonthly) || isFirstMonthly ? (
+                <Button size="sm" variant="plain" rightIcon={<ArrowRightIcon size={12} />} onClick={() => setModalGroup(group)} className={isFirstMonthly ? "lg:hidden" : ""}>
                   ดูทั้งหมด
                 </Button>
-              )}
+              ) : null}
             </div>
 
             {isFirstMonthly ? (
-              <div className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col lg:flex-row">
-                <div className="flex-1 min-w-0">
-                  <PlaybookCard strategy={featured as (typeof mockHouseViewStrategies)[number]} noBorder />
-                </div>
-                {rest.length > 0 && (
-                  <div className="hide-scrollbar flex flex-col border-t lg:border-t-0 lg:border-l border-border lg:w-[45%] shrink-0 overflow-y-auto max-h-[306px]">
-                    <div className="flex flex-col divide-y divide-border">
-                      {rest.map((s) => (
-                        <PlaybookCardCompact key={s.id} strategy={s as (typeof mockHouseViewStrategies)[number]} noBorder />
-                      ))}
-                    </div>
+              <>
+                {/* Desktop: combined card */}
+                <div className="hidden lg:flex rounded-2xl border border-border bg-card overflow-hidden flex-col lg:flex-row">
+                  <div className="flex-1 min-w-0">
+                    <PlaybookCard strategy={featured as (typeof mockHouseViewStrategies)[number]} noBorder />
                   </div>
-                )}
-              </div>
+                  {rest.length > 0 && (
+                    <div className="hide-scrollbar flex flex-col border-t lg:border-t-0 lg:border-l border-border lg:w-[45%] shrink-0 overflow-y-auto max-h-[306px]">
+                      <div className="flex flex-col divide-y divide-border">
+                        {rest.map((s) => (
+                          <PlaybookCardCompact key={s.id} strategy={s as (typeof mockHouseViewStrategies)[number]} noBorder />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Mobile: separate cards + view all */}
+                <div className="flex flex-col gap-3 lg:hidden">
+                  <PlaybookCard strategy={featured as (typeof mockHouseViewStrategies)[number]} />
+                  {rest.slice(0, 3).map((s) => (
+                    <PlaybookCardCompact key={s.id} strategy={s as (typeof mockHouseViewStrategies)[number]} />
+                  ))}
+                </div>
+              </>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {gridItems.slice(0, GRID_LIMIT).map((s) => (
@@ -210,7 +233,25 @@ function StrategyPlaybooks() {
         );
       })}
 
-      {modalGroup && (
+      {/* Mobile: library BottomSheet */}
+      <BottomSheet
+        open={!!modalGroup && isMobile}
+        onOpenChange={(o) => { if (!o) setModalGroup(null); }}
+        title={modalGroup ? `${modalGroup.period === "monthly" ? "Monthly" : "Weekly"} — ${modalGroup.periodLabel}` : ""}
+        showHandle
+        showHeader
+        rightSide="none"
+        contentClassName="overflow-y-auto"
+      >
+        <div className="flex flex-col gap-3 pb-8">
+          {modalGroup?.items.map((s) => (
+            <PlaybookCardCompact key={s.id} strategy={s as (typeof mockHouseViewStrategies)[number]} />
+          ))}
+        </div>
+      </BottomSheet>
+
+      {/* Desktop: centered modal */}
+      {modalGroup && !isMobile && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(2px)" }}
@@ -259,144 +300,159 @@ function RightSidebar() {
 
 // ─── Research 4U ─────────────────────────────────────────────────────────────
 
-const R4U_CATEGORIES = ["All", "Hot issue", "Buy list", "Asset performance", "Market calendar", "Asset class outlook", "Market outlook"] as const;
-type R4UCategory = typeof R4U_CATEGORIES[number];
+const R4U_CATS = [
+  "บทวิเคราะห์ทั้งหมด",
+  "Wealth Designs Daily",
+  "Chart Perspective Morning",
+  "Chart Perspective Afternoon",
+  "Derivative",
+  "บทวิเคราะห์หุ้นรายตัว",
+  "บทวิเคราะห์อุตสาหกรรม",
+  "ความเห็นนักวิเคราะห์",
+  "Theme Strategy",
+  "Trading Portfolio",
+  "Wealth Compass",
+  "ELN Pick",
+  "Technical Trading Portfolio",
+  "SBL IDEA",
+  "Top 5 DCA",
+  "Yuanta Universe",
+  "เอกสารการสัมมนา",
+  "จับข่าวมาเล่าหุ้น",
+  "Yuanta Global Wealth",
+  "Commodities Highlight",
+  "Power Investing",
+] as const;
 
-const CATEGORY_STYLE: Record<string, { pill: string; gradient: string }> = {
-  "Hot issue":           { pill: "bg-red-50 text-red-600 border border-red-200",           gradient: "from-red-950/80 to-slate-900/80" },
-  "Buy list":            { pill: "bg-green-50 text-green-700 border border-green-200",      gradient: "from-green-950/80 to-slate-900/80" },
-  "Asset performance":   { pill: "bg-blue-50 text-blue-600 border border-blue-200",         gradient: "from-blue-950/80 to-slate-900/80" },
-  "Market calendar":     { pill: "bg-purple-50 text-purple-600 border border-purple-200",   gradient: "from-purple-950/80 to-slate-900/80" },
-  "Asset class outlook": { pill: "bg-teal-50 text-teal-600 border border-teal-200",         gradient: "from-teal-950/80 to-slate-900/80" },
-  "Market outlook":      { pill: "bg-amber-50 text-amber-700 border border-amber-200",      gradient: "from-amber-950/80 to-slate-900/80" },
-};
+type R4UItem = { id: string; date: string; category: string; title: string };
 
-type R4UArticle = { id: string; category: R4UCategory; date: string; title: string; summary?: string };
-
-const MONTHLY_FEATURED: R4UArticle = {
-  id: "m1", category: "Hot issue", date: "1 ก.ค. 2569",
-  title: "AI Capex Cycle: Semiconductor Equipment และ Memory Upcycle ยังไม่จบ — Supply Tight ลากยาวถึงปี 2028",
-  summary: "Micron เซ็น SCA ครบ 16 ฉบับ ขณะที่ supply ยังตึงถึงปี 2028 — จังหวะนี้คือ valuation reset ไม่ใช่จุดจบ cycle",
-};
-
-const MONTHLY_LIST: R4UArticle[] = [
-  { id: "m2", category: "Hot issue",        date: "1 ก.ค. 2569", title: "Inflation Inflection: Fed มีโอกาส 'คงดอกเบี้ย' มากกว่า 'ขึ้น' — กุญแจอยู่ที่กำไร ไม่ใช่ Yield ต่ำ" },
-  { id: "m3", category: "Hot issue",        date: "1 ก.ค. 2569", title: "AI Demand กระจายสู่ Sovereign & Enterprise: 'ขาที่สาม' ของ AI CAPEX ที่ตลาดยังประเมินต่ำเกินไป" },
-  { id: "m4", category: "Asset performance", date: "1 ก.ค. 2569", title: "ภาพรวมผลตอบแทนสินทรัพย์กรกฎาคม 2569 เดือนแห่ง Rotation และการละลาย Geopolitical Premium" },
+const MOCK_R4U: R4UItem[] = [
+  { id: "r01", date: "03/08/2569", category: "Derivative",                  title: "DERIVATIVES - AFTERNOON" },
+  { id: "r02", date: "03/08/2569", category: "Yuanta Global Wealth",        title: "Global Insights - Cancelled Attacks on Iran: Unlocking Energy Market Overhang" },
+  { id: "r03", date: "03/08/2569", category: "Chart Perspective Afternoon", title: "TECHNICAL - BDMS, LH, M" },
+  { id: "r04", date: "03/08/2569", category: "จับข่าวมาเล่าหุ้น",           title: "จับข่าวมาเล่าหุ้น - ENERGY, BANPU, TLI, TASCO" },
+  { id: "r05", date: "03/08/2569", category: "Wealth Designs Daily",        title: "Sentiment การลงทุนยังดีในช่วงสั้น แนะนำสะสม CBG, SJWD, TASCO, JMART" },
+  { id: "r06", date: "03/08/2569", category: "Wealth Signal",               title: "WEALTH SIGNAL - The Pullback Has a Purpose: Repricing Risk, Revealing the Winners - Part 2" },
+  { id: "r07", date: "03/08/2569", category: "Wealth Signal",               title: "WEALTH SIGNAL - The Pullback Has a Purpose: Repricing Risk, Revealing the Winners - Part 1" },
+  { id: "r08", date: "03/08/2569", category: "Chart Perspective Morning",   title: "TECHNICAL - STA, HMPRO, JMART, SISB, SAMART, CKP" },
+  { id: "r09", date: "03/08/2569", category: "Power Investing",             title: "POWER INVESTING - CBG, SJWD, TASCO" },
+  { id: "r10", date: "03/08/2569", category: "Top 5 DCA",                   title: "TOP 5 DCA - GULF, SJWD, TASCO, ITC, MTC" },
+  { id: "r11", date: "02/08/2569", category: "Wealth Designs Daily",        title: "Market Wrap - SET ปรับตัวขึ้น นำโดยกลุ่มพลังงานและธนาคาร" },
+  { id: "r12", date: "02/08/2569", category: "Theme Strategy",              title: "THEME STRATEGY - AI Infrastructure Play: Data Center & Power" },
+  { id: "r13", date: "02/08/2569", category: "Trading Portfolio",           title: "TRADING PORTFOLIO UPDATE - สัปดาห์ที่ 31/2569" },
+  { id: "r14", date: "02/08/2569", category: "Commodities Highlight",       title: "COMMODITIES HIGHLIGHT - Gold & Oil Outlook Q3/2026" },
+  { id: "r15", date: "01/08/2569", category: "Wealth Compass",              title: "WEALTH COMPASS - Asset Allocation Monthly: สิงหาคม 2569" },
+  { id: "r16", date: "01/08/2569", category: "ELN Pick",                    title: "ELN PICK - DELTA, AOT, PTT: Attractive Entry for Structured Products" },
+  { id: "r17", date: "01/08/2569", category: "SBL IDEA",                    title: "SBL IDEA - Short Selling Opportunity: GULF, INTUCH" },
+  { id: "r18", date: "01/08/2569", category: "Yuanta Universe",             title: "YUANTA UNIVERSE - Monthly Model Portfolio Rebalancing" },
+  { id: "r19", date: "01/08/2569", category: "ความเห็นนักวิเคราะห์",         title: "Daily Morning Note - Macro Outlook & Stock Picks" },
+  { id: "r20", date: "31/07/2569", category: "บทวิเคราะห์หุ้นรายตัว",        title: "PTTEP - Maintain BUY, TP 155 บาท: Strong Cash Flow Despite Oil Weakness" },
+  { id: "r21", date: "31/07/2569", category: "บทวิเคราะห์อุตสาหกรรม",        title: "Sector Report: Thai Banking Sector - Asset Quality Improvement Ahead" },
+  { id: "r22", date: "31/07/2569", category: "Technical Trading Portfolio", title: "TECHNICAL TRADING - Buy Signals: ADVANC, CPALL, GULF" },
+  { id: "r23", date: "30/07/2569", category: "เอกสารการสัมมนา",             title: "Wealth Seminar: Navigating Volatility in Global Markets - สไลด์ประกอบการสัมมนา" },
 ];
-
-const WEEKLY_ARTICLES: R4UArticle[] = [
-  { id: "w1", category: "Hot issue",        date: "22 มิ.ย. 2569", title: "Fed ยุค Warsh: Bear Flattening ชัดขึ้น กับ Playbook ตราสารหนี้และพอร์ตการลงทุน",               summary: "เมื่อเฟดส่งสัญญาณขึ้นดอกเบี้ยลายปี Bear Flattening ยิ่งชัด และ Playbook ของพอร์ตต้องเปลี่ยนตาม" },
-  { id: "w2", category: "Hot issue",        date: "22 มิ.ย. 2569", title: "AI Semiconductor Supply Chain เร่งตัว: HBM4E เร็วกว่าคาด Intel Foundry Turnaround",              summary: "HBM4E เข้าสู่รอบ qualification เร็วกว่าคาด ขณะที่ Intel Foundry turnaround และ BESI ยกเป้าปี 2030" },
-  { id: "w3", category: "Hot issue",        date: "22 มิ.ย. 2569", title: "Regulator สหรัฐฯ เร่งสาย Time to Power: FERC และ ERCOT Batch Zero ออกกฎใหม่",                   summary: "FERC และ ERCOT ออกกฎใหม่ Time to Power สำหรับ AI data center ขนาดใหญ่ เพิ่ม visibility ต่อ capex" },
-  { id: "w4", category: "Asset performance", date: "22 มิ.ย. 2569", title: "ภาพรวมผลตอบแทนสินทรัพย์สิ้นเดือนมิถุนายน 69",                                                  summary: "สัปดาห์แห่งความแตกต่าง หุ้นเกาหลีพุ่งนำโลก ขณะพลังงานและทองคำโดนแรงขาย" },
-];
-
-function CategoryPill({ category }: { category: R4UCategory }) {
-  const style = CATEGORY_STYLE[category] ?? { pill: "bg-gray-100 text-gray-600 border border-gray-200" };
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${style.pill}`}>
-      {category}
-    </span>
-  );
-}
-
-function ArticleImageBg({ category, children, className = "" }: { category: R4UCategory; children?: ReactNode; className?: string }) {
-  const gradient = CATEGORY_STYLE[category]?.gradient ?? "from-slate-900/80 to-slate-800/80";
-  return (
-    <div className={`relative bg-slate-800 ${className}`}>
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
-      <div className="relative z-10 flex items-center justify-center h-full p-4">
-        {children ?? <span className="text-white/70 text-[11px] font-semibold text-center">{category}</span>}
-      </div>
-    </div>
-  );
-}
 
 function Research4U() {
-  const [activeCategory, setActiveCategory] = useState<R4UCategory>("All");
+  const [activeCategory, setActiveCategory] = useState<string>("บทวิเคราะห์ทั้งหมด");
+  const [searchDate, setSearchDate] = useState<Date | undefined>(undefined);
 
-  const filterArticles = (articles: R4UArticle[]) =>
-    activeCategory === "All" ? articles : articles.filter((a) => a.category === activeCategory);
-
-  const featuredVisible = activeCategory === "All" || MONTHLY_FEATURED.category === activeCategory;
-  const monthlyList = filterArticles(MONTHLY_LIST);
-  const weeklyList = filterArticles(WEEKLY_ARTICLES);
+  const filtered = MOCK_R4U.filter((item) => {
+    const catOk = activeCategory === "บทวิเคราะห์ทั้งหมด" || item.category === activeCategory;
+    const dateOk = !searchDate || (() => {
+      const d = searchDate.getDate().toString().padStart(2, "0");
+      const m = (searchDate.getMonth() + 1).toString().padStart(2, "0");
+      const y = (searchDate.getFullYear() + 543).toString();
+      return item.date === `${d}/${m}/${y}`;
+    })();
+    return catOk && dateOk;
+  });
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex items-center gap-2 flex-wrap">
-        {R4U_CATEGORIES.map((cat) => (
-          <Chip key={cat} label={cat} type="single" size="small" selected={activeCategory === cat} onClick={() => setActiveCategory(cat)} />
+    <div className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col md:flex-row md:max-h-[72vh]">
+
+      {/* Left sidebar — desktop */}
+      <div className="hidden md:flex flex-col w-52 shrink-0 border-r border-border overflow-y-auto hide-scrollbar">
+        {R4U_CATS.map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setActiveCategory(cat)}
+            className={`text-left px-4 py-2.5 text-[13px] transition-colors border-b border-border/40 last:border-0 ${
+              activeCategory === cat
+                ? "bg-primary-action-light text-primary-action font-semibold"
+                : "text-foreground hover:bg-muted/50"
+            }`}
+          >
+            {cat}
+          </button>
         ))}
       </div>
 
-      {(featuredVisible || monthlyList.length > 0) && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <span className="px-2.5 py-1 rounded bg-[var(--bg-brand-primary)] text-white text-[11px] font-bold">Monthly</span>
-            <p className="type-subtitle-1 font-bold text-foreground">กรกฎาคม 2569</p>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-            {featuredVisible && (
-              <div className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow">
-                <ArticleImageBg category={MONTHLY_FEATURED.category} className="h-52">
-                  <CategoryPill category={MONTHLY_FEATURED.category} />
-                </ArticleImageBg>
-                <div className="p-5 flex flex-col gap-3">
-                  <p className="type-caption text-muted-foreground">{MONTHLY_FEATURED.date}</p>
-                  <p className="type-subtitle-1 font-bold text-foreground leading-snug">{MONTHLY_FEATURED.title}</p>
-                  {MONTHLY_FEATURED.summary && (
-                    <p className="type-body-2 text-muted-foreground leading-relaxed">{MONTHLY_FEATURED.summary}</p>
-                  )}
-                  <button type="button" className="flex items-center gap-1 type-body-2 text-[var(--text-brand-primary)] font-semibold hover:underline self-start">
-                    อ่านเพิ่มเติม <ArrowRightIcon size={13} />
-                  </button>
-                </div>
-              </div>
-            )}
-            {monthlyList.length > 0 && (
-              <div className="flex flex-col gap-3">
-                {monthlyList.map((article) => (
-                  <div key={article.id} className="rounded-2xl border border-border bg-card overflow-hidden flex cursor-pointer hover:shadow-md transition-shadow">
-                    <div className="flex-1 min-w-0 p-4 flex flex-col gap-2">
-                      <CategoryPill category={article.category} />
-                      <p className="type-body-2 font-bold text-foreground leading-snug line-clamp-2">{article.title}</p>
-                      <p className="type-caption text-muted-foreground">{article.date}</p>
-                    </div>
-                    <ArticleImageBg category={article.category} className="w-24 shrink-0 rounded-r-2xl" />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Right content */}
+      <div className="flex-1 min-w-0 flex flex-col min-h-0">
 
-      {weeklyList.length > 0 && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <span className="px-2.5 py-1 rounded bg-[var(--bg-brand-primary)] text-white text-[11px] font-bold">Weekly</span>
-            <p className="type-subtitle-1 font-bold text-foreground">22–26 มิถุนายน 2569</p>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {weeklyList.map((article) => (
-              <div key={article.id} className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow">
-                <ArticleImageBg category={article.category} className="h-36">
-                  <CategoryPill category={article.category} />
-                </ArticleImageBg>
-                <div className="p-3.5 flex flex-col gap-1.5">
-                  <p className="type-caption text-muted-foreground">{article.date}</p>
-                  <p className="type-caption font-bold text-foreground leading-snug line-clamp-3">{article.title}</p>
-                  {article.summary && (
-                    <p className="text-[11px] text-muted-foreground leading-snug line-clamp-3">{article.summary}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Mobile filters */}
+        <div className="md:hidden flex flex-col gap-2 p-3 border-b border-border shrink-0">
+          <Dropdown
+            value={activeCategory}
+            onChange={setActiveCategory}
+            options={R4U_CATS.map((c) => ({ label: c, value: c }))}
+            placeholder="เลือกหมวดบทวิเคราะห์"
+          />
+          <DateInput
+            mode="single"
+            placeholder="เลือกวันที่"
+            value={searchDate}
+            onChange={setSearchDate}
+            className="w-full"
+          />
         </div>
-      )}
+
+        {/* Date filter — desktop only */}
+        <div className="hidden md:block px-4 py-3 border-b border-border shrink-0">
+          <DateInput
+            mode="single"
+            placeholder="เลือกวันที่"
+            value={searchDate}
+            onChange={setSearchDate}
+            className="w-full md:w-56"
+          />
+        </div>
+
+        {/* Column headers — desktop */}
+        <div
+          className="hidden md:grid px-5 py-2.5 bg-muted/40 border-b border-border shrink-0"
+          style={{ gridTemplateColumns: "110px 180px 1fr" }}
+        >
+          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">วันที่</span>
+          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">บทวิเคราะห์</span>
+          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">รายละเอียด</span>
+        </div>
+
+        {/* Items */}
+        <div className="flex-1 overflow-y-auto hide-scrollbar divide-y divide-border">
+          {filtered.length === 0 ? (
+            <div className="flex items-center justify-center py-16 text-[13px] text-muted-foreground">
+              ไม่พบข้อมูลที่ค้นหา
+            </div>
+          ) : (
+            filtered.map((item) => (
+              <a
+                key={item.id}
+                href="#"
+                target="_blank"
+                rel="noreferrer"
+                className="flex flex-col gap-0.5 md:grid md:gap-4 px-5 py-3.5 hover:bg-muted/30 transition-colors group"
+                style={{ gridTemplateColumns: "110px 180px 1fr" }}
+              >
+                <span className="text-[12px] text-muted-foreground">{item.date}</span>
+                <span className="text-[13px] text-foreground">{item.category}</span>
+                <span className="text-[13px] text-primary-action group-hover:underline leading-snug">{item.title}</span>
+              </a>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -426,9 +482,7 @@ export default function HouseViewPage() {
           <RightSidebar />
         </div>
       ) : (
-        <div className="flex items-center justify-center py-24 text-muted-foreground">
-          <p className="type-body-2">Research 4U content coming soon.</p>
-        </div>
+        <Research4U />
       )}
     </div>
   );
