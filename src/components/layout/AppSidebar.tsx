@@ -147,10 +147,10 @@ export function AppSidebar({
       )}
 
       {/* Logo — YA square lives in the same icon zone */}
-      <div className="flex items-center gap-3 py-4 shrink-0 px-2">
+      <div className="flex items-center gap-3.5 py-4 shrink-0 px-2">
         <div className={ICON_ZONE}>
           {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size icon, no responsive sizes needed */}
-          <img src="/yuanta-icon-logo.svg" alt="Yuanta" className="w-8 h-8" />
+          <img src="/yuanta-icon-logo.svg" alt="Yuanta" className="w-10 h-10" />
         </div>
         <div
           className={`overflow-hidden transition-all duration-300 ease-in-out ${
@@ -158,7 +158,11 @@ export function AppSidebar({
           }`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- small fixed-size wordmark, no responsive sizes needed */}
-          <img src="/yuanta-ic-portal-logo.svg" alt="Yuanta IC Portal" className="h-[19px] w-auto" />
+          <img
+            src="/yuanta-ic-portal-logo.svg"
+            alt="Yuanta IC Portal"
+            className="w-auto h-10.5"
+          />
         </div>
       </div>
 
