@@ -76,6 +76,19 @@ export const mockHouseViewStrategies = houseViewStrategiesRaw as Array<
   Omit<(typeof houseViewStrategiesRaw)[number], "convictionVariant"> & { convictionVariant: ConvictionVariant }
 >;
 
+export type AnalystItem = { id: string; name: string; title: string; photo: string };
+
+export const mockAnalysts: AnalystItem[] = [
+  { id: "a01", name: "ธนกร ศิริวัฒน์",    title: "หัวหน้าฝ่ายวิเคราะห์หลักทรัพย์", photo: "/avatars/analyst-01.jpg" },
+  { id: "a02", name: "ปิยะ เจริญสุข",      title: "นักกลยุทธ์การลงทุน และนักวิเคราะห์ปัจจัยพื้นฐาน กลุ่มธนาคารและอสังหาริมทรัพย์", photo: "/avatars/analyst-02.jpg" },
+  { id: "a03", name: "วรากร ทองสุข",       title: "นักวิเคราะห์ปัจจัยทางเทคนิค", photo: "/avatars/analyst-03.jpg" },
+  { id: "a04", name: "อรรถพล ไชยวงศ์",     title: "นักวิเคราะห์ปัจจัยทางเทคนิค", photo: "/avatars/analyst-04.jpg" },
+  { id: "a05", name: "สุพจน์ มั่นคง",      title: "นักวิเคราะห์ปัจจัยพื้นฐาน กลุ่มพลังงานและปิโตรเคมี", photo: "/avatars/analyst-05.jpg" },
+  { id: "a06", name: "ชัยวัฒน์ พูนทรัพย์", title: "นักวิเคราะห์อนุพันธ์", photo: "/avatars/analyst-06.jpg" },
+  { id: "a07", name: "กิตติพงษ์ รุ่งเรือง", title: "นักวิเคราะห์ตราสารหนี้", photo: "/avatars/analyst-07.jpg" },
+  { id: "a08", name: "ณัฐวุฒิ แสงทอง",     title: "ผู้เชี่ยวชาญกองทุนและผลิตภัณฑ์การลงทุน", photo: "/avatars/analyst-08.jpg" },
+];
+
 export const mockPerformanceData = performanceRaw as typeof performanceRaw & {
   revenueYtd:         { status: PerformanceStatus };
   aumGrowth:          { status: PerformanceStatus };

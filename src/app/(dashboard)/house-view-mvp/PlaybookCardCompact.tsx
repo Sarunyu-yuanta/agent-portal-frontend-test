@@ -1,0 +1,31 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Tag } from "@sarunyu/system-one";
+import { mockHouseViewStrategies } from "@/lib/mock-data";
+import { CATEGORY_TAG_VARIANT, CATEGORY_ACCENT_COLOR, STRATEGY_DETAIL, getCategory } from "./house-view-data";
+
+export function PlaybookCardCompact({ strategy, noBorder }: { strategy: (typeof mockHouseViewStrategies)[number]; noBorder?: boolean }) {
+  const cat = getCategory(strategy);
+  const router = useRouter();
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => router.push(`/house-view-mvp/${strategy.id}`)}
+      onKeyDown={(e) => { if (e.key === "Enter") router.push(`/house-view-mvp/${strategy.id}`); }}
+      className={`overflow-hidden flex w-full min-h-[116px] cursor-pointer hover:bg-muted/30 transition-colors ${noBorder ? "" : "rounded-2xl border border-border bg-card"}`}
+    >
+      <div className="w-1 shrink-0" style={{ background: CATEGORY_ACCENT_COLOR[cat] ?? "#6b7280" }} />
+      <div className="flex-1 p-4 flex flex-col gap-2">
+        <Tag text={cat} variant={CATEGORY_TAG_VARIANT[cat] ?? "gray"} size="small" />
+        <p className="text-[14px] font-bold text-foreground leading-snug">{strategy.name}</p>
+        {STRATEGY_DETAIL[strategy.id]?.rationale && (
+          <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-1">
+            {STRATEGY_DETAIL[strategy.id].rationale}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}

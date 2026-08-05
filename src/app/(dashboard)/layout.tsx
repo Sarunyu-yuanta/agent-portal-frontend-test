@@ -11,7 +11,7 @@ import {
 import { ListIcon } from "@phosphor-icons/react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
-import { notificationGroups } from "@/lib/mock-data";
+import { notificationGroups, mockHouseViewStrategies } from "@/lib/mock-data";
 import { useClients } from "@/hooks/use-api";
 import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
 
@@ -69,112 +69,178 @@ function usePageInfo(): PageInfo {
     };
   }
 
-  const key = Object.keys(PAGE_TITLES).sort((a, b) => b.length - a.length).find((k) => pathname.startsWith(k));
+  // Insight detail page (House View) — show breadcrumb instead of title
+  const insightMatch = pathname.match(/^\/house-view-mvp\/([^/]+)/);
+  if (insightMatch) {
+    const strategy = mockHouseViewStrategies.find(
+      (s) => s.id === insightMatch[1],
+    );
+    const title = strategy?.name ?? "Insight";
+    return {
+      title: null,
+      clientBreadcrumb: [
+        { label: "Insights", href: "/house-view-mvp" },
+        { label: title.length > 22 ? `${title.slice(0, 22)}…` : title },
+      ],
+      isCommandCenter: false,
+      isHouseView: false,
+      isPerformance: false,
+      isFullWidth: false,
+    };
+  }
+
+  const key = Object.keys(PAGE_TITLES)
+    .sort((a, b) => b.length - a.length)
+    .find((k) => pathname.startsWith(k));
   return {
     title: key ? PAGE_TITLES[key] : "",
     clientBreadcrumb: null,
     isCommandCenter: pathname.startsWith("/command-center"),
     isHouseView: pathname.startsWith("/house-view"),
     isPerformance: pathname.startsWith("/performance"),
-    isFullWidth: pathname.startsWith("/product-catalog") || pathname.startsWith("/client-hub"),
+    isFullWidth:
+      pathname.startsWith("/product-catalog") ||
+      pathname.startsWith("/client-hub"),
   };
 }
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { title: pageTitle, clientBreadcrumb, isCommandCenter, isHouseView, isPerformance, isFullWidth } = usePageInfo();
+  const {
+    title: pageTitle,
+    clientBreadcrumb,
+    isCommandCenter,
+    isHouseView,
+    isPerformance,
+    isFullWidth,
+  } = usePageInfo();
   const headerSlot = useHeaderSlot();
 
   return (
     <>
-    <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-      <SheetOverlay className="bg-black/50" />
-      <SheetContent side="left" className="w-60 p-0 bg-slate-900 border-slate-700">
-        <AppSidebar onClose={() => setSidebarOpen(false)} />
-      </SheetContent>
-    </Sheet>
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetOverlay className="bg-black/50" />
+        <SheetContent
+          side="left"
+          className="w-60 p-0 bg-slate-900 border-slate-700"
+        >
+          <AppSidebar onClose={() => setSidebarOpen(false)} />
+        </SheetContent>
+      </Sheet>
 
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar — hidden on mobile/tablet, visible on xl+ (desktop only) */}
-      <aside className={`hidden xl:flex shrink-0 bg-slate-900 overflow-hidden flex-col transition-[width] duration-300 ease-in-out ${sidebarCollapsed ? "w-[50px]" : "w-60"}`}>
-        <AppSidebar
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
-        />
-      </aside>
+      <div className="flex h-screen bg-background overflow-hidden">
+        {/* Sidebar — hidden on mobile/tablet, visible on xl+ (desktop only) */}
+        <aside
+          className={`hidden xl:flex shrink-0 bg-slate-900 overflow-hidden flex-col transition-[width] duration-300 ease-in-out ${sidebarCollapsed ? "w-[50px]" : "w-60"}`}
+        >
+          <AppSidebar
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+          />
+        </aside>
 
-      {/* Content area */}
-      <div className="flex flex-col flex-1 min-w-0">
-        {/* Top bar */}
-        <header className="shrink-0 min-h-[60px] flex items-center justify-between gap-4 px-4 border-b border-border bg-background z-30 relative">
-          <div className="flex items-center gap-3">
-            {/* Logo — mobile + tablet (sidebar hidden below xl) */}
-            <div className="flex items-center gap-2.5 xl:hidden">
-              <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-                <span className="text-[10px] font-bold text-white">YA</span>
+        {/* Content area */}
+        <div className="flex flex-col flex-1 min-w-0">
+          {/* Top bar */}
+          <header className="shrink-0 min-h-[60px] flex items-center justify-between gap-4 px-4 border-b border-border bg-background z-30 relative">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              {/* Logo — mobile + tablet (sidebar hidden below xl) */}
+              <div className="flex items-center gap-2.5 xl:hidden shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size icon, no responsive sizes needed */}
+                <img
+                  src="/yuanta-icon-logo.svg"
+                  alt="Yuanta"
+                  className="w-7 h-7 shrink-0"
+                />
+                <span className="text-[13px] font-semibold text-foreground hidden sm:block">
+                  Yuanta Agent Portal
+                </span>
               </div>
-              <span className="text-[13px] font-semibold text-foreground hidden sm:block">Yuanta Agent Portal</span>
+              {/* Title in header — desktop only */}
+              {clientBreadcrumb ? (
+                <div className="min-w-0 overflow-hidden">
+                  <Breadcrumb items={clientBreadcrumb} />
+                </div>
+              ) : (
+                <div className="hidden xl:flex items-center gap-3">
+                  {pageTitle && (
+                    <h1 className="type-subtitle-1 text-foreground">
+                      {pageTitle}
+                    </h1>
+                  )}
+                  {isCommandCenter && <MarketOpenBadge />}
+                </div>
+              )}
             </div>
-            {/* Title in header — desktop only */}
-            {clientBreadcrumb ? (
-              <Breadcrumb items={clientBreadcrumb} />
-            ) : (
-              <div className="hidden xl:flex items-center gap-3">
-                {pageTitle && <h1 className="type-subtitle-1 text-foreground">{pageTitle}</h1>}
-                {isCommandCenter && <MarketOpenBadge />}
-                {isHouseView && <Tag text="Updated: Q2 2026" variant="blue" size="small" />}
+
+            {headerSlot && (
+              <div className="hidden xl:flex flex-1 max-w-sm items-center">
+                {headerSlot}
               </div>
             )}
-          </div>
 
-          {headerSlot && (
-            <div className="hidden xl:flex flex-1 max-w-sm items-center">
-              {headerSlot}
+            <div className="flex items-center gap-4">
+              <NavHeaderNotification
+                groups={notificationGroups}
+                badgeCount={4}
+              />
+
+              <div className="xl:hidden">
+                <NavHeaderIconButton
+                  aria-label="Open navigation"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <ListIcon weight="regular" size={24} />
+                </NavHeaderIconButton>
+              </div>
             </div>
-          )}
+          </header>
 
-          <div className="flex items-center gap-4">
-            <NavHeaderNotification groups={notificationGroups} badgeCount={4} />
-
-            <div className="xl:hidden">
-              <NavHeaderIconButton aria-label="Open navigation" onClick={() => setSidebarOpen(true)}>
-                <ListIcon weight="regular" size={24} />
-              </NavHeaderIconButton>
-            </div>
-          </div>
-        </header>
-
-        <main className={`flex-1 overflow-y-auto overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"}`}>
-          <div
-            className={`${
-              isFullWidth ? "w-full" : "max-w-[1280px] mx-auto"
-            } flex flex-col gap-6`}
+          <main
+            className={`flex-1 overflow-y-auto overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"}`}
           >
-            {!clientBreadcrumb && !isFullWidth && (pageTitle || isCommandCenter || isHouseView) && (
-              <div className="flex items-center justify-between gap-3 xl:hidden">
-                <div className="flex items-center gap-3">
-                  {pageTitle && <h1 className="type-h5 text-foreground">{pageTitle}</h1>}
-                  {isCommandCenter && <MarketOpenBadge />}
-                  {isHouseView && <Tag text="Updated: Q2 2026" variant="blue" size="small" />}
-                </div>
-                {isPerformance && (
-                  <div className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 shrink-0" style={{ background: "#1e2337" }}>
-                    <span className="text-[13px] font-bold text-white leading-none">B+</span>
+            <div
+              className={`${
+                isFullWidth ? "w-full" : "max-w-[1280px] mx-auto"
+              } flex flex-col gap-6`}
+            >
+              {!clientBreadcrumb &&
+                !isFullWidth &&
+                (pageTitle || isCommandCenter || isHouseView) && (
+                  <div className="flex items-center justify-between gap-3 xl:hidden">
+                    <div className="flex items-center gap-3">
+                      {pageTitle && (
+                        <h1 className="type-h5 text-foreground">{pageTitle}</h1>
+                      )}
+                      {isCommandCenter && <MarketOpenBadge />}
+                    </div>
+                    {isPerformance && (
+                      <div
+                        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 shrink-0"
+                        style={{ background: "#1e2337" }}
+                      >
+                        <span className="text-[13px] font-bold text-white leading-none">
+                          B+
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
-            {children}
-          </div>
-        </main>
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
     </>
   );
 }
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <HeaderSlotProvider>
       <DashboardLayoutInner>{children}</DashboardLayoutInner>

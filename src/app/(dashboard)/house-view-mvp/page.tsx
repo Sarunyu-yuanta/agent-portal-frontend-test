@@ -1,15 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Tag, Button, Chip, TabGroup, Modal, BottomSheet, Dropdown, DateInput } from "@sarunyu/system-one";
+import { useState, useEffect, type ComponentProps } from "react";
+import { Tag, Button, Chip, TabGroup, Modal, BottomSheet, Dropdown, DateInput, SearchInput } from "@sarunyu/system-one";
 import {
   SparkleIcon,
   TrendUpIcon,
   TrendDownIcon,
   MinusIcon,
   ArrowRightIcon,
+  SunIcon,
+  BroadcastIcon,
+  BriefcaseIcon,
+  BuildingsIcon,
+  NotePencilIcon,
+  FileTextIcon,
+  LightningIcon,
+  ChartLineUpIcon,
+  FactoryIcon,
+  GlobeIcon,
+  TrophyIcon,
+  PuzzlePieceIcon,
+  type Icon as PhosphorIcon,
 } from "@phosphor-icons/react";
-import { mockHouseViewStrategies } from "@/lib/mock-data";
+import { BentoCard, BentoGrid } from "@/components/ui/bento-grid";
+import { mockHouseViewStrategies, mockAnalysts, type AnalystItem } from "@/lib/mock-data";
+import { useRouter } from "next/navigation";
+import { CATEGORY_TAG_VARIANT, CATEGORY_ACCENT_COLOR, STRATEGY_DETAIL, getCategory } from "./house-view-data";
+import { AIRecommendCard } from "./AIRecommendCard";
+import { PlaybookCardCompact } from "./PlaybookCardCompact";
 
 // ─── Category styling ─────────────────────────────────────────────────────────
 
@@ -20,59 +38,6 @@ const ASSET_FILTERS: AssetClassFilter[] = [
   "Market calendar", "Asset class outlook", "Market outlook",
 ];
 
-const CATEGORY_TAG_VARIANT: Record<string, "red" | "green" | "blue" | "lime" | "yellow" | "gray"> = {
-  "Hot issue":           "red",
-  "Buy list":            "green",
-  "Asset performance":   "blue",
-  "Market calendar":     "lime",
-  "Asset class outlook": "yellow",
-  "Market outlook":      "gray",
-};
-
-const CATEGORY_ACCENT_COLOR: Record<string, string> = {
-  "Hot issue":           "#ef4444",
-  "Buy list":            "#22c55e",
-  "Asset performance":   "#3b82f6",
-  "Market calendar":     "#a855f7",
-  "Asset class outlook": "#eab308",
-  "Market outlook":      "#6b7280",
-};
-
-// ─── Strategy detail (rationale only) ────────────────────────────────────────
-
-const STRATEGY_DETAIL: Record<string, { rationale: string }> = {
-  s1:  { rationale: "Micron เซ็น SCA ครบ 16 ฉบับ ขณะที่ supply ยังตึงถึงปี 2028 — จังหวะนี้คือ valuation reset ไม่ใช่จุดจบ cycle นักลงทุนที่ออกไปรอ correction อาจพลาด re-rating ที่เกิดขึ้นแล้ว" },
-  s2:  { rationale: "Core CPI ต่ำกว่าคาด 3 เดือนติด ตลาดยังไม่ price in โอกาสที่ Fed หยุดรอแทนที่จะขึ้น — กำไรบริษัทเป็นตัวชี้วัดที่สำคัญกว่า yield level" },
-  s3:  { rationale: "Hyperscaler capex ขยายสู่ Sovereign AI และ Enterprise — addressable market ใหญ่กว่าที่นักวิเคราะห์คาด 3 เท่า ขณะที่ราคาหุ้นยังสะท้อนเฉพาะ Hyperscaler demand" },
-  s4:  { rationale: "Geopolitical risk premium ลดลงหลังการเจรจา ขณะที่ Rotation จาก Growth สู่ Value เริ่มชัดเจน — สินทรัพย์ที่ได้รับ premium จาก geopolitical fear จะถูก re-price" },
-  s5:  { rationale: "เมื่อเฟดส่งสัญญาณขึ้นดอกเบี้ยลายปี Bear Flattening ยิ่งชัด — Playbook ของพอร์ตต้องเปลี่ยนตาม ลด duration ยาว เพิ่ม floating rate และ short-end exposure" },
-  s6:  { rationale: "HBM4E เข้าสู่รอบ qualification เร็วกว่าคาด ขณะที่ Intel Foundry turnaround และ BESI ยกเป้าปี 2030 ยืนยัน AI semiconductor supercycle ยังไม่จบ" },
-  s7:  { rationale: "FERC และ ERCOT ออกกฎใหม่ Time to Power สำหรับ AI data center ขนาดใหญ่ เพิ่ม visibility ต่อ capex ด้านพลังงาน — utilities และ power infrastructure เป็น beneficiary โดยตรง" },
-  s8:  { rationale: "หุ้นเกาหลีพุ่งนำโลกสัปดาห์นี้ ขณะพลังงานและทองคำโดนแรงขาย — Selective plays ในกลุ่ม Value ที่ยังมี dividend yield น่าสนใจในสภาวะ rotation" },
-  s9:  { rationale: "Bank lending pullback creates a supply gap in senior secured private credit. Direct lending at 9–11% yield with first-lien security — asymmetric risk/reward." },
-  s10: { rationale: "Strongest GDP trajectory in G20 at 6.5–7%. Demographic dividend, manufacturing FDI inflows, and middle-class consumption boom create a multi-decade compounding story." },
-  s11: { rationale: "เมื่อ AI ก้าวสู่ Agentic AI กำไรบริษัทจดทะเบียนแรงสุดในรอบ 5 ปี ขณะที่ตลาด Memory โลกถูกปรับประมาณการขึ้น" },
-  s12: { rationale: "เมื่อ rack ของ NVIDIA ในปี 2028 ใช้ไฟมากกว่า 1 เมกะวัตต์ สถาปัตยกรรม 800VDC ไม่ใช่แค่เรื่องวิศวกรรม — แต่คือธีมการลงทุนใหม่" },
-  s13: { rationale: "เมื่อน้ำมันดิ้งและชิปพุ่ง ตลาดโลกเดือนมิถุนายนบอกอะไรเราเกี่ยวกับโอกาสและความเสี่ยงที่กำลังจะมาถึง" },
-  s14: { rationale: "CIO มองตลาด selective overweight ใน quality equity ขณะที่ bond duration ยังคง neutral รอสัญญาณ Fed ที่ชัดขึ้นใน H2" },
-  s15: { rationale: "เมื่อ Nvidia ทำสถิติรายได้ใหม่และ Jensen Huang บินตรงสู่ไทยก่อน Computex — Supercycle นี้ยังไม่หยุด ยังมี room ขึ้นอีก" },
-  s16: { rationale: "ดีลสันติภาพ US-Iran กดสปอตน้ำมัน ขณะ SpaceX IPO พิสูจน์ว่าไม่ใช่แค่บริษัทจรวด — สองธีมที่เปลี่ยน portfolio allocation" },
-  s17: { rationale: "หุ้นเกาหลีพุ่งนำโลกสัปดาห์นี้ ขณะพลังงานและทองคำโดนแรงขาย — สัญญาณ rotation ที่ชัดเจนที่สุดในรอบไตรมาส" },
-  s18: { rationale: "IG spread แคบลงต่อเนื่อง ขณะที่ HY เริ่มแยกทาง — signal สำคัญที่ตลาดหุ้นมักจะตามมาใน 4–6 สัปดาห์" },
-  s19: { rationale: "CIO ยืนยัน equity overweight ต่อ พร้อมส่งสัญญาณเริ่ม rotate เข้า EM ที่ valuation ยังถูกเมื่อเทียบกับ DM" },
-  s20: { rationale: "ธนาคารกลางซื้อทองสูงสุดในรอบ 50 ปี — de-dollarisation ไม่ใช่ทฤษฎีอีกต่อไป แต่เป็นข้อมูลที่วัดได้และ price in ยังไม่เต็ม" },
-  s21: { rationale: "พฤษภาคมปิดด้วย gold +4.2% นำโลก ขณะ EM bond ฟื้นตัวแรงหลัง Fed pause signal ชัด — positioning เริ่มเปลี่ยน" },
-  s22: { rationale: "FDI เข้า India ทำสถิติ — Apple, Samsung, TSMC ต่างมาลงทุน manufacturing renaissance เพิ่งเริ่มและจะยาวนาน 10+ ปี" },
-  s23: { rationale: "Beijing ปล่อย stimulus รอบสอง หลัง PMI ฟื้น — HK-listed tech เป็นจุดเข้าที่ดีที่สุดในรอบ 3 ปี valuation ถูกกว่า US tech 40%" },
-  s24: { rationale: "Dollar อ่อนค่าลง ขณะ EM central bank ลด rate — FX carry ใน ASEAN ให้ yield เพิ่มเติม 2–3% ต่อปีโดยไม่รับ credit risk" },
-  s25: { rationale: "AI ย่น timeline drug discovery จาก 10 ปีเหลือ 3 ปี — Big Pharma กำลัง hunt acquisition เพื่อเติม pipeline ราคา M&A premium สูงขึ้น" },
-  s26: { rationale: "CIO คัดกรอง 5 กองทุนเด่นประจำเดือน ครอบคลุมทุก risk profile ตั้งแต่ conservative bond ถึง aggressive growth equity" },
-  s27: { rationale: "Quantum milestone ใกล้มากกว่าที่คิด — thematic allocation เล็กๆ ให้ option value สูงมากในพอร์ต ความเสี่ยงจำกัดแต่ upside ไม่จำกัด" },
-  s28: { rationale: "สัปดาห์ที่มี event สำคัญหนาแน่น — volatility อาจพุ่งสั้นๆ เป็นโอกาส rebalance และ add position ในจุดที่อ่อนตัว" },
-  s29: { rationale: "ทองแดงเป็นโลหะแห่ง energy transition — EV + grid + AI data center สร้าง demand ที่ mine supply ตามไม่ทัน deficit ยาวถึงปี 2030" },
-  s30: { rationale: "Soft landing, Re-acceleration หรือ Stagflation — 3 scenario พร้อม portfolio playbook สำหรับแต่ละกรณี ความน่าจะเป็นและ positioning ที่เหมาะสม" },
-};
-
 // ─── Types & helpers ──────────────────────────────────────────────────────────
 
 type StrategyItem = (typeof mockHouseViewStrategies)[number] & {
@@ -80,10 +45,6 @@ type StrategyItem = (typeof mockHouseViewStrategies)[number] & {
   periodLabel: string;
   category: string;
 };
-
-function getCategory(strategy: (typeof mockHouseViewStrategies)[number]): string {
-  return (strategy as unknown as { category: string }).category;
-}
 
 function groupByPeriodLabel(strategies: StrategyItem[]) {
   const seen = new Set<string>();
@@ -110,8 +71,15 @@ type ModalGroup = { period: string; periodLabel: string; items: StrategyItem[] }
 
 function PlaybookCard({ strategy, noBorder }: { strategy: (typeof mockHouseViewStrategies)[number]; noBorder?: boolean }) {
   const cat = getCategory(strategy);
+  const router = useRouter();
   return (
-    <div className={`overflow-hidden flex h-full cursor-pointer hover:bg-muted/30 transition-colors ${noBorder ? "" : "rounded-2xl border border-border bg-card"}`}>
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => router.push(`/house-view-mvp/${strategy.id}`)}
+      onKeyDown={(e) => { if (e.key === "Enter") router.push(`/house-view-mvp/${strategy.id}`); }}
+      className={`overflow-hidden flex h-full cursor-pointer hover:bg-muted/30 transition-colors ${noBorder ? "" : "rounded-2xl border border-border bg-card"}`}
+    >
       <div className="w-1 shrink-0" style={{ background: CATEGORY_ACCENT_COLOR[cat] ?? "#6b7280" }} />
       <div className="flex-1 p-6 flex flex-col gap-5">
         <div className="flex flex-col gap-2">
@@ -124,25 +92,6 @@ function PlaybookCard({ strategy, noBorder }: { strategy: (typeof mockHouseViewS
   );
 }
 
-// ─── Compact Playbook Card ────────────────────────────────────────────────────
-
-function PlaybookCardCompact({ strategy, noBorder }: { strategy: (typeof mockHouseViewStrategies)[number]; noBorder?: boolean }) {
-  const cat = getCategory(strategy);
-  return (
-    <div className={`overflow-hidden flex w-full min-h-[116px] cursor-pointer hover:bg-muted/30 transition-colors ${noBorder ? "" : "rounded-2xl border border-border bg-card"}`}>
-      <div className="w-1 shrink-0" style={{ background: CATEGORY_ACCENT_COLOR[cat] ?? "#6b7280" }} />
-      <div className="flex-1 p-4 flex flex-col gap-2">
-        <Tag text={cat} variant={CATEGORY_TAG_VARIANT[cat] ?? "gray"} size="small" />
-        <p className="text-[14px] font-bold text-foreground leading-snug">{strategy.name}</p>
-        {STRATEGY_DETAIL[strategy.id]?.rationale && (
-          <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-1">
-            {STRATEGY_DETAIL[strategy.id].rationale}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ─── Strategy Playbooks Section ───────────────────────────────────────────────
 
@@ -217,9 +166,11 @@ function StrategyPlaybooks() {
                 {/* Mobile: separate cards + view all */}
                 <div className="flex flex-col gap-3 lg:hidden">
                   <PlaybookCard strategy={featured as (typeof mockHouseViewStrategies)[number]} />
-                  {rest.slice(0, 3).map((s) => (
-                    <PlaybookCardCompact key={s.id} strategy={s as (typeof mockHouseViewStrategies)[number]} />
-                  ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {rest.slice(0, 3).map((s) => (
+                      <PlaybookCardCompact key={s.id} strategy={s as (typeof mockHouseViewStrategies)[number]} />
+                    ))}
+                  </div>
                 </div>
               </>
             ) : (
@@ -283,17 +234,8 @@ function StrategyPlaybooks() {
 
 function RightSidebar() {
   return (
-    <div className="flex flex-col gap-5 sticky top-6">
-      <div className="rounded-2xl border border-dashed border-border bg-card p-6 flex flex-col items-center gap-3 text-center">
-        <div className="size-10 rounded-xl bg-primary-action-light flex items-center justify-center">
-          <SparkleIcon size={20} weight="fill" className="text-primary-action" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <p className="type-subtitle-2 font-bold text-foreground">AI Recommend</p>
-          <p className="type-caption text-muted-foreground leading-relaxed">AI-powered client matching and recommendations will appear here.</p>
-        </div>
-        <p className="text-[10px] font-semibold text-primary-action uppercase tracking-widest">Coming Soon</p>
-      </div>
+    <div className="flex flex-col gap-5 sticky top-6 w-full max-w-sm mx-auto lg:max-w-none lg:mx-0">
+      <AIRecommendCard />
     </div>
   );
 }
@@ -324,6 +266,8 @@ const R4U_CATS = [
   "Power Investing",
 ] as const;
 
+const MOCK_PDF_URL = "/mock-reports/sample-report.pdf";
+
 type R4UItem = { id: string; date: string; category: string; title: string };
 
 const MOCK_R4U: R4UItem[] = [
@@ -352,104 +296,251 @@ const MOCK_R4U: R4UItem[] = [
   { id: "r23", date: "30/07/2569", category: "เอกสารการสัมมนา",             title: "Wealth Seminar: Navigating Volatility in Global Markets - สไลด์ประกอบการสัมมนา" },
 ];
 
+
+function AnalystCard({ analyst }: { analyst: AnalystItem }) {
+  return (
+    <div className="flex items-center gap-3 sm:gap-4 rounded-2xl border border-border bg-card p-4 sm:p-5 hover:bg-muted/30 transition-colors">
+      {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size headshot, no responsive sizes needed */}
+      <img src={analyst.photo} alt={analyst.name} className="w-14 h-14 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0" />
+      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+        <p className="text-[13px] font-bold text-foreground">{analyst.name}</p>
+        <p className="text-[12px] text-muted-foreground leading-snug">{analyst.title}</p>
+      </div>
+    </div>
+  );
+}
+
+type LandingTile = { id: string; title: string; subtitle: string; icon: PhosphorIcon; color: string; span?: string };
+
+const R4U_LANDING_TILES: LandingTile[] = [
+  { id: "t01", title: "Smart Pick",          subtitle: "แนะนำหุ้นเด่นประจำวัน",  icon: SparkleIcon,      color: "#f59e0b", span: "lg:col-start-1 lg:row-start-1 lg:row-span-2" },
+  { id: "t02", title: "Afternoon Tactic",    subtitle: "แนวโน้มตลาดบ่าย",        icon: SunIcon,          color: "#f97316" },
+  { id: "t03", title: "Yuanta Channel",      subtitle: "ช่องทางอัปเดตข่าวสาร",  icon: BroadcastIcon,    color: "#06b6d4" },
+  { id: "t04", title: "เปิดพอร์ตโชว์หุ้น",   subtitle: "พอร์ตจำลองแนะนำ",       icon: BriefcaseIcon,    color: "#64748b" },
+  { id: "t13", title: "Theme Strategy",      subtitle: "ธีมการลงทุนเด่น",        icon: PuzzlePieceIcon,  color: "#6366f1" },
+  { id: "t10", title: "Sector Update",       subtitle: "วิเคราะห์อุตสาหกรรม",    icon: FactoryIcon,      color: "#3f3f46" },
+  { id: "t05", title: "Company Focus",       subtitle: "วิเคราะห์หุ้นรายตัว",    icon: BuildingsIcon,    color: "#0ea5e9" },
+  { id: "t07", title: "Warrant UPDATE",      subtitle: "อัปเดตวอร์แรนต์",       icon: FileTextIcon,     color: "#71717a", span: "lg:col-start-3 lg:row-start-3 lg:row-span-2" },
+  { id: "t08", title: "Derivative Warrant",  subtitle: "อนุพันธ์และวอร์แรนต์",  icon: LightningIcon,    color: "#ef4444", span: "lg:col-start-1 lg:row-start-4 lg:col-span-2" },
+  { id: "t09", title: "เทคนิคและอนุพันธ์",   subtitle: "Technical & Future",     icon: ChartLineUpIcon,  color: "#8b5cf6", span: "lg:col-start-1 lg:row-start-5 lg:row-span-2" },
+  { id: "t06", title: "Analyst Note",        subtitle: "ความเห็นนักวิเคราะห์",   icon: NotePencilIcon,   color: "#10b981" },
+  { id: "t11", title: "Yuanta Universe",     subtitle: "โมเดลพอร์ตการลงทุน",     icon: GlobeIcon,        color: "#0891b2" },
+  { id: "t12", title: "Top 5 DCA",           subtitle: "หุ้นเด่นสะสมประจำสัปดาห์", icon: TrophyIcon,      color: "#52525b", span: "lg:col-start-2 lg:row-start-6 lg:col-span-2" },
+];
+
+function tintIcon(IconComp: PhosphorIcon, color: string) {
+  function TintedIcon({ className, style, ...props }: ComponentProps<PhosphorIcon>) {
+    return <IconComp className={className} style={{ ...style, color }} {...props} />;
+  }
+  return TintedIcon;
+}
+
+function R4ULandingGrid() {
+  return (
+    <div className="flex-1 overflow-y-auto hide-scrollbar p-4">
+      <BentoGrid className="grid-cols-2 lg:grid-cols-3 auto-rows-[130px] lg:auto-rows-[150px] gap-2 lg:gap-3 grid-flow-dense">
+        {R4U_LANDING_TILES.map((tile) => (
+          <BentoCard
+            key={tile.id}
+            name={tile.title}
+            description={tile.subtitle}
+            href={MOCK_PDF_URL}
+            cta="เปิดเอกสาร"
+            Icon={tintIcon(tile.icon, tile.color)}
+            className={tile.span ?? "col-span-1 row-span-1"}
+            background={
+              <div
+                className="pointer-events-none absolute inset-0 opacity-25"
+                style={{ background: `radial-gradient(140% 140% at 100% 0%, ${tile.color}, transparent 60%)` }}
+              />
+            }
+          />
+        ))}
+      </BentoGrid>
+    </div>
+  );
+}
+
+const R4U_HOME_OPTION = "__home__";
+
 function Research4U() {
-  const [activeCategory, setActiveCategory] = useState<string>("บทวิเคราะห์ทั้งหมด");
+  const [subTab, setSubTab] = useState<"research" | "analyst">("research");
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchDate, setSearchDate] = useState<Date | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateInputResetKey, setDateInputResetKey] = useState(0);
+
+  const goHome = () => {
+    setActiveCategory(null);
+    setSearchQuery("");
+    setSearchDate(undefined);
+    setDateInputResetKey((k) => k + 1);
+  };
+
+  const isSearching = searchQuery.trim().length > 0;
+  const showList = activeCategory !== null || isSearching || searchDate !== undefined;
 
   const filtered = MOCK_R4U.filter((item) => {
-    const catOk = activeCategory === "บทวิเคราะห์ทั้งหมด" || item.category === activeCategory;
+    const catOk = activeCategory === null || activeCategory === "บทวิเคราะห์ทั้งหมด" || item.category === activeCategory;
     const dateOk = !searchDate || (() => {
       const d = searchDate.getDate().toString().padStart(2, "0");
       const m = (searchDate.getMonth() + 1).toString().padStart(2, "0");
       const y = (searchDate.getFullYear() + 543).toString();
       return item.date === `${d}/${m}/${y}`;
     })();
-    return catOk && dateOk;
+    const searchOk = !isSearching || item.title.toLowerCase().includes(searchQuery.trim().toLowerCase());
+    return catOk && dateOk && searchOk;
   });
 
   return (
-    <div className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col md:flex-row md:max-h-[72vh]">
+    <div className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col md:max-h-[72vh]">
 
-      {/* Left sidebar — desktop */}
-      <div className="hidden md:flex flex-col w-52 shrink-0 border-r border-border overflow-y-auto hide-scrollbar">
-        {R4U_CATS.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => setActiveCategory(cat)}
-            className={`text-left px-4 py-2.5 text-[13px] transition-colors border-b border-border/40 last:border-0 ${
-              activeCategory === cat
-                ? "bg-primary-action-light text-primary-action font-semibold"
-                : "text-foreground hover:bg-muted/50"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+      {/* Research / Analyst Contact sub-tabs — full width, above sidebar + content */}
+      <div className="flex items-center justify-between gap-4 px-3 pt-2 border-b border-border shrink-0">
+        <div className="flex items-center gap-2 pb-2">
+          <Chip label="Research" type="single" selected={subTab === "research"} onClick={() => setSubTab("research")} />
+          <Chip label="Analyst Contact" type="single" selected={subTab === "analyst"} onClick={() => setSubTab("analyst")} />
+        </div>
+        <div className={`hidden md:flex items-center gap-2 pb-2 ${subTab === "research" ? "" : "invisible"}`}>
+          <SearchInput
+            placeholder="ค้นหาชื่อหุ้น"
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onClear={() => setSearchQuery("")}
+            size="lg"
+            className="w-80"
+          />
+          <DateInput
+            key={dateInputResetKey}
+            mode="single"
+            placeholder="เลือกวันที่"
+            value={searchDate}
+            onChange={setSearchDate}
+            className="w-56"
+          />
+        </div>
       </div>
 
-      {/* Right content */}
-      <div className="flex-1 min-w-0 flex flex-col min-h-0">
+      <div className="flex flex-col md:flex-row flex-1 min-h-0">
 
-        {/* Mobile filters */}
-        <div className="md:hidden flex flex-col gap-2 p-3 border-b border-border shrink-0">
-          <Dropdown
-            value={activeCategory}
-            onChange={setActiveCategory}
-            options={R4U_CATS.map((c) => ({ label: c, value: c }))}
-            placeholder="เลือกหมวดบทวิเคราะห์"
-          />
-          <DateInput
-            mode="single"
-            placeholder="เลือกวันที่"
-            value={searchDate}
-            onChange={setSearchDate}
-            className="w-full"
-          />
-        </div>
+        {/* Left sidebar — desktop, Research tab only */}
+        {subTab === "research" && (
+          <div className="hidden md:flex flex-col w-52 shrink-0 border-r border-border overflow-y-auto hide-scrollbar">
+            <button
+              type="button"
+              onClick={goHome}
+              className={`text-left px-4 py-2.5 text-[13px] transition-colors cursor-pointer border-b border-border/40 ${
+                !showList
+                  ? "bg-primary-action-light text-primary-action font-semibold"
+                  : "text-foreground hover:bg-muted/50"
+              }`}
+            >
+              หน้าแรก
+            </button>
+            {R4U_CATS.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                className={`text-left px-4 py-2.5 text-[13px] transition-colors cursor-pointer border-b border-border/40 last:border-0 ${
+                  activeCategory === cat
+                    ? "bg-primary-action-light text-primary-action font-semibold"
+                    : "text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* Date filter — desktop only */}
-        <div className="hidden md:block px-4 py-3 border-b border-border shrink-0">
-          <DateInput
-            mode="single"
-            placeholder="เลือกวันที่"
-            value={searchDate}
-            onChange={setSearchDate}
-            className="w-full md:w-56"
-          />
-        </div>
-
-        {/* Column headers — desktop */}
-        <div
-          className="hidden md:grid px-5 py-2.5 bg-muted/40 border-b border-border shrink-0"
-          style={{ gridTemplateColumns: "110px 180px 1fr" }}
-        >
-          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">วันที่</span>
-          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">บทวิเคราะห์</span>
-          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">รายละเอียด</span>
-        </div>
-
-        {/* Items */}
-        <div className="flex-1 overflow-y-auto hide-scrollbar divide-y divide-border">
-          {filtered.length === 0 ? (
-            <div className="flex items-center justify-center py-16 text-[13px] text-muted-foreground">
-              ไม่พบข้อมูลที่ค้นหา
+        {/* Right content */}
+        <div className="flex-1 min-w-0 flex flex-col min-h-0">
+          {subTab === "analyst" ? (
+            <div className="flex-1 overflow-y-auto hide-scrollbar p-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {mockAnalysts.map((analyst) => (
+                  <AnalystCard key={analyst.id} analyst={analyst} />
+                ))}
+              </div>
             </div>
           ) : (
-            filtered.map((item) => (
-              <a
-                key={item.id}
-                href="#"
-                target="_blank"
-                rel="noreferrer"
-                className="flex flex-col gap-0.5 md:grid md:gap-4 px-5 py-3.5 hover:bg-muted/30 transition-colors group"
-                style={{ gridTemplateColumns: "110px 180px 1fr" }}
-              >
-                <span className="text-[12px] text-muted-foreground">{item.date}</span>
-                <span className="text-[13px] text-foreground">{item.category}</span>
-                <span className="text-[13px] text-primary-action group-hover:underline leading-snug">{item.title}</span>
-              </a>
-            ))
+            <>
+              {/* Mobile category picker — always visible so mobile users have a way to browse
+                  categories without the desktop-only sidebar */}
+              <div className="md:hidden flex flex-col gap-2 p-3 border-b border-border shrink-0">
+                <SearchInput
+                  placeholder="ค้นหาชื่อหุ้น"
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  onClear={() => setSearchQuery("")}
+                  className="w-full"
+                />
+                <DateInput
+                  key={dateInputResetKey}
+                  mode="single"
+                  placeholder="เลือกวันที่"
+                  value={searchDate}
+                  onChange={setSearchDate}
+                  className="w-full"
+                />
+                <Dropdown
+                  value={activeCategory ?? R4U_HOME_OPTION}
+                  onChange={(v) => {
+                    if (v === R4U_HOME_OPTION) {
+                      goHome();
+                    } else {
+                      setActiveCategory(v);
+                    }
+                  }}
+                  options={[
+                    { label: "‹ หน้าแรก", value: R4U_HOME_OPTION },
+                    ...R4U_CATS.map((c) => ({ label: c, value: c })),
+                  ]}
+                  placeholder="เลือกหมวดบทวิเคราะห์"
+                />
+              </div>
+
+              {!showList ? (
+                <R4ULandingGrid />
+              ) : (
+                <>
+                  {/* Column headers — desktop */}
+                  <div
+                    className="hidden md:grid px-5 py-2.5 bg-muted/40 border-b border-border shrink-0"
+                    style={{ gridTemplateColumns: "110px 180px 1fr" }}
+                  >
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">วันที่</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">บทวิเคราะห์</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">รายละเอียด</span>
+                  </div>
+
+                  {/* Items */}
+                  <div className="flex-1 overflow-y-auto hide-scrollbar divide-y divide-border">
+                    {filtered.length === 0 ? (
+                      <div className="flex items-center justify-center py-16 text-[13px] text-muted-foreground">
+                        ไม่พบข้อมูลที่ค้นหา
+                      </div>
+                    ) : (
+                      filtered.map((item) => (
+                        <a
+                          key={item.id}
+                          href={MOCK_PDF_URL}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex flex-col gap-0.5 md:grid md:gap-4 px-5 py-3.5 hover:bg-muted/30 transition-colors group"
+                          style={{ gridTemplateColumns: "110px 180px 1fr" }}
+                        >
+                          <span className="text-[12px] text-muted-foreground">{item.date}</span>
+                          <span className="text-[13px] text-foreground">{item.category}</span>
+                          <span className="text-[13px] text-primary-action group-hover:underline leading-snug">{item.title}</span>
+                        </a>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
+            </>
           )}
         </div>
       </div>
