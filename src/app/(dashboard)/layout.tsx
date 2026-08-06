@@ -149,13 +149,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-2.5 xl:hidden shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size icon, no responsive sizes needed */}
                 <img
-                  src="/yuanta-icon-logo.svg"
+                  src="/yuanta-ic-portal-logo-primary.svg"
                   alt="Yuanta"
-                  className="w-7 h-7 shrink-0"
+                  className="w-auto h-8 shrink-0"
                 />
-                <span className="text-[13px] font-semibold text-foreground hidden sm:block">
-                  Yuanta Agent Portal
-                </span>
+
               </div>
               {/* Title in header — desktop only */}
               {clientBreadcrumb ? (
@@ -201,9 +199,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             className={`flex-1 overflow-y-auto overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"}`}
           >
             <div
-              className={`${
-                isFullWidth ? "w-full" : "max-w-[1280px] mx-auto"
-              } flex flex-col gap-6`}
+              className={`${isFullWidth ? "w-full" : "max-w-[1280px] mx-auto"
+                } flex flex-col gap-6`}
             >
               {!clientBreadcrumb &&
                 !isFullWidth &&

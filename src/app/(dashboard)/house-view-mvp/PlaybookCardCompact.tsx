@@ -7,6 +7,7 @@ import { CATEGORY_TAG_VARIANT, CATEGORY_ACCENT_COLOR, STRATEGY_DETAIL, getCatego
 
 export function PlaybookCardCompact({ strategy, noBorder }: { strategy: (typeof mockHouseViewStrategies)[number]; noBorder?: boolean }) {
   const cat = getCategory(strategy);
+  const rationale = STRATEGY_DETAIL[strategy.id]?.rationale;
   const router = useRouter();
   return (
     <div
@@ -20,10 +21,8 @@ export function PlaybookCardCompact({ strategy, noBorder }: { strategy: (typeof 
       <div className="flex-1 p-4 flex flex-col gap-2">
         <Tag text={cat} variant={CATEGORY_TAG_VARIANT[cat] ?? "gray"} size="small" />
         <p className="text-[14px] font-bold text-foreground leading-snug">{strategy.name}</p>
-        {STRATEGY_DETAIL[strategy.id]?.rationale && (
-          <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-1">
-            {STRATEGY_DETAIL[strategy.id].rationale}
-          </p>
+        {rationale && (
+          <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-1">{rationale}</p>
         )}
       </div>
     </div>

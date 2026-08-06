@@ -1,0 +1,332 @@
+"use client";
+
+import { useState, type ComponentProps } from "react";
+import { Chip, Dropdown, DateInput, SearchInput } from "@sarunyu/system-one";
+import {
+  SparkleIcon,
+  SunIcon,
+  BroadcastIcon,
+  BriefcaseIcon,
+  BuildingsIcon,
+  NotePencilIcon,
+  FileTextIcon,
+  LightningIcon,
+  ChartLineUpIcon,
+  FactoryIcon,
+  GlobeIcon,
+  TrophyIcon,
+  PuzzlePieceIcon,
+  type Icon as PhosphorIcon,
+} from "@phosphor-icons/react";
+import { BentoCard, BentoGrid } from "@/components/ui/bento-grid";
+import { mockAnalysts, type AnalystItem } from "@/lib/mock-data";
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
+
+const R4U_CATS = [
+  "บทวิเคราะห์ทั้งหมด",
+  "Wealth Designs Daily",
+  "Chart Perspective Morning",
+  "Chart Perspective Afternoon",
+  "Derivative",
+  "บทวิเคราะห์หุ้นรายตัว",
+  "บทวิเคราะห์อุตสาหกรรม",
+  "ความเห็นนักวิเคราะห์",
+  "Theme Strategy",
+  "Trading Portfolio",
+  "Wealth Compass",
+  "ELN Pick",
+  "Technical Trading Portfolio",
+  "SBL IDEA",
+  "Top 5 DCA",
+  "Yuanta Universe",
+  "เอกสารการสัมมนา",
+  "จับข่าวมาเล่าหุ้น",
+  "Yuanta Global Wealth",
+  "Commodities Highlight",
+  "Power Investing",
+] as const;
+
+const MOCK_PDF_URL = "/mock-reports/sample-report.pdf";
+const R4U_HOME_OPTION = "__home__";
+
+type R4UItem = { id: string; date: string; category: string; title: string };
+
+const MOCK_R4U: R4UItem[] = [
+  { id: "r01", date: "03/08/2569", category: "Derivative",                  title: "DERIVATIVES - AFTERNOON" },
+  { id: "r02", date: "03/08/2569", category: "Yuanta Global Wealth",        title: "Global Insights - Cancelled Attacks on Iran: Unlocking Energy Market Overhang" },
+  { id: "r03", date: "03/08/2569", category: "Chart Perspective Afternoon", title: "TECHNICAL - BDMS, LH, M" },
+  { id: "r04", date: "03/08/2569", category: "จับข่าวมาเล่าหุ้น",           title: "จับข่าวมาเล่าหุ้น - ENERGY, BANPU, TLI, TASCO" },
+  { id: "r05", date: "03/08/2569", category: "Wealth Designs Daily",        title: "Sentiment การลงทุนยังดีในช่วงสั้น แนะนำสะสม CBG, SJWD, TASCO, JMART" },
+  { id: "r06", date: "03/08/2569", category: "Wealth Signal",               title: "WEALTH SIGNAL - The Pullback Has a Purpose: Repricing Risk, Revealing the Winners - Part 2" },
+  { id: "r07", date: "03/08/2569", category: "Wealth Signal",               title: "WEALTH SIGNAL - The Pullback Has a Purpose: Repricing Risk, Revealing the Winners - Part 1" },
+  { id: "r08", date: "03/08/2569", category: "Chart Perspective Morning",   title: "TECHNICAL - STA, HMPRO, JMART, SISB, SAMART, CKP" },
+  { id: "r09", date: "03/08/2569", category: "Power Investing",             title: "POWER INVESTING - CBG, SJWD, TASCO" },
+  { id: "r10", date: "03/08/2569", category: "Top 5 DCA",                   title: "TOP 5 DCA - GULF, SJWD, TASCO, ITC, MTC" },
+  { id: "r11", date: "02/08/2569", category: "Wealth Designs Daily",        title: "Market Wrap - SET ปรับตัวขึ้น นำโดยกลุ่มพลังงานและธนาคาร" },
+  { id: "r12", date: "02/08/2569", category: "Theme Strategy",              title: "THEME STRATEGY - AI Infrastructure Play: Data Center & Power" },
+  { id: "r13", date: "02/08/2569", category: "Trading Portfolio",           title: "TRADING PORTFOLIO UPDATE - สัปดาห์ที่ 31/2569" },
+  { id: "r14", date: "02/08/2569", category: "Commodities Highlight",       title: "COMMODITIES HIGHLIGHT - Gold & Oil Outlook Q3/2026" },
+  { id: "r15", date: "01/08/2569", category: "Wealth Compass",              title: "WEALTH COMPASS - Asset Allocation Monthly: สิงหาคม 2569" },
+  { id: "r16", date: "01/08/2569", category: "ELN Pick",                    title: "ELN PICK - DELTA, AOT, PTT: Attractive Entry for Structured Products" },
+  { id: "r17", date: "01/08/2569", category: "SBL IDEA",                    title: "SBL IDEA - Short Selling Opportunity: GULF, INTUCH" },
+  { id: "r18", date: "01/08/2569", category: "Yuanta Universe",             title: "YUANTA UNIVERSE - Monthly Model Portfolio Rebalancing" },
+  { id: "r19", date: "01/08/2569", category: "ความเห็นนักวิเคราะห์",         title: "Daily Morning Note - Macro Outlook & Stock Picks" },
+  { id: "r20", date: "31/07/2569", category: "บทวิเคราะห์หุ้นรายตัว",        title: "PTTEP - Maintain BUY, TP 155 บาท: Strong Cash Flow Despite Oil Weakness" },
+  { id: "r21", date: "31/07/2569", category: "บทวิเคราะห์อุตสาหกรรม",        title: "Sector Report: Thai Banking Sector - Asset Quality Improvement Ahead" },
+  { id: "r22", date: "31/07/2569", category: "Technical Trading Portfolio", title: "TECHNICAL TRADING - Buy Signals: ADVANC, CPALL, GULF" },
+  { id: "r23", date: "30/07/2569", category: "เอกสารการสัมมนา",             title: "Wealth Seminar: Navigating Volatility in Global Markets - สไลด์ประกอบการสัมมนา" },
+];
+
+type LandingTile = { id: string; title: string; subtitle: string; icon: PhosphorIcon; color: string; span?: string };
+
+const R4U_LANDING_TILES: LandingTile[] = [
+  { id: "t01", title: "Smart Pick",          subtitle: "แนะนำหุ้นเด่นประจำวัน",     icon: SparkleIcon,      color: "#f59e0b", span: "lg:col-start-1 lg:row-start-1 lg:row-span-2" },
+  { id: "t02", title: "Afternoon Tactic",    subtitle: "แนวโน้มตลาดบ่าย",           icon: SunIcon,          color: "#f97316" },
+  { id: "t03", title: "Yuanta Channel",      subtitle: "ช่องทางอัปเดตข่าวสาร",     icon: BroadcastIcon,    color: "#06b6d4" },
+  { id: "t04", title: "เปิดพอร์ตโชว์หุ้น",   subtitle: "พอร์ตจำลองแนะนำ",          icon: BriefcaseIcon,    color: "#64748b" },
+  { id: "t13", title: "Theme Strategy",      subtitle: "ธีมการลงทุนเด่น",           icon: PuzzlePieceIcon,  color: "#6366f1" },
+  { id: "t10", title: "Sector Update",       subtitle: "วิเคราะห์อุตสาหกรรม",       icon: FactoryIcon,      color: "#3f3f46" },
+  { id: "t05", title: "Company Focus",       subtitle: "วิเคราะห์หุ้นรายตัว",       icon: BuildingsIcon,    color: "#0ea5e9" },
+  { id: "t07", title: "Warrant UPDATE",      subtitle: "อัปเดตวอร์แรนต์",          icon: FileTextIcon,     color: "#71717a", span: "lg:col-start-3 lg:row-start-3 lg:row-span-2" },
+  { id: "t08", title: "Derivative Warrant",  subtitle: "อนุพันธ์และวอร์แรนต์",     icon: LightningIcon,    color: "#ef4444", span: "lg:col-start-1 lg:row-start-4 lg:col-span-2" },
+  { id: "t09", title: "เทคนิคและอนุพันธ์",   subtitle: "Technical & Future",        icon: ChartLineUpIcon,  color: "#8b5cf6", span: "lg:col-start-1 lg:row-start-5 lg:row-span-2" },
+  { id: "t06", title: "Analyst Note",        subtitle: "ความเห็นนักวิเคราะห์",      icon: NotePencilIcon,   color: "#10b981" },
+  { id: "t11", title: "Yuanta Universe",     subtitle: "โมเดลพอร์ตการลงทุน",        icon: GlobeIcon,        color: "#0891b2" },
+  { id: "t12", title: "Top 5 DCA",           subtitle: "หุ้นเด่นสะสมประจำสัปดาห์",  icon: TrophyIcon,       color: "#52525b", span: "lg:col-start-2 lg:row-start-6 lg:col-span-2" },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function tintIcon(IconComp: PhosphorIcon, color: string) {
+  function TintedIcon({ className, style, ...props }: ComponentProps<PhosphorIcon>) {
+    return <IconComp className={className} style={{ ...style, color }} {...props} />;
+  }
+  return TintedIcon;
+}
+
+function formatBuddhistDate(d: Date): string {
+  const day = d.getDate().toString().padStart(2, "0");
+  const month = (d.getMonth() + 1).toString().padStart(2, "0");
+  const year = (d.getFullYear() + 543).toString();
+  return `${day}/${month}/${year}`;
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function AnalystCard({ analyst }: { analyst: AnalystItem }) {
+  return (
+    <div className="flex items-center gap-3 sm:gap-4 rounded-2xl border border-border bg-card p-4 sm:p-5 hover:bg-muted/30 transition-colors">
+      {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size headshot, no responsive sizes needed */}
+      <img src={analyst.photo} alt={analyst.name} className="w-14 h-14 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0" />
+      <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+        <p className="text-[13px] font-bold text-foreground">{analyst.name}</p>
+        <p className="text-[12px] text-muted-foreground leading-snug">{analyst.title}</p>
+      </div>
+    </div>
+  );
+}
+
+function R4ULandingGrid() {
+  return (
+    <div className="flex-1 overflow-y-auto hide-scrollbar p-4">
+      <BentoGrid className="grid-cols-2 lg:grid-cols-3 auto-rows-[130px] lg:auto-rows-[150px] gap-2 lg:gap-3 grid-flow-dense">
+        {R4U_LANDING_TILES.map((tile) => (
+          <BentoCard
+            key={tile.id}
+            name={tile.title}
+            description={tile.subtitle}
+            href={MOCK_PDF_URL}
+            cta="เปิดเอกสาร"
+            Icon={tintIcon(tile.icon, tile.color)}
+            className={tile.span ?? "col-span-1 row-span-1"}
+            background={
+              <div
+                className="pointer-events-none absolute inset-0 opacity-25"
+                style={{ background: `radial-gradient(140% 140% at 100% 0%, ${tile.color}, transparent 60%)` }}
+              />
+            }
+          />
+        ))}
+      </BentoGrid>
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export function Research4U() {
+  const [subTab, setSubTab] = useState<"research" | "analyst">("research");
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchDate, setSearchDate] = useState<Date | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateInputResetKey, setDateInputResetKey] = useState(0);
+
+  const goHome = () => {
+    setActiveCategory(null);
+    setSearchQuery("");
+    setSearchDate(undefined);
+    setDateInputResetKey((k) => k + 1);
+  };
+
+  const isSearching = searchQuery.trim().length > 0;
+  const showList = activeCategory !== null || isSearching || searchDate !== undefined;
+
+  const filtered = MOCK_R4U.filter((item) => {
+    const catOk = activeCategory === null || activeCategory === "บทวิเคราะห์ทั้งหมด" || item.category === activeCategory;
+    const dateOk = !searchDate || item.date === formatBuddhistDate(searchDate);
+    const searchOk = !isSearching || item.title.toLowerCase().includes(searchQuery.trim().toLowerCase());
+    return catOk && dateOk && searchOk;
+  });
+
+  return (
+    <div className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col md:max-h-[72vh]">
+
+      {/* Sub-tabs + desktop search bar */}
+      <div className="flex items-center justify-between gap-4 px-3 pt-2 border-b border-border shrink-0">
+        <div className="flex items-center gap-2 pb-2">
+          <Chip label="Research" type="single" selected={subTab === "research"} onClick={() => setSubTab("research")} />
+          <Chip label="Analyst Contact" type="single" selected={subTab === "analyst"} onClick={() => setSubTab("analyst")} />
+        </div>
+        <div className={`hidden md:flex items-center gap-2 pb-2 ${subTab === "research" ? "" : "invisible"}`}>
+          <SearchInput
+            placeholder="ค้นหาชื่อหุ้น"
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onClear={() => setSearchQuery("")}
+            size="lg"
+            className="w-80"
+          />
+          <DateInput
+            key={dateInputResetKey}
+            mode="single"
+            placeholder="เลือกวันที่"
+            value={searchDate}
+            onChange={setSearchDate}
+            className="w-56"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row flex-1 min-h-0">
+
+        {/* Desktop category sidebar — research tab only */}
+        {subTab === "research" && (
+          <div className="hidden md:flex flex-col w-52 shrink-0 border-r border-border overflow-y-auto hide-scrollbar">
+            <button
+              type="button"
+              onClick={goHome}
+              className={`text-left px-4 py-2.5 text-[13px] transition-colors cursor-pointer border-b border-border/40 ${
+                !showList
+                  ? "bg-primary-action-light text-primary-action font-semibold"
+                  : "text-foreground hover:bg-muted/50"
+              }`}
+            >
+              หน้าแรก
+            </button>
+            {R4U_CATS.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                className={`text-left px-4 py-2.5 text-[13px] transition-colors cursor-pointer border-b border-border/40 last:border-0 ${
+                  activeCategory === cat
+                    ? "bg-primary-action-light text-primary-action font-semibold"
+                    : "text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Content area */}
+        <div className="flex-1 min-w-0 flex flex-col min-h-0">
+          {subTab === "analyst" ? (
+            <div className="flex-1 overflow-y-auto hide-scrollbar p-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {mockAnalysts.map((analyst) => (
+                  <AnalystCard key={analyst.id} analyst={analyst} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Mobile category picker */}
+              <div className="md:hidden flex flex-col gap-2 p-3 border-b border-border shrink-0">
+                <SearchInput
+                  placeholder="ค้นหาชื่อหุ้น"
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  onClear={() => setSearchQuery("")}
+                  className="w-full"
+                />
+                <DateInput
+                  key={dateInputResetKey}
+                  mode="single"
+                  placeholder="เลือกวันที่"
+                  value={searchDate}
+                  onChange={setSearchDate}
+                  className="w-full"
+                />
+                <Dropdown
+                  value={activeCategory ?? R4U_HOME_OPTION}
+                  onChange={(v) => {
+                    if (v === R4U_HOME_OPTION) goHome();
+                    else setActiveCategory(v);
+                  }}
+                  options={[
+                    { label: "‹ หน้าแรก", value: R4U_HOME_OPTION },
+                    ...R4U_CATS.map((c) => ({ label: c, value: c })),
+                  ]}
+                  placeholder="เลือกหมวดบทวิเคราะห์"
+                />
+              </div>
+
+              {!showList ? (
+                <R4ULandingGrid />
+              ) : (
+                <>
+                  {/* Column headers — desktop */}
+                  <div
+                    className="hidden md:grid px-5 py-2.5 bg-muted/40 border-b border-border shrink-0"
+                    style={{ gridTemplateColumns: "110px 180px 1fr" }}
+                  >
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">วันที่</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">บทวิเคราะห์</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">รายละเอียด</span>
+                  </div>
+
+                  {/* Items */}
+                  <div className="flex-1 overflow-y-auto hide-scrollbar divide-y divide-border">
+                    {filtered.length === 0 ? (
+                      <div className="flex items-center justify-center py-16 text-[13px] text-muted-foreground">
+                        ไม่พบข้อมูลที่ค้นหา
+                      </div>
+                    ) : (
+                      filtered.map((item) => (
+                        <a
+                          key={item.id}
+                          href={MOCK_PDF_URL}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex flex-col gap-0.5 md:grid md:gap-4 px-5 py-3.5 hover:bg-muted/30 transition-colors group"
+                          style={{ gridTemplateColumns: "110px 180px 1fr" }}
+                        >
+                          <span className="text-[12px] text-muted-foreground">{item.date}</span>
+                          <span className="text-[13px] text-foreground">{item.category}</span>
+                          <span className="text-[13px] text-primary-action group-hover:underline leading-snug">{item.title}</span>
+                        </a>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

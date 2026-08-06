@@ -57,9 +57,8 @@ function NavSection({
       {/* Section label fades out when collapsed */}
       <div className="h-7 flex items-end px-4 pb-1 overflow-hidden">
         <p
-          className={`text-[11px] font-semibold text-slate-500 uppercase tracking-widest whitespace-nowrap transition-all duration-300 ease-in-out ${
-            collapsed ? "opacity-0 -translate-x-1" : "opacity-100 translate-x-0"
-          }`}
+          className={`text-[11px] font-semibold text-slate-500 uppercase tracking-widest whitespace-nowrap transition-all duration-300 ease-in-out ${collapsed ? "opacity-0 -translate-x-1" : "opacity-100 translate-x-0"
+            }`}
         >
           {label}
         </p>
@@ -78,9 +77,8 @@ function NavSection({
             title={item.label}
           >
             <div
-              className={`flex items-center gap-3 py-2.5 rounded-lg transition-colors overflow-hidden ${
-                isActive ? "bg-slate-700/60" : "hover:bg-slate-800"
-              }`}
+              className={`flex items-center gap-3 py-2.5 rounded-lg transition-colors overflow-hidden ${isActive ? "bg-slate-700/60" : "hover:bg-slate-800"
+                }`}
             >
               {/* Icon zone — fixed width, never moves */}
               <div className={ICON_ZONE}>
@@ -93,20 +91,18 @@ function NavSection({
 
               {/* Text fades + collapses */}
               <span
-                className={`text-[13.5px] leading-none whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden ${
-                  collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                } ${isActive ? "text-white font-medium" : "text-slate-300"}`}
+                className={`text-[13.5px] leading-none whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                  } ${isActive ? "text-white font-medium" : "text-slate-300"}`}
               >
                 {item.label}
               </span>
 
               {item.badge != null && (
                 <span
-                  className={`bg-slate-700 text-slate-300 text-[11px] font-semibold px-2 py-0.5 rounded-full tabular-nums whitespace-nowrap transition-all duration-300 ease-in-out ${
-                    collapsed
-                      ? "w-0 opacity-0 overflow-hidden p-0"
-                      : "opacity-100"
-                  }`}
+                  className={`bg-slate-700 text-slate-300 text-[11px] font-semibold px-2 py-0.5 rounded-full tabular-nums whitespace-nowrap transition-all duration-300 ease-in-out ${collapsed
+                    ? "w-0 opacity-0 overflow-hidden p-0"
+                    : "opacity-100"
+                    }`}
                 >
                   {item.badge}
                 </span>
@@ -147,21 +143,20 @@ export function AppSidebar({
       )}
 
       {/* Logo — YA square lives in the same icon zone */}
-      <div className="flex items-center gap-3.5 py-4 shrink-0 px-2">
+      <div className="flex items-center gap-2.5 py-4 shrink-0 px-2">
         <div className={ICON_ZONE}>
           {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size icon, no responsive sizes needed */}
-          <img src="/yuanta-icon-logo.svg" alt="Yuanta" className="w-10 h-10" />
+          <img src="/yuanta-icon-logo.svg" alt="Yuanta" className="w-auto h-7.5" />
         </div>
         <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-          }`}
+          className={`overflow-hidden transition-all duration-300 ease-in-out pb-0.5 ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+            }`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- small fixed-size wordmark, no responsive sizes needed */}
           <img
-            src="/yuanta-ic-portal-logo.svg"
+            src="/yuanta-ic-portal-logo-white.svg"
             alt="Yuanta IC Portal"
-            className="w-auto h-10.5"
+            className="w-auto h-8"
           />
         </div>
       </div>
@@ -183,9 +178,8 @@ export function AppSidebar({
             <Avatar type="text" initials="RM" size="m" />
           </div>
           <div
-            className={`flex items-center gap-2 overflow-hidden transition-all duration-300 ease-in-out ${
-              collapsed ? "w-0 opacity-0" : "w-auto opacity-100 flex-1"
-            }`}
+            className={`flex items-center gap-2 overflow-hidden transition-all duration-300 ease-in-out ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100 flex-1"
+              }`}
           >
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-medium text-white truncate leading-tight whitespace-nowrap">

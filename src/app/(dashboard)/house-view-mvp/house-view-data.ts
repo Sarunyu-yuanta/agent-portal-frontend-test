@@ -2,7 +2,7 @@
 // Used by both the Insights list (page.tsx) and the Insight detail page ([id]/).
 
 export function getCategory(strategy: { category?: string }): string {
-  return (strategy as unknown as { category: string }).category;
+  return strategy.category ?? "";
 }
 
 export const CATEGORY_TAG_VARIANT: Record<string, "red" | "green" | "blue" | "lime" | "yellow" | "gray"> = {
