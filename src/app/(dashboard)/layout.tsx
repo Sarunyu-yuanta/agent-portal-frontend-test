@@ -14,6 +14,8 @@ import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { notificationGroups, mockHouseViewStrategies } from "@/lib/mock-data";
 import { useClients } from "@/hooks/use-api";
 import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
+import { PrivacyProvider, usePrivacy } from "@/contexts/privacy-context";
+import { maskName } from "@/lib/mask-name";
 
 const PAGE_TITLES: Record<string, string> = {
   "/command-center": "Command Center",
@@ -51,6 +53,7 @@ type PageInfo = {
 function usePageInfo(): PageInfo {
   const pathname = usePathname();
   const clients = useClients();
+  const { isPrivate } = usePrivacy();
 
   // Client detail page — show breadcrumb instead of title
   const clientMatch = pathname.match(/^\/client\/([^/]+)/);
@@ -60,7 +63,7 @@ function usePageInfo(): PageInfo {
       title: null,
       clientBreadcrumb: [
         { label: "Client 360", href: "/client-hub" },
-        { label: client?.name ?? "Client" },
+        { label: maskName(client?.name ?? "Client", isPrivate) },
       ],
       isCommandCenter: false,
       isHouseView: false,
@@ -157,7 +160,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               </div>
               {/* Title in header — desktop only */}
               {clientBreadcrumb ? (
-                <div className="min-w-0 overflow-hidden">
+                <div className="hidden xl:block min-w-0 overflow-hidden">
                   <Breadcrumb items={clientBreadcrumb} />
                 </div>
               ) : (
@@ -239,8 +242,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <HeaderSlotProvider>
-      <DashboardLayoutInner>{children}</DashboardLayoutInner>
-    </HeaderSlotProvider>
+    <PrivacyProvider>
+      <HeaderSlotProvider>
+        <DashboardLayoutInner>{children}</DashboardLayoutInner>
+      </HeaderSlotProvider>
+    </PrivacyProvider>
   );
 }

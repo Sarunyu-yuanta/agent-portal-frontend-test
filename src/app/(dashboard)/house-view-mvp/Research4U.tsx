@@ -245,7 +245,7 @@ export function Research4U() {
         <div className="flex-1 min-w-0 flex flex-col min-h-0">
           {subTab === "analyst" ? (
             <div className="flex-1 overflow-y-auto hide-scrollbar p-5">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {mockAnalysts.map((analyst) => (
                   <AnalystCard key={analyst.id} analyst={analyst} />
                 ))}

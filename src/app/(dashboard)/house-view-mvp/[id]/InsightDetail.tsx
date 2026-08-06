@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@sarunyu/system-one";
 import { Tag, Button } from "@sarunyu/system-one";
 import { SparkleIcon, ArrowLeftIcon } from "@phosphor-icons/react";
 import { mockHouseViewStrategies, mockAnalysts } from "@/lib/mock-data";
@@ -46,7 +47,14 @@ export function InsightDetail({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-8 lg:grid lg:gap-6" style={{ gridTemplateColumns: "1fr 400px" }}>
       <div className="flex flex-col gap-6 pb-12 min-w-0 max-lg:max-w-xl max-lg:mx-auto max-lg:w-full">
-        <Button variant="plain" size="sm" leftIcon={<ArrowLeftIcon size={16} />} onClick={() => router.back()} className="self-start">
+        <div className="xl:hidden">
+          <Breadcrumb items={[
+            { label: "Insights", href: "/house-view-mvp" },
+            { label: strategy.name.length > 28 ? `${strategy.name.slice(0, 28)}…` : strategy.name },
+          ]} />
+        </div>
+
+        <Button variant="plain" size="sm" leftIcon={<ArrowLeftIcon size={16} />} onClick={() => router.back()} className="self-start hidden xl:inline-flex">
           กลับ
         </Button>
 

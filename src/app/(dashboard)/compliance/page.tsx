@@ -33,6 +33,8 @@ import {
 } from "@phosphor-icons/react";
 import { mockComplianceAlerts, mockKYCData } from "@/lib/mock-data";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { usePrivacy } from "@/contexts/privacy-context";
+import { maskName } from "@/lib/mask-name";
 
 // ─── KPI Bar ──────────────────────────────────────────────────────────────────
 
@@ -98,6 +100,7 @@ const ALERT_META = {
 const ALERT_TIMESTAMPS = ["2 hrs ago", "3 hrs ago", "5 hrs ago", "Today"];
 
 function AlertCards() {
+  const { isPrivate } = usePrivacy();
   return (
     <div className="flex flex-col gap-3">
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
@@ -125,7 +128,7 @@ function AlertCards() {
                       <Icon size={13} weight="fill" style={{ color: meta.color }} />
                     </div>
                     <Tag text={meta.label} variant={meta.variant} size="small" />
-                    <span className="type-caption text-muted-foreground">{alert.client}</span>
+                    <span className="type-caption text-muted-foreground">{maskName(alert.client, isPrivate)}</span>
                   </div>
                   <span className="type-caption text-muted-foreground shrink-0">{ALERT_TIMESTAMPS[i]}</span>
                 </div>
@@ -151,7 +154,7 @@ function AlertCards() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Tag text={meta.label} variant={meta.variant} size="small" />
-                      <span className="type-caption text-muted-foreground">{alert.client}</span>
+                      <span className="type-caption text-muted-foreground">{maskName(alert.client, isPrivate)}</span>
                     </div>
                     <p className="type-body-2 text-muted-foreground leading-snug">{alert.message}</p>
                     <div className="flex items-center justify-between gap-3 mt-0.5">
@@ -186,6 +189,7 @@ type SortKey = "client" | "riskRating" | "nextReview" | "daysUntilExpiry";
 type SortDir = "none" | "asc" | "desc";
 
 function KycTable() {
+  const { isPrivate } = usePrivacy();
   const [filter, setFilter] = useState("");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("none");
@@ -263,7 +267,8 @@ function KycTable() {
             {rows.map((row) => {
               const urgent = row.daysUntilExpiry <= 7;
               const soon   = row.daysUntilExpiry <= 30;
-              const initials = row.client.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+              const maskedClient = maskName(row.client, isPrivate);
+              const initials = maskedClient.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
 
               return (
                 <TableRow key={row.id} hoverable className="cursor-pointer" onClick={() => { setSelectedRow(row); setDrawerOpen(true); }}>
@@ -271,7 +276,7 @@ function KycTable() {
                     <div className="flex items-center gap-3">
                       <Avatar type="text" initials={initials} size="s" />
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="type-body-2 font-medium text-foreground truncate">{row.client}</span>
+                        <span className="type-body-2 font-medium text-foreground truncate">{maskedClient}</span>
                         <span className="type-caption text-[var(--text-default-disabled)]">{row.riskRating} Risk</span>
                       </div>
                     </div>
@@ -417,9 +422,11 @@ function AiGuide() {
 type KycRow = (typeof mockKYCData)[number];
 
 function KycDetailPanel({ row, onClose }: { row: KycRow; onClose: () => void }) {
+  const { isPrivate } = usePrivacy();
   const urgent = row.daysUntilExpiry <= 7;
   const soon   = row.daysUntilExpiry <= 30;
-  const initials = row.client.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+  const maskedClient = maskName(row.client, isPrivate);
+  const initials = maskedClient.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
 
   const kpis = [
     { label: "KYC Status",   value: <StatusTag type={row.kycStatus} /> },
@@ -437,7 +444,7 @@ function KycDetailPanel({ row, onClose }: { row: KycRow; onClose: () => void }) 
         <div className="flex items-center gap-3">
           <Avatar type="text" initials={initials} size="m" />
           <div className="flex-1 min-w-0">
-            <p className="type-subtitle-1 text-foreground leading-tight">{row.client}</p>
+            <p className="type-subtitle-1 text-foreground leading-tight">{maskedClient}</p>
             <div className="flex items-center gap-1.5 mt-1">
               <Tag text={`${row.riskRating} Risk`} variant={row.riskRating === "High" ? "red" : row.riskRating === "Medium" ? "yellow" : "green"} size="small" />
               <StatusTag type={row.kycStatus} />

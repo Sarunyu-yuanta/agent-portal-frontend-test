@@ -9,7 +9,10 @@ import {
   SquaresFourIcon,
   SidebarSimpleIcon,
   ChartBarIcon,
+  EyeIcon,
+  EyeSlashIcon,
 } from "@phosphor-icons/react";
+import { usePrivacy } from "@/contexts/privacy-context";
 
 const workspaceItems = [
   { href: "/client-hub", label: "Client 360", icon: UsersIcon, badge: null },
@@ -124,6 +127,7 @@ export function AppSidebar({
   collapsed?: boolean;
   onToggleCollapse?: () => void;
 }) {
+  const { isPrivate, toggle } = usePrivacy();
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
       {/* Toggle button — icon zone keeps it still */}
@@ -170,6 +174,33 @@ export function AppSidebar({
           onNavigate={onClose}
         />
       </nav>
+
+      {/* Privacy mode toggle */}
+      <div
+        className="shrink-0 mx-2 mb-2 rounded-lg transition-colors duration-200"
+        style={{ backgroundColor: isPrivate ? "color-mix(in srgb, var(--primary-action) 25%, transparent)" : "color-mix(in srgb, var(--fill-gray-700) 30%, transparent)" }}
+      >
+        <button
+          type="button"
+          onClick={toggle}
+          title={isPrivate ? "แสดงชื่อลูกค้า" : "ซ่อนชื่อลูกค้า"}
+          className={`w-full flex items-center gap-1.5 px-3 py-2.5 rounded-lg transition-colors cursor-pointer ${isPrivate ? "hover:bg-primary-action/20" : "hover:bg-slate-700/50"}`}
+        >
+          {isPrivate
+            ? <EyeSlashIcon size={16} className="text-primary-action shrink-0" />
+            : <EyeIcon size={16} className="text-slate-400 shrink-0" />
+          }
+          <span className={`text-[13px] leading-normal whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"} ${isPrivate ? "text-primary-action font-medium" : "text-slate-300"}`}>
+            ซ่อนชื่อลูกค้า
+          </span>
+          {/* Switch indicator */}
+          <div className={`ml-auto shrink-0 transition-all duration-300 ease-in-out ${collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"}`}>
+            <div className={`relative w-8 h-4.5 rounded-full transition-colors duration-200 ${isPrivate ? "bg-primary-action" : "bg-slate-600"}`}>
+              <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${isPrivate ? "translate-x-[14px]" : "translate-x-0.5"}`} />
+            </div>
+          </div>
+        </button>
+      </div>
 
       {/* User profile — avatar in icon zone */}
       <div className="shrink-0 border-t border-slate-700/60 py-4 px-2">

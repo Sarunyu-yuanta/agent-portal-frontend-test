@@ -35,6 +35,8 @@ import { getCallLogs, relativeCallDate, type CallLogEntry } from "@/data/call-lo
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { ALLOCATION_SLICES } from "@/components/AssetSummarySection";
 import { useClients } from "@/hooks/use-api";
+import { usePrivacy } from "@/contexts/privacy-context";
+import { maskName } from "@/lib/mask-name";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { StatCardRow } from "@/components/ui/finance-ui";
 import { AssetSummarySection, type AssetHeroSummary } from "@/components/AssetSummarySection";
@@ -146,6 +148,7 @@ function ClientDetailPanel({
   onViewFull: () => void;
   onBack?: () => void;
 }) {
+  const { isPrivate } = usePrivacy();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(false);
   const [selectedItem, setSelectedItem] = useState<AssetAccountItem | null>(null);
@@ -236,7 +239,7 @@ function ClientDetailPanel({
           )}
           <Avatar
             type="text"
-            initials={getInitials(client.name)}
+            initials={getInitials(maskName(client.name, isPrivate))}
             size={compact ? "s" : "m"}
           />
           <div className="flex-1 min-w-0">
@@ -246,7 +249,7 @@ function ClientDetailPanel({
                   compact ? "type-subtitle-2 font-bold" : "type-subtitle-1"
                 }`}
               >
-                {client.name}
+                {maskName(client.name, isPrivate)}
               </p>
               {!compact && <NineBoxCellPill client={client} />}
             </div>
@@ -513,6 +516,7 @@ const CUSTOMER_COLUMNS: { id: ColumnId; label: string; width: number }[] = [
 ];
 
 export default function ClientHubPage() {
+  const { isPrivate } = usePrivacy();
   const router = useRouter();
   const clients = useClients();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -1075,11 +1079,11 @@ export default function ClientHubPage() {
                                 <div className="flex items-center gap-3">
                                   <Avatar
                                     type="text"
-                                    initials={getInitials(client.name)}
+                                    initials={getInitials(maskName(client.name, isPrivate))}
                                     size="s"
                                   />
                                   <p className="text-[14px] font-semibold text-foreground leading-tight truncate">
-                                    {client.name}
+                                    {maskName(client.name, isPrivate)}
                                   </p>
                                 </div>
                               </TableCell>
@@ -1453,9 +1457,9 @@ export default function ClientHubPage() {
                                           }
                                         }}
                                       >
-                                        <Avatar type="text" initials={getInitials(holder.clientName)} size="s" />
+                                        <Avatar type="text" initials={getInitials(maskName(holder.clientName, isPrivate))} size="s" />
                                         <div className="flex-1 min-w-0">
-                                          <p className="text-[13px] font-semibold text-foreground truncate">{holder.clientName}</p>
+                                          <p className="text-[13px] font-semibold text-foreground truncate">{maskName(holder.clientName, isPrivate)}</p>
                                           <p className="type-caption text-muted-foreground">{holder.clientId} · {holder.tier}</p>
                                         </div>
                                         <div className="text-right shrink-0">
@@ -1490,9 +1494,9 @@ export default function ClientHubPage() {
                                 }
                               }}
                             >
-                              <Avatar type="text" initials={getInitials(holder.clientName)} size="s" />
+                              <Avatar type="text" initials={getInitials(maskName(holder.clientName, isPrivate))} size="s" />
                               <div className="flex-1 min-w-0">
-                                <p className="type-subtitle-2 font-semibold text-foreground truncate">{holder.clientName}</p>
+                                <p className="type-subtitle-2 font-semibold text-foreground truncate">{maskName(holder.clientName, isPrivate)}</p>
                                 <p className="type-caption text-muted-foreground">{holder.clientId} · {holder.tier}</p>
                               </div>
                               <div className="text-right shrink-0">

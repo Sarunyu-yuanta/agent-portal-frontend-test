@@ -3,6 +3,7 @@
 import { type ReactNode, use, useState, useEffect, useRef } from "react";
 import {
   Avatar,
+  Breadcrumb,
   Tag,
   Button,
   Card,
@@ -49,6 +50,8 @@ import {
 } from "@phosphor-icons/react";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { useClients, useNBAActions } from "@/hooks/use-api";
+import { usePrivacy } from "@/contexts/privacy-context";
+import { maskName } from "@/lib/mask-name";
 import { useSetHeaderSlot } from "../../header-slot-context";
 import { NineBoxCellPill } from "../../client-hub/NineBoxTab";
 import { getCallLogs, relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
@@ -194,11 +197,13 @@ function CallLogModal({
   open,
   client,
   callLogs,
+  isPrivate,
   onClose,
 }: {
   open: boolean;
   client: { name: string };
   callLogs: CallLogEntry[];
+  isPrivate: boolean;
   onClose: () => void;
 }) {
   if (!open) return null;
@@ -207,7 +212,7 @@ function CallLogModal({
       <Modal
         variant="content"
         actionLayout="none"
-        title={`Call log — ${client.name}`}
+        title={`Call log — ${maskName(client.name, isPrivate)}`}
         onClose={onClose}
       >
         <div className="flex flex-col gap-3 min-w-[420px] max-w-[520px]">
@@ -265,10 +270,12 @@ export default function ClientPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { isPrivate } = usePrivacy();
   const clients = useClients();
   const nbaActions = useNBAActions(clients);
 
   const client = clients.find((c) => c.id === id) ?? clients[0] ?? mockClients[0];
+  const maskedClientName = maskedClientName;
   const detail = clientDetailById[client.id] ?? mockClientDetails["1"];
 
   // Page tab state
@@ -332,6 +339,14 @@ export default function ClientPage({
 
   return (
     <div className="flex flex-col -mt-6">
+      {/* Mobile breadcrumb — desktop shows it in the header */}
+      <div className="xl:hidden mb-2">
+        <Breadcrumb items={[
+          { label: "Client 360", href: "/client-hub" },
+          { label: maskedClientName },
+        ]} />
+      </div>
+
       {/* Sticky Identity + KPI bar + Tabs */}
       <div className="sticky -top-6 z-20 -mx-[9999px] px-[9999px] bg-card">
         <div className={`flex flex-wrap md:flex-nowrap items-center justify-between gap-4 lg:gap-8 transition-[padding] duration-300 ease-out ${scrolled ? "py-3" : "py-5"}`}>
@@ -346,13 +361,13 @@ export default function ClientPage({
               <div className={`flex gap-4 ${scrolled ? "items-center" : "items-start"}`}>
                 {!scrolled && (
                   <div className="shrink-0">
-                    <Avatar type="text" initials={getInitials(client.name)} size="xxl" />
+                    <Avatar type="text" initials={getInitials(maskedClientName)} size="xxl" />
                   </div>
                 )}
                 <div className="flex flex-col">
                   {/* Name + Tier + Status pill */}
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <h4 className="type-h4 text-foreground leading-none">{client.name}</h4>
+                    <h4 className="type-h4 text-foreground leading-none">{maskedClientName}</h4>
                     <NineBoxCellPill client={client} />
                   </div>
                   {/* Metadata — collapses when scrolled */}
@@ -793,6 +808,7 @@ export default function ClientPage({
         open={callLogOpen}
         client={client}
         callLogs={callLogs}
+        isPrivate={isPrivate}
         onClose={() => setCallLogOpen(false)}
       />
 

@@ -18,6 +18,8 @@ import {
 import { mockNBAActions } from "@/lib/mock-data";
 import { useClients, useNBAActions, useMiniKanban } from "@/hooks/use-api";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { usePrivacy } from "@/contexts/privacy-context";
+import { maskName } from "@/lib/mask-name";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -213,6 +215,8 @@ function NbaCard({
   onSelect,
   isLast,
 }: NbaCardProps) {
+  const { isPrivate } = usePrivacy();
+  const maskedClientName = maskName(action.clientName, isPrivate);
   const isRevenue = action.revenueImpact.startsWith("฿");
   const category = ACTION_CATEGORY[action.action] ?? {
     label: action.action,
@@ -261,7 +265,7 @@ function NbaCard({
           />
         </div>
         <p className="text-[14px] font-semibold text-foreground leading-snug">
-          {action.clientName}
+          {maskedClientName}
         </p>
         <p className="type-body-2 text-muted-foreground leading-snug">
           {action.insight}
@@ -321,7 +325,7 @@ function NbaCard({
             />
           </div>
           <p className="text-[14px] font-semibold text-foreground leading-snug">
-            {action.clientName}
+            {maskedClientName}
           </p>
           <p className="type-body-2 text-muted-foreground leading-snug">
             {action.insight}
@@ -586,6 +590,7 @@ function ClientIntelligencePanel({
   actions: typeof mockNBAActions;
   onDismiss?: (id: string) => void;
 }) {
+  const { isPrivate } = usePrivacy();
   const action = actions.find((a) => a.id === selectedId) ?? actions[0];
   const [checkedPoints, setCheckedPoints] = useState<Set<number>>(new Set());
 
@@ -600,8 +605,9 @@ function ClientIntelligencePanel({
   const intel = clientIntelligenceMap[action?.id ?? "1"];
   if (!action || !intel) return null;
 
+  const maskedClientName = maskName(action.clientName, isPrivate);
   const isRevenue = action.revenueImpact.startsWith("฿");
-  const initials = getInitials(action.clientName);
+  const initials = getInitials(maskedClientName);
 
   return (
     <div className="flex flex-col h-full">
@@ -611,7 +617,7 @@ function ClientIntelligencePanel({
           <Avatar type="text" initials={initials} size="m" />
           <div className="flex-1 min-w-0">
             <p className="type-subtitle-1 text-foreground leading-tight">
-              {action.clientName}
+              {maskedClientName}
             </p>
             <div className="flex items-center gap-1.5 mt-1">
               <Tag
@@ -877,6 +883,7 @@ const STAGE_CONFIG: Record<
 };
 
 function MiniKanban() {
+  const { isPrivate } = usePrivacy();
   const clients = useClients();
   const miniKanban = useMiniKanban(clients);
   const stageStats = KANBAN_STAGES.map((stage) => {
@@ -982,7 +989,7 @@ function MiniKanban() {
               <span className={`w-2 h-2 rounded-full shrink-0 ${cfg.dot}`} />
               <div className="flex-1 min-w-0">
                 <p className="text-[12px] font-semibold text-foreground leading-tight truncate">
-                  {item.client}
+                  {maskName(item.client, isPrivate)}
                 </p>
                 <p className="text-[11px] text-muted-foreground leading-tight truncate">
                   {product}

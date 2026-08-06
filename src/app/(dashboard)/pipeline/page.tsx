@@ -21,6 +21,8 @@ import {
 } from "@phosphor-icons/react";
 import { mockPipelineDeals } from "@/lib/mock-data";
 import { useClients, usePipelineDeals } from "@/hooks/use-api";
+import { usePrivacy } from "@/contexts/privacy-context";
+import { maskName } from "@/lib/mask-name";
 
 const STAGES = [
   "Qualified",
@@ -114,6 +116,8 @@ function StageAdvanceModal({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { isPrivate } = usePrivacy();
+  const maskedClient = maskName(deal.client, isPrivate);
   const checklist = ADVANCE_CHECKLIST[deal.stage as Stage] ?? [];
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const doneCount = checked.size;
@@ -151,9 +155,9 @@ function StageAdvanceModal({
 
           {/* Deal summary strip */}
           <div className="flex items-center gap-3 bg-muted/50 rounded-xl px-3 py-2.5">
-            <Avatar type="text" initials={getInitials(deal.client)} size="s" />
+            <Avatar type="text" initials={getInitials(maskedClient)} size="s" />
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-foreground truncate">{deal.client}</p>
+              <p className="text-[13px] font-semibold text-foreground truncate">{maskedClient}</p>
               <p className="text-[11px] text-muted-foreground truncate">{deal.dealSize} · {deal.product}</p>
             </div>
           </div>
@@ -218,6 +222,8 @@ function StageAdvanceModal({
 }
 
 function DealCard({ deal, onAdvanceRequest }: { deal: Deal; onAdvanceRequest: (id: string, next: Stage) => void }) {
+  const { isPrivate } = usePrivacy();
+  const maskedClient = maskName(deal.client, isPrivate);
   const isClosedWon = deal.stage === "Closed Won";
   const isClosedLost = deal.stage === "Closed Lost";
   const advance = STAGE_ADVANCE[deal.stage as Stage];
@@ -234,9 +240,9 @@ function DealCard({ deal, onAdvanceRequest }: { deal: Deal; onAdvanceRequest: (i
       {/* Top row: avatar + client + icon */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          <Avatar type="text" initials={getInitials(deal.client)} size="xs" />
+          <Avatar type="text" initials={getInitials(maskedClient)} size="xs" />
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-foreground leading-snug truncate">{deal.client}</p>
+            <p className="text-[13px] font-semibold text-foreground leading-snug truncate">{maskedClient}</p>
             <p className="text-[11px] text-muted-foreground leading-snug truncate">{deal.product}</p>
           </div>
         </div>

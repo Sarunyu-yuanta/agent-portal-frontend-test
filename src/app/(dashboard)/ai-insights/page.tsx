@@ -27,6 +27,8 @@ import {
 } from "@phosphor-icons/react";
 import { mockInsights, mockClients, mockClientDetails } from "@/lib/mock-data";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { usePrivacy } from "@/contexts/privacy-context";
+import { maskName } from "@/lib/mask-name";
 
 type SortOption = "priority" | "recent";
 type TabId = "all" | "product" | "risk" | "engagement" | "portfolio";
@@ -112,6 +114,8 @@ function InsightRow({
   isSelected: boolean;
   onSelect: (id: string) => void;
 }) {
+  const { isPrivate } = usePrivacy();
+  const maskedName = maskName(insight.clientName, isPrivate);
   const config = CATEGORY_CONFIG[insight.type as keyof typeof CATEGORY_CONFIG];
   if (!config) return null;
   const { color, bg, Icon, tagVariant, tagText, primaryAction } = config;
@@ -137,7 +141,7 @@ function InsightRow({
           <Tag text={tagText} variant={tagVariant} size="small" />
           <span className="text-[11px] font-medium text-muted-foreground">{insight.tier}</span>
         </div>
-        <p className="text-[14px] font-semibold text-foreground leading-snug">{insight.clientName}</p>
+        <p className="text-[14px] font-semibold text-foreground leading-snug">{maskedName}</p>
         <p className="type-body-2 text-muted-foreground leading-snug">{insight.insight}</p>
         <div className="flex items-center gap-3">
           <span className="text-[11px] font-semibold tabular-nums" style={{ color: confidenceColor }}>{insight.confidence}% confidence</span>
@@ -160,7 +164,7 @@ function InsightRow({
             <Tag text={tagText} variant={tagVariant} size="small" />
             <span className="text-[11px] font-medium text-muted-foreground">{insight.tier}</span>
           </div>
-          <p className="text-[14px] font-semibold text-foreground leading-snug">{insight.clientName}</p>
+          <p className="text-[14px] font-semibold text-foreground leading-snug">{maskedName}</p>
           <p className="type-body-2 text-muted-foreground leading-snug">{insight.insight}</p>
           <div className="flex items-center gap-3 mt-0.5">
             <span className="text-[11px] font-semibold tabular-nums" style={{ color: confidenceColor }}>{insight.confidence}% confidence</span>
@@ -180,6 +184,8 @@ function InsightRow({
 // ─── Insight Drawer Panel ─────────────────────────────────────────────────────
 
 function InsightDrawerPanel({ insight }: { insight: Insight }) {
+  const { isPrivate } = usePrivacy();
+  const maskedName = maskName(insight.clientName, isPrivate);
   const config = CATEGORY_CONFIG[insight.type as keyof typeof CATEGORY_CONFIG];
   const client = mockClients.find((c) => c.id === insight.clientId);
   const detail = client ? mockClientDetails[client.id] : null;
@@ -202,9 +208,9 @@ function InsightDrawerPanel({ insight }: { insight: Insight }) {
       {/* Header */}
       <div className="flex flex-col gap-4 px-5 pt-5 pb-4 border-b border-[var(--border-default)]">
         <div className="flex items-center gap-3">
-          <Avatar type="text" initials={getInitials(insight.clientName)} size="m" />
+          <Avatar type="text" initials={getInitials(maskedName)} size="m" />
           <div className="flex-1 min-w-0">
-            <p className="type-subtitle-1 text-foreground leading-tight">{insight.clientName}</p>
+            <p className="type-subtitle-1 text-foreground leading-tight">{maskedName}</p>
             <div className="flex items-center gap-1.5 mt-1">
               {client && <Tag text={client.tier} variant={tierVariant} size="small" />}
               {client && <Tag text={client.riskProfile} variant="gray" size="small" />}
