@@ -275,7 +275,7 @@ export default function ClientPage({
   const nbaActions = useNBAActions(clients);
 
   const client = clients.find((c) => c.id === id) ?? clients[0] ?? mockClients[0];
-  const maskedClientName = maskedClientName;
+  const maskedClientName = maskName(client.name, isPrivate);
   const detail = clientDetailById[client.id] ?? mockClientDetails["1"];
 
   // Page tab state
