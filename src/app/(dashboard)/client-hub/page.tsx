@@ -197,7 +197,7 @@ function CardShell({ open, onClick, children }: { open: boolean; onClick: () => 
 
 function StaticCard({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div className="flex-1 flex flex-col gap-2 p-4 rounded-2xl bg-white border border-border">
+    <div className="flex flex-col gap-2 p-4 rounded-2xl bg-white border border-border">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="text-[24px] font-bold text-foreground leading-none">{value}</p>
       <p className="text-[11px] text-muted-foreground">{sub}</p>
@@ -267,9 +267,9 @@ function ClientSummaryCards({ clients }: { clients: Client[] }) {
   );
 
   return (
-    <div className="flex gap-3">
+    <div className="grid grid-cols-5 gap-3">
       {/* 1. Total Clients */}
-      <div ref={segment.ref} className="relative flex-1" {...segment.hoverProps}>
+      <div ref={segment.ref} className="relative min-w-0" {...segment.hoverProps}>
         <CardShell open={segment.open} onClick={() => segment.setOpen((p) => !p)}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total Clients</p>
@@ -306,7 +306,7 @@ function ClientSummaryCards({ clients }: { clients: Client[] }) {
       <StaticCard label="Wealth Under Advice" value={formatMillionThb(totalAum)} sub="AUM รวมทั้งหมด" />
 
       {/* 3. มูลค่าทรัพย์สิน */}
-      <div ref={asset.ref} className="relative flex-1" {...asset.hoverProps}>
+      <div ref={asset.ref} className="relative min-w-0" {...asset.hoverProps}>
         <CardShell open={asset.open} onClick={() => asset.setOpen((p) => !p)}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">มูลค่าทรัพย์สิน</p>
@@ -334,7 +334,7 @@ function ClientSummaryCards({ clients }: { clients: Client[] }) {
       </div>
 
       {/* 4. KYC ครบกำหนด */}
-      <div ref={kyc.ref} className="relative flex-1" {...kyc.hoverProps}>
+      <div ref={kyc.ref} className="relative min-w-0" {...kyc.hoverProps}>
         <CardShell open={kyc.open} onClick={() => kyc.setOpen((p) => !p)}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">KYC ครบกำหนด</p>
