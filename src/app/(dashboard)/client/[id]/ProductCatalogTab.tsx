@@ -33,6 +33,7 @@ import {
   ShapesIcon,
   CertificateIcon,
   GlobeHemisphereWestIcon,
+  FlagIcon,
   ArrowRightIcon,
   FireIcon,
 } from "@phosphor-icons/react";
@@ -50,7 +51,7 @@ const PRODUCT_TABS = [
   {
     id: "thai-structured",
     title: "Thai Structured Product",
-    icon: <ShapesIcon size={18} />,
+    icon: <FlagIcon size={18} />,
   },
   {
     id: "fixed-income",
