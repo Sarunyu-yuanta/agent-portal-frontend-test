@@ -24,8 +24,8 @@ const workspaceItems = [
   },
   // { href: "/house-view", label: "House View", icon: ChartBarIcon, badge: null },
   {
-    href: "/house-view-mvp",
-    label: "House View",
+    href: "/insights",
+    label: "Insights",
     icon: ChartBarIcon,
     badge: null,
   },
@@ -184,12 +184,14 @@ export function AppSidebar({
           type="button"
           onClick={toggle}
           title={isPrivate ? "แสดงชื่อลูกค้า" : "ซ่อนชื่อลูกค้า"}
-          className={`w-full flex items-center gap-1.5 px-3 py-2.5 rounded-lg transition-colors cursor-pointer ${isPrivate ? "hover:bg-primary-action/20" : "hover:bg-slate-700/50"}`}
+          className={`w-full flex items-center gap-1.5 py-2.5 pr-2 rounded-lg transition-colors cursor-pointer ${isPrivate ? "hover:bg-primary-action/20" : "hover:bg-slate-700/50"}`}
         >
-          {isPrivate
-            ? <EyeSlashIcon size={16} className="text-primary-action shrink-0" />
-            : <EyeIcon size={16} className="text-slate-400 shrink-0" />
-          }
+          <div className={ICON_ZONE}>
+            {isPrivate
+              ? <EyeSlashIcon size={16} className="text-primary-action shrink-0" />
+              : <EyeIcon size={16} className="text-slate-400 shrink-0" />
+            }
+          </div>
           <span className={`text-[13px] leading-normal whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"} ${isPrivate ? "text-primary-action font-medium" : "text-slate-300"}`}>
             ซ่อนชื่อลูกค้า
           </span>

@@ -18,7 +18,7 @@ export function InsightDetail({ id }: { id: string }) {
     return (
       <div className="flex flex-col items-center gap-3 py-24 text-center">
         <p className="type-subtitle-1 text-foreground">ไม่พบบทวิเคราะห์นี้</p>
-        <Link href="/house-view-mvp" className="text-[13px] text-primary-action hover:underline">
+        <Link href="/insights" className="text-[13px] text-primary-action hover:underline">
           กลับไปหน้า Insights
         </Link>
       </div>
@@ -49,7 +49,7 @@ export function InsightDetail({ id }: { id: string }) {
       <div className="flex flex-col gap-6 pb-12 min-w-0 max-lg:max-w-xl max-lg:mx-auto max-lg:w-full">
         <div className="xl:hidden">
           <Breadcrumb items={[
-            { label: "Insights", href: "/house-view-mvp" },
+            { label: "House View", href: "/insights" },
             { label: strategy.name.length > 28 ? `${strategy.name.slice(0, 28)}…` : strategy.name },
           ]} />
         </div>

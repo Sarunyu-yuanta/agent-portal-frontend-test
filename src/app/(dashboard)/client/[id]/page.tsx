@@ -16,7 +16,6 @@ import {
   List,
   ListItem,
   TabGroup,
-  Modal,
 } from "@sarunyu/system-one";
 import { ClientAssetSidebarContent } from "@/components/ClientAssetSidebarContent";
 import {
@@ -193,54 +192,51 @@ function TopHoldingsSection({
   );
 }
 
-function CallLogModal({
-  open,
-  client,
-  callLogs,
-  isPrivate,
-  onClose,
-}: {
-  open: boolean;
-  client: { name: string };
-  callLogs: CallLogEntry[];
-  isPrivate: boolean;
-  onClose: () => void;
-}) {
-  if (!open) return null;
+function CallLogTable({ callLogs }: { callLogs: CallLogEntry[] }) {
+  if (callLogs.length === 0) {
+    return (
+      <EmptyTabState
+        icon={<PhoneIcon size={40} className="text-[var(--text-default-placeholder)]" />}
+        title="No call history yet"
+        body="Call logs for this client will appear here."
+      />
+    );
+  }
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-      <Modal
-        variant="content"
-        actionLayout="none"
-        title={`Call log — ${maskName(client.name, isPrivate)}`}
-        onClose={onClose}
-      >
-        <div className="flex flex-col gap-3 min-w-[420px] max-w-[520px]">
-          {callLogs.map((log: CallLogEntry) => (
-            <div key={log.id} className="flex gap-3 p-3 rounded-xl bg-[var(--bg-default-secondary)] border border-[rgba(0,0,0,0.07)]">
-              <div className="shrink-0 mt-0.5">
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Date</TableHeaderCell>
+          <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Direction</TableHeaderCell>
+          <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Duration</TableHeaderCell>
+          <TableHeaderCell sortable={false} className="min-w-0">Summary</TableHeaderCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {callLogs.map((log) => (
+          <TableRow key={log.id}>
+            <TableCell className="min-w-0 whitespace-nowrap">
+              <div className="flex flex-col">
+                <span className="type-body-2 text-foreground font-medium">{log.date} · {log.time}</span>
+                <span className="type-caption text-muted-foreground">{relativeCallDate(log.date)}</span>
+              </div>
+            </TableCell>
+            <TableCell className="min-w-0 whitespace-nowrap">
+              <div className="flex items-center gap-1.5">
                 {log.direction === "outbound" ? (
-                  <PhoneOutgoingIcon size={18} className="text-[var(--text-brand-primary)]" />
+                  <PhoneOutgoingIcon size={16} className="text-[var(--text-brand-primary)]" />
                 ) : (
-                  <PhoneIncomingIcon size={18} className="text-[var(--icon-success)]" />
+                  <PhoneIncomingIcon size={16} className="text-[var(--icon-success)]" />
                 )}
+                <span className="type-body-2 text-foreground">{log.direction === "outbound" ? "Outbound" : "Inbound"}</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="type-caption font-semibold text-foreground">{log.date} · {log.time}</span>
-                  <span className="type-caption font-medium text-[var(--text-brand-primary)] shrink-0">{relativeCallDate(log.date)}</span>
-                </div>
-                <p className="type-caption text-foreground leading-relaxed">{log.summary}</p>
-                <p className="type-caption text-muted-foreground mt-1">{log.duration}</p>
-              </div>
-            </div>
-          ))}
-          {callLogs.length === 0 && (
-            <p className="type-body-2 text-muted-foreground text-center py-6">No call history yet.</p>
-          )}
-        </div>
-      </Modal>
-    </div>
+            </TableCell>
+            <TableCell className="min-w-0 whitespace-nowrap"><span className="type-body-2 text-foreground">{log.duration}</span></TableCell>
+            <TableCell className="min-w-0"><span className="type-body-2 text-foreground">{log.summary}</span></TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -294,7 +290,6 @@ export default function ClientPage({
 
   // NBA action for this client (provides aiDraft + revenueImpact for AI cards)
   const nbaAction = nbaActions.find((a) => a.clientId === client.id);
-  const [callLogOpen, setCallLogOpen] = useState(false);
   const callLogs = getCallLogs(client.id);
   const profile = getClientProfile(client.id);
   const [liabilitiesOpen, setLiabilitiesOpen] = useState(false);
@@ -383,31 +378,45 @@ export default function ClientPage({
                 </div>
               </div>
 
-              {/* Action buttons */}
+              {/* Action buttons — hidden for now, alongside the Notes/Reminder tabs.
+                  Whole wrapper removed (not just its contents) so it doesn't leave
+                  an empty flex-gap slot in the column above.
               <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="outline" size="sm" leftIcon={<PhoneIcon size={16} />} onClick={() => setCallLogOpen(true)}>Call log</Button>
                 <Button variant="outline" size="sm" leftIcon={<PencilSimpleIcon size={16} />}>Notes</Button>
                 <Button variant="outline" size="sm" leftIcon={<CalendarCheckIcon size={16} />}>Reminder</Button>
               </div>
+              */}
 
             </div>
 
             {/* Quick contact — collapses on scroll */}
             <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${scrolled ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"}`}>
               <div className="overflow-hidden min-h-0">
-                <div className="flex items-center gap-4 pt-1">
-                  <a href={`tel:${profile.phone}`} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
-                    <PhoneIcon size={13} />
-                    <span className="type-caption">{profile.phone}</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <a
+                    href={`tel:${profile.phone}`}
+                    className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground hover:text-primary-action hover:bg-primary-action-light transition-colors"
+                  >
+                    <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0">
+                      <PhoneIcon size={13} className="text-muted-foreground" />
+                    </span>
+                    <span className="type-caption font-medium">{profile.phone}</span>
                   </a>
-                  <a href={`mailto:${profile.email}`} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
-                    <EnvelopeSimpleIcon size={13} />
-                    <span className="type-caption">{profile.email}</span>
+                  <a
+                    href={`mailto:${profile.email}`}
+                    className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground hover:text-primary-action hover:bg-primary-action-light transition-colors"
+                  >
+                    <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0">
+                      <EnvelopeSimpleIcon size={13} className="text-muted-foreground" />
+                    </span>
+                    <span className="type-caption font-medium">{profile.email}</span>
                   </a>
                   {profile.lineId && (
-                    <span className="flex items-center gap-1.5 text-muted-foreground">
-                      <ChatCircleIcon size={13} />
-                      <span className="type-caption">{profile.lineId}</span>
+                    <span className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground">
+                      <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0">
+                        <ChatCircleIcon size={13} className="text-muted-foreground" />
+                      </span>
+                      <span className="type-caption font-medium">{profile.lineId}</span>
                     </span>
                   )}
                 </div>
@@ -444,8 +453,10 @@ export default function ClientPage({
               { id: "overview", title: "Overview" },
               { id: "kyc", title: "KYC" },
               { id: "assets", title: "Assets" },
-              { id: "notes", title: "Notes" },
-              { id: "reminder", title: "Reminder" },
+              { id: "call-log", title: "Call Log" },
+              // Hidden for now — keep content branches below, just not shown as tabs.
+              // { id: "notes", title: "Notes" },
+              // { id: "reminder", title: "Reminder" },
             ]}
             activeId={activeTab}
             onChange={setActiveTab}
@@ -582,6 +593,15 @@ export default function ClientPage({
               setLiabilitiesOpen(true);
             }}
           />
+        </div>
+      ) : activeTab === "call-log" ? (
+        <div className="pt-8 w-full">
+          <Card variant="default">
+            <div className="flex flex-col gap-4">
+              <h6 className="type-h6 text-foreground">Call Log</h6>
+              <CallLogTable callLogs={callLogs} />
+            </div>
+          </Card>
         </div>
       ) : activeTab === "notes" ? (
         <EmptyTabState
@@ -803,14 +823,6 @@ export default function ClientPage({
 
       </div>
       )}{/* end tab content */}
-
-      <CallLogModal
-        open={callLogOpen}
-        client={client}
-        callLogs={callLogs}
-        isPrivate={isPrivate}
-        onClose={() => setCallLogOpen(false)}
-      />
 
       {liabilitiesData && (
         <LiabilitiesDetailModal

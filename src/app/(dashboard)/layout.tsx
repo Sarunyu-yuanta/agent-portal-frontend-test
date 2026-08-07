@@ -25,7 +25,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/performance": "Performance & Targets",
   "/compliance": "Compliance & Risk",
   "/house-view": "House View & Strategy",
-  "/house-view-mvp": "House View",
+  "/insights": "Insights",
   "/product-catalog": "Product Catalog",
 };
 
@@ -73,7 +73,7 @@ function usePageInfo(): PageInfo {
   }
 
   // Insight detail page (House View) — show breadcrumb instead of title
-  const insightMatch = pathname.match(/^\/house-view-mvp\/([^/]+)/);
+  const insightMatch = pathname.match(/^\/insights\/([^/]+)/);
   if (insightMatch) {
     const strategy = mockHouseViewStrategies.find(
       (s) => s.id === insightMatch[1],
@@ -82,7 +82,7 @@ function usePageInfo(): PageInfo {
     return {
       title: null,
       clientBreadcrumb: [
-        { label: "Insights", href: "/house-view-mvp" },
+        { label: "House View", href: "/insights" },
         { label: title.length > 22 ? `${title.slice(0, 22)}…` : title },
       ],
       isCommandCenter: false,
@@ -199,7 +199,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </header>
 
           <main
-            className={`flex-1 overflow-y-auto overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"}`}
+            className={`flex-1 overflow-y-auto overflow-x-clip [scrollbar-gutter:stable] bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"}`}
           >
             <div
               className={`${isFullWidth ? "w-full" : "max-w-[1280px] mx-auto"

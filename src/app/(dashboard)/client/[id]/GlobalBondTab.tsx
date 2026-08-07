@@ -583,62 +583,50 @@ export function GlobalBondTab({
 }) {
   return (
     <>
-      {/* Tablet + mobile — accordion cards on white warp (Figma 768px) */}
-      <div className="lg:hidden flex flex-col items-center w-full gap-8 pt-8 pb-10 bg-white">
-        <div className="flex flex-col gap-6 items-center w-full px-8 py-3">
-          <div className="flex flex-col items-start w-full">
-            <h2 className="w-full text-lg font-bold leading-6 text-[#101828]">
-              ตราสารหนี้ต่างประเทศแนะนำ
-            </h2>
-          </div>
-          <TopPickAccordionList />
-          <RecommendedAccordionList onIssuerSelect={onIssuerSelect} />
-          <Button
-            variant="primary"
-            size="lg"
-            rightIcon={<ArrowRightIcon size={20} weight="bold" />}
-            className="shrink-0 self-center max-w-[343px] font-semibold"
-            onClick={onViewAll}
-          >
-            ดูทั้งหมด
-          </Button>
+      {/* Tablet + mobile — accordion cards */}
+      <div className="lg:hidden flex flex-col gap-6 items-center w-full max-w-[1280px] mx-auto px-4 md:px-8 pt-6 pb-10">
+        <div className="flex flex-col items-start w-full">
+          <h2 className="w-full text-lg font-bold leading-6 text-[#101828]">
+            ตราสารหนี้ต่างประเทศแนะนำ
+          </h2>
         </div>
+        <TopPickAccordionList />
+        <RecommendedAccordionList onIssuerSelect={onIssuerSelect} />
+        <Button
+          variant="primary"
+          size="lg"
+          rightIcon={<ArrowRightIcon size={20} weight="bold" />}
+          className="shrink-0 self-center max-w-[343px] font-semibold"
+          onClick={onViewAll}
+        >
+          ดูทั้งหมด
+        </Button>
       </div>
 
-      {/* Desktop — tables in gray card */}
-      <div className="hidden lg:flex flex-col items-center w-full gap-8 pt-8 bg-gradient-to-b from-white from-[43.451%] to-transparent">
-        <div
-          className="w-full flex flex-col items-center pb-10 pt-6 px-6 lg:px-[120px] lg:pb-10 lg:pt-6"
-          style={{ backgroundColor: "#f9fafb" }}
-        >
-          <div
-            className="flex flex-col gap-6 items-center w-full max-w-[1200px] p-6 rounded-2xl bg-white"
-            style={{ boxShadow: TABLE_SHADOW }}
-          >
-            <h2 className="w-full text-lg font-bold leading-6 text-[#101828]">
-              ตราสารหนี้ต่างประเทศแนะนำ
-            </h2>
-            <div className="flex flex-col gap-2 w-full">
-              <div className="flex gap-1 items-center w-full px-1 py-0.5 rounded-lg bg-[#fdefe6]">
-                <FireIcon size={16} weight="fill" color="#f97316" className="shrink-0" />
-                <span className="text-sm font-bold leading-5 text-[#101828]">Top pick</span>
-              </div>
-              <TopPickTable />
-            </div>
-            <div className="flex flex-col gap-4 w-full">
-              <div className="flex items-end justify-between w-full gap-3">
-                <h3 className="text-base font-bold leading-6 text-[#101828]">ตราสารหนี้แนะนำ</h3>
-                <span className="text-sm leading-5 text-[#6a7282] whitespace-nowrap shrink-0">
-                  อัปเดตล่าสุด 25 August 2026 - 09.00
-                </span>
-              </div>
-              <RecommendedBondsTable onIssuerSelect={onIssuerSelect} />
-            </div>
-            <Button variant="primary" size="lg" rightIcon={<ArrowRightIcon size={20} />} onClick={onViewAll}>
-              ดูทั้งหมด
-            </Button>
+      {/* Desktop — tables */}
+      <div className="hidden lg:flex flex-col gap-6 items-center w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-6 pt-6 pb-10">
+        <h2 className="w-full text-lg font-bold leading-6 text-[#101828]">
+          ตราสารหนี้ต่างประเทศแนะนำ
+        </h2>
+        <div className="flex flex-col gap-2 w-full">
+          <div className="flex gap-1 items-center w-full px-1 py-0.5 rounded-lg bg-[#fdefe6]">
+            <FireIcon size={16} weight="fill" color="#f97316" className="shrink-0" />
+            <span className="text-sm font-bold leading-5 text-[#101828]">Top pick</span>
           </div>
+          <TopPickTable />
         </div>
+        <div className="flex flex-col gap-4 w-full">
+          <div className="flex items-end justify-between w-full gap-3">
+            <h3 className="text-base font-bold leading-6 text-[#101828]">ตราสารหนี้แนะนำ</h3>
+            <span className="text-sm leading-5 text-[#6a7282] whitespace-nowrap shrink-0">
+              อัปเดตล่าสุด 25 August 2026 - 09.00
+            </span>
+          </div>
+          <RecommendedBondsTable onIssuerSelect={onIssuerSelect} />
+        </div>
+        <Button variant="primary" size="lg" rightIcon={<ArrowRightIcon size={20} />} onClick={onViewAll}>
+          ดูทั้งหมด
+        </Button>
       </div>
     </>
   );

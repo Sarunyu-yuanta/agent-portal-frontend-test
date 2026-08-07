@@ -28,6 +28,7 @@ import {
   ArrowLeftIcon,
   CaretRightIcon,
   CaretDownIcon,
+  InfoIcon,
   SlidersHorizontalIcon,
   CheckIcon,
 } from "@phosphor-icons/react";
@@ -178,7 +179,7 @@ function usePopover() {
 function PopoverChevron({ open }: { open: boolean }) {
   return (
     <div className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-200 ${open ? "bg-primary-action text-white" : "bg-muted text-muted-foreground"}`}>
-      <CaretRightIcon size={11} weight="bold" />
+      <InfoIcon size={12} weight="bold" />
     </div>
   );
 }
@@ -742,7 +743,7 @@ const CUSTOMER_COLUMNS: { id: ColumnId; label: string; width: number }[] = [
   { id: "aum",            label: "AUM (THB)",                                            width: 150 },
   { id: "thaiStock",      label: "หุ้นไทย (บาท)",                                        width: 150 },
   { id: "foreignStock",   label: "หุ้นต่างประเทศ (บาท)",                                  width: 170 },
-  { id: "derivatives",    label: "อนุพันธ์ (บาท)",                                        width: 140 },
+  { id: "derivatives",    label: "TFEX (บาท)",                                            width: 140 },
   { id: "mutualFund",     label: "กองทุนรวม (บาท)",                                       width: 150 },
   { id: "bond",           label: "ตราสารหนี้ (บาท)",                                      width: 150 },
   { id: "foreignBond",    label: "ตราสารหนี้ต่างประเทศ (บาท)",                             width: 200 },
@@ -920,7 +921,7 @@ export default function ClientHubPage() {
       <section className="flex-1 bg-white rounded-t-[16px] xl:rounded-t-2xl">
         <div className="max-w-[1280px] mx-auto px-4 xl:px-6 flex flex-col gap-3 pt-4 xl:pt-6 pb-6">
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 min-h-10">
             <TabGroup
               items={[
                 { id: "customer", title: `Customer (${sorted.length})` },
@@ -1122,7 +1123,6 @@ export default function ClientHubPage() {
           </div>
 
           {viewFilter === "nine-box" ? (
-            <div className="pt-4">
             <NineBoxTab
               clients={sorted}
               onCellOpen={(info) => {
@@ -1130,7 +1130,6 @@ export default function ClientHubPage() {
                 setNineBoxDrawerOpen(true);
               }}
             />
-            </div>
           ) : viewFilter === "customer" ? (
             <>
               {/* Customer Table */}
@@ -1200,7 +1199,7 @@ export default function ClientHubPage() {
                           sortDirection={dirFor("derivatives")}
                           onSortChange={handleSort("derivatives")}
                         >
-                          อนุพันธ์ (บาท)
+                          TFEX (บาท)
                         </TableHeaderCell>
                       )}
                       {col("mutualFund") && (

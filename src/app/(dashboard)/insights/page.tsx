@@ -22,7 +22,7 @@ export default function HouseViewPage() {
       <div className="transparent-tabs scrollable-tabs -mx-4 xl:-mx-6 pl-4 xl:pl-6">
         <TabGroup
           items={[
-            { id: "insights",   title: "Insights" },
+            { id: "insights",   title: "House View" },
             { id: "research4u", title: "Research 4U" },
           ]}
           activeId={activeTab}

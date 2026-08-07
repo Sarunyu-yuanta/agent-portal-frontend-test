@@ -14,8 +14,8 @@ export function PlaybookCard({ strategy, noBorder }: { strategy: Strategy; noBor
     <div
       role="button"
       tabIndex={0}
-      onClick={() => router.push(`/house-view-mvp/${strategy.id}`)}
-      onKeyDown={(e) => { if (e.key === "Enter") router.push(`/house-view-mvp/${strategy.id}`); }}
+      onClick={() => router.push(`/insights/${strategy.id}`)}
+      onKeyDown={(e) => { if (e.key === "Enter") router.push(`/insights/${strategy.id}`); }}
       className={`overflow-hidden flex h-full cursor-pointer hover:bg-muted/30 transition-colors ${noBorder ? "" : "rounded-2xl border border-border bg-card"}`}
     >
       <div className="w-1 shrink-0" style={{ background: CATEGORY_ACCENT_COLOR[cat] ?? "#6b7280" }} />
