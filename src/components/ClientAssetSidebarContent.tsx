@@ -356,10 +356,61 @@ export function ClientAssetSidebarContent({
   const handleExpandCollapseAll = () =>
     setExpandedCards(allExpanded ? new Set() : new Set(cardKeys));
 
+  if (accordionCards) {
+    return (
+      <div className="w-full max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          {/* Left: Summary */}
+          <div className="flex flex-col gap-2 lg:sticky lg:top-24">
+            <HeroCard summary={summary} />
+            <LiabilitiesBar
+              amount={liabilitiesAmount}
+              onClick={() => onLiabilitiesOpen?.(liabilitiesAmount, liabilitiesDetail)}
+            />
+            <LastUpdated summary={summary} />
+          </div>
+
+          {/* Right: Asset list */}
+          <div className="flex flex-col gap-4 bg-white rounded-2xl border border-border p-4">
+            <AssetListHeader
+              viewMode={viewMode}
+              onViewModeChange={(mode) => { setViewMode(mode); setExpandedCards(new Set()); }}
+            />
+            <div className="flex flex-col gap-4">
+              <AllocationBreakdownSidebar slices={slices} />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleExpandCollapseAll}
+                  className="type-caption text-primary-action font-medium hover:underline cursor-pointer"
+                >
+                  {allExpanded ? "Collapse All" : "Expand All"}
+                </button>
+              </div>
+              <div className="flex flex-col gap-3">
+                {listItems.map((item, i) => (
+                  <AssetAccountCard
+                    key={cardKeys[i]}
+                    account={item}
+                    viewMode={viewMode}
+                    accordion={accordionCards}
+                    open={expandedCards.has(cardKeys[i])}
+                    onToggle={() => toggleCard(cardKeys[i])}
+                    onClick={() => onItemClick?.(item, viewMode)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 w-full">
-      <div className={`${accordionCards ? "-mx-[9999px] px-[9999px]" : "bg-gradient-to-b from-white to-[#f3f4f6]"}`}>
-        <div className={`flex flex-col gap-2 items-center p-4 w-full ${accordionCards ? "max-w-5xl mx-auto" : ""}`}>
+      <div className="bg-gradient-to-b from-white to-[#f3f4f6]">
+        <div className="flex flex-col gap-2 items-center p-4 w-full">
           <HeroCard summary={summary} />
           <LiabilitiesBar
             amount={liabilitiesAmount}
@@ -369,33 +420,20 @@ export function ClientAssetSidebarContent({
         </div>
       </div>
 
-      <div className={`flex flex-col gap-4 items-center py-4 bg-white rounded-t-2xl ${accordionCards ? "max-w-2xl mx-auto w-full" : ""}`}>
+      <div className="flex flex-col gap-4 items-center py-4 bg-white rounded-t-2xl">
         <AssetListHeader
           viewMode={viewMode}
           onViewModeChange={(mode) => { setViewMode(mode); setExpandedCards(new Set()); }}
         />
         <div className="flex flex-col gap-4 items-start px-4 w-full">
           <AllocationBreakdownSidebar slices={slices} />
-          {accordionCards && (
-            <div className="flex justify-end w-full">
-              <button
-                type="button"
-                onClick={handleExpandCollapseAll}
-                className="type-caption text-primary-action font-medium hover:underline cursor-pointer"
-              >
-                {allExpanded ? "Collapse All" : "Expand All"}
-              </button>
-            </div>
-          )}
           <div className="flex flex-col gap-4 w-full">
             {listItems.map((item, i) => (
               <AssetAccountCard
                 key={cardKeys[i]}
                 account={item}
                 viewMode={viewMode}
-                accordion={accordionCards}
-                open={accordionCards ? expandedCards.has(cardKeys[i]) : undefined}
-                onToggle={accordionCards ? () => toggleCard(cardKeys[i]) : undefined}
+                accordion={false}
                 onClick={() => onItemClick?.(item, viewMode)}
               />
             ))}

@@ -926,7 +926,6 @@ export default function ClientHubPage() {
               items={[
                 { id: "customer", title: `Customer (${sorted.length})` },
                 { id: "product", title: `Product (${filteredProductRows.length})` },
-                { id: "nine-box", title: "Nine Box" },
               ]}
               activeId={viewFilter}
               size="md"

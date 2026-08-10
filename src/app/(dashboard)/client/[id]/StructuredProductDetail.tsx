@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@sarunyu/system-one";
 import {
   ArrowLeftIcon,
+  ArrowSquareOutIcon,
   CaretDownIcon,
   EyeIcon,
   FilePdfIcon,
@@ -263,6 +264,16 @@ export function StructuredProductDetail({
               </>
             )}
           </div>
+          <a
+            href="https://placeholder.example.com/create-order"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full max-w-[343px] items-center justify-center gap-2 h-12 px-4 font-medium text-sm rounded-xl cursor-pointer transition-opacity hover:opacity-90 border"
+            style={{ borderColor: "#0a6ee7", color: "#0a6ee7" }}
+          >
+            <span>สร้างคำสั่งซื้อ</span>
+            <ArrowSquareOutIcon size={16} />
+          </a>
         </div>
       </div>
 

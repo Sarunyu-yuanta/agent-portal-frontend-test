@@ -13,6 +13,7 @@ import type { GlobalBondIssuerId } from "./global-bond-data";
 import { StructuredProductDetail } from "./StructuredProductDetail";
 import { StructuredProductAllPage } from "./StructuredProductAllPage";
 import { StructuredProductCard } from "./StructuredProductCard";
+import { ThaiStructuredProductTable } from "./ThaiStructuredProductTable";
 import { TopIdeaAllPage } from "./TopIdeaAllPage";
 import { TopIdeaDetail } from "./TopIdeaDetail";
 import { TopIdeaCard } from "./TopIdeaCard";
@@ -630,8 +631,7 @@ export function ProductCatalogTab({
         />
       )}
 
-      {(activeProductTab === "structured" ||
-        activeProductTab === "thai-structured") && (
+      {activeProductTab === "structured" && (
         <div
           className="flex flex-col gap-6 items-center w-full"
           style={{ paddingTop: 24 }}
@@ -837,6 +837,19 @@ export function ProductCatalogTab({
             >
               ดูทั้งหมด
             </Button>
+          </div>
+        </div>
+      )}
+
+      {activeProductTab === "thai-structured" && (
+        <div className="flex flex-col gap-6 items-center w-full" style={{ paddingTop: 24 }}>
+          <div className="w-full" style={{ backgroundColor: "white", paddingTop: 24, paddingBottom: 24 }}>
+            <div className="flex flex-col gap-4 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
+              <p className="font-bold" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
+                Thai FCN
+              </p>
+              <ThaiStructuredProductTable />
+            </div>
           </div>
         </div>
       )}
