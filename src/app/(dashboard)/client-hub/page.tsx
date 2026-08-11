@@ -16,6 +16,7 @@ import {
   SearchInput,
   Tooltip,
   Modal,
+  BottomSheet,
 } from "@sarunyu/system-one";
 import {
   PhoneListIcon,
@@ -39,6 +40,7 @@ import { useClients } from "@/hooks/use-api";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { StatCardRow } from "@/components/ui/finance-ui";
 import { AssetSummarySection, type AssetHeroSummary } from "@/components/AssetSummarySection";
 import { ClientAssetSidebarContent, type AssetListViewMode } from "@/components/ClientAssetSidebarContent";
@@ -399,6 +401,7 @@ function ClientDetailPanel({
   const [liabilitiesData, setLiabilitiesData] = useState<{ amount: string; detail: LiabilitiesDetail } | null>(null);
   const [callLogOpen, setCallLogOpen] = useState(false);
   const callLogs = getCallLogs(client.id);
+  const isMobile = useMediaQuery("(max-width: 767px)");
 
   useEffect(() => {
     setCompact(false);
@@ -517,19 +520,29 @@ function ClientDetailPanel({
           <div className="overflow-hidden min-h-0">
             <div className="grid grid-cols-3 gap-2">
               {[
-                { icon: <PhoneListIcon size={20} />,   label: "Call log", onClick: () => setCallLogOpen(true) },
-                { icon: <NotePencilIcon size={20} />,  label: "Notes",    onClick: () => {} },
-                { icon: <BellSimpleIcon size={20} />,  label: "Reminder", onClick: () => {} },
-              ].map(({ icon, label, onClick }) => (
+                { icon: <PhoneListIcon size={20} />,   label: "Call log", onClick: () => setCallLogOpen(true), comingSoon: false },
+                { icon: <NotePencilIcon size={20} />,  label: "Notes",    onClick: () => {},                  comingSoon: true  },
+                { icon: <BellSimpleIcon size={20} />,  label: "Reminder", onClick: () => {},                  comingSoon: true  },
+              ].map(({ icon, label, onClick, comingSoon }) => (
                 <button
                   key={label}
-                  onClick={onClick}
-                  className="flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-xl bg-[var(--bg-default-secondary)] border border-primary-action/20 hover:bg-[var(--bg-brand-light)] hover:border-[var(--bg-brand-primary)] transition-colors cursor-pointer"
+                  onClick={comingSoon ? undefined : onClick}
+                  disabled={comingSoon}
+                  className={`relative flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-xl border transition-colors overflow-hidden ${
+                    comingSoon
+                      ? "bg-[var(--bg-default-secondary)] border-[var(--border-default)]/40 cursor-not-allowed"
+                      : "bg-[var(--bg-default-secondary)] border-primary-action/20 hover:bg-[var(--bg-brand-light)] hover:border-[var(--bg-brand-primary)] cursor-pointer"
+                  }`}
                 >
-                  <span className="text-primary-action">{icon}</span>
-                  <span className="text-[11px] font-medium text-primary-action leading-none">
+                  <span className={`text-primary-action ${comingSoon ? "opacity-15" : ""}`}>{icon}</span>
+                  <span className={`text-[11px] font-medium text-primary-action leading-none ${comingSoon ? "opacity-15" : ""}`}>
                     {label}
                   </span>
+                  {comingSoon && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[10px] font-semibold text-primary-action bg-[var(--bg-brand-light)] border border-primary-action/30 px-1.5 py-0.5 rounded-full">Coming soon</span>
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
@@ -626,42 +639,72 @@ function ClientDetailPanel({
       )}
     </div>
 
-    {/* Call log modal */}
-
-    {callLogOpen && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-        <Modal
-          variant="content"
-          actionLayout="none"
-          title={`Call log — ${client.name}`}
-          onClose={() => setCallLogOpen(false)}
-        >
-          <div className="flex flex-col gap-3 min-w-[420px] max-w-[520px]">
-            {callLogs.map((log: CallLogEntry) => (
-              <div key={log.id} className="flex gap-3 p-3 rounded-xl bg-[var(--bg-default-secondary)] border border-[rgba(0,0,0,0.07)]">
-                <div className="shrink-0 mt-0.5">
-                  {log.direction === "outbound" ? (
-                    <PhoneOutgoingIcon size={18} className="text-[var(--text-brand-primary)]" />
-                  ) : (
-                    <PhoneIncomingIcon size={18} className="text-[var(--icon-success)]" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="type-caption font-semibold text-foreground">{log.date} · {log.time}</span>
-                    <span className="type-caption font-medium text-[var(--text-brand-primary)] shrink-0">{relativeCallDate(log.date)}</span>
-                  </div>
-                  <p className="type-caption text-foreground leading-relaxed">{log.summary}</p>
-                  <p className="type-caption text-muted-foreground mt-1">{log.duration}</p>
-                </div>
+    {/* Call log — BottomSheet on mobile, Modal on tablet/desktop */}
+    {isMobile ? (
+      <BottomSheet
+        open={callLogOpen}
+        onOpenChange={setCallLogOpen}
+        title={`Call log — ${client.name}`}
+        showHandle
+        showHeader
+        rightSide="none"
+        contentClassName="flex flex-col gap-3 p-4"
+      >
+        {callLogs.map((log: CallLogEntry) => (
+          <div key={log.id} className="flex flex-col gap-1.5 rounded-xl border border-border p-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="type-body-2 text-foreground font-semibold">{log.date} · {log.time}</span>
+              <div className="flex items-center gap-1.5 shrink-0 text-muted-foreground">
+                {log.direction === "outbound" ? (
+                  <PhoneOutgoingIcon size={14} className="text-[var(--text-brand-primary)]" />
+                ) : (
+                  <PhoneIncomingIcon size={14} className="text-[var(--icon-success)]" />
+                )}
+                <span className="type-caption">{log.direction === "outbound" ? "Outbound" : "Inbound"}</span>
               </div>
-            ))}
-            {callLogs.length === 0 && (
-              <p className="type-body-2 text-muted-foreground text-center py-6">No call history yet.</p>
-            )}
+            </div>
+            <p className="type-caption text-muted-foreground">{relativeCallDate(log.date)} · {log.duration}</p>
+            <p className="type-body-2 text-foreground mt-1">{log.summary}</p>
           </div>
-        </Modal>
-      </div>
+        ))}
+        {callLogs.length === 0 && (
+          <p className="type-body-2 text-muted-foreground text-center py-6">No call history yet.</p>
+        )}
+      </BottomSheet>
+    ) : (
+      callLogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <Modal
+            variant="content"
+            actionLayout="none"
+            title={`Call log — ${client.name}`}
+            onClose={() => setCallLogOpen(false)}
+          >
+            <div className="flex flex-col gap-3 min-w-[420px] max-w-[520px]">
+              {callLogs.map((log: CallLogEntry) => (
+                <div key={log.id} className="flex flex-col gap-1.5 rounded-xl border border-border p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="type-body-2 text-foreground font-semibold">{log.date} · {log.time}</span>
+                    <div className="flex items-center gap-1.5 shrink-0 text-muted-foreground">
+                      {log.direction === "outbound" ? (
+                        <PhoneOutgoingIcon size={14} className="text-[var(--text-brand-primary)]" />
+                      ) : (
+                        <PhoneIncomingIcon size={14} className="text-[var(--icon-success)]" />
+                      )}
+                      <span className="type-caption">{log.direction === "outbound" ? "Outbound" : "Inbound"}</span>
+                    </div>
+                  </div>
+                  <p className="type-caption text-muted-foreground">{relativeCallDate(log.date)} · {log.duration}</p>
+                  <p className="type-body-2 text-foreground mt-1">{log.summary}</p>
+                </div>
+              ))}
+              {callLogs.length === 0 && (
+                <p className="type-body-2 text-muted-foreground text-center py-6">No call history yet.</p>
+              )}
+            </div>
+          </Modal>
+        </div>
+      )
     )}
     </>
   );
@@ -910,8 +953,8 @@ export default function ClientHubPage() {
   return (
     <>
       {/* Hero — own padding + max-width */}
-      <div className="px-4 pt-4 pb-2 xl:px-6 xl:pt-6 xl:pb-2">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-4">
+      <div className="pt-4 pb-2 xl:pt-6 xl:pb-2">
+        <div className="max-w-[1280px] mx-auto px-4 xl:px-6 flex flex-col gap-4">
           {/* <AssetSummarySection heroSummary={heroSummary} /> */}
           <ClientSummaryCards clients={clients} />
         </div>

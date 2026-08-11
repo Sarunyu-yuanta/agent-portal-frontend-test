@@ -206,7 +206,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             className={`flex-1 overflow-y-auto overflow-x-clip [scrollbar-gutter:stable] bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"}`}
           >
             <div
-              className={`${isFullWidth ? "w-full" : "max-w-[1280px] mx-auto"
+              className={`${isFullWidth ? "w-full min-h-full" : "max-w-[1280px] mx-auto"
                 } flex flex-col gap-6`}
             >
               {!clientBreadcrumb &&
