@@ -174,15 +174,15 @@ function BondNameCell({ row }: { row: GlobalBondRow }) {
 
 function FactsheetButton() {
   return (
-    <button
-      type="button"
+    <Button
+      variant="outline"
+      size="xs"
+      leftIcon={<FileTextIcon size={16} />}
+      className="whitespace-nowrap"
       onClick={(e) => e.stopPropagation()}
-      className="inline-flex items-center gap-0.5 px-1 pr-1.5 py-1 rounded border text-xs font-medium leading-[18px] text-[#101828] bg-white whitespace-nowrap"
-      style={{ borderColor: BORDER_COLOR }}
     >
-      <FileTextIcon size={16} className="shrink-0" />
       Factsheet
-    </button>
+    </Button>
   );
 }
 

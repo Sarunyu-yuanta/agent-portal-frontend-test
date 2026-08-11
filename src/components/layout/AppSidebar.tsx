@@ -94,8 +94,8 @@ function NavSection({
 
               {/* Text fades + collapses */}
               <span
-                className={`text-[13.5px] leading-none whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                  } ${isActive ? "text-white font-medium" : "text-slate-300"}`}
+                className={`text-[13.5px] leading-none pb-[3px] whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                  } ${isActive ? "text-white" : "text-slate-300"} font-medium`}
               >
                 {item.label}
               </span>

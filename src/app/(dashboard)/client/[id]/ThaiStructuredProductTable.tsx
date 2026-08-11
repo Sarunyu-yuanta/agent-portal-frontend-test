@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   BORDER_COLOR,
   HEADER_TEXT_CLS,
@@ -24,10 +25,16 @@ const COLS = [
 ] as const;
 
 export function ThaiStructuredProductTable() {
+  const [isScrolled, setIsScrolled] = useState(false);
+
   return (
-    <div className="w-full overflow-x-auto" style={{ border: `1px solid ${BORDER_COLOR}`, borderRadius: 12 }}>
+    <div style={{ border: `1px solid ${BORDER_COLOR}`, borderRadius: 12, overflow: "hidden" }}>
+      <div
+        className="w-full overflow-x-auto"
+        onScroll={(e) => setIsScrolled((e.currentTarget as HTMLDivElement).scrollLeft > 0)}
+      >
       {/* Header row */}
-      <div className="flex h-11 items-stretch shrink-0 min-w-[1390px] bg-white">
+      <div className="flex h-11 items-stretch shrink-0 min-w-[1290px] bg-white">
         {COLS.map((col, i) => (
           <div
             key={col.key}
@@ -35,10 +42,19 @@ export function ThaiStructuredProductTable() {
             style={{
               width: col.width,
               flexShrink: 0,
-              ...(i === COLS.length - 1
-                ? headerBorderStyle({ right: false })
-                : headerBorderStyle()),
-              ...(i === 0 ? { borderLeft: `1px solid ${BORDER_COLOR}` } : {}),
+              ...(i === 0
+                ? {
+                    position: "sticky",
+                    left: 0,
+                    zIndex: 2,
+                    backgroundColor: "white",
+                    boxShadow: isScrolled ? "2px 0 4px rgba(0,0,0,0.06)" : undefined,
+                    borderBottom: `1px solid ${BORDER_COLOR}`,
+                    borderRight: `1px solid ${BORDER_COLOR}`,
+                  }
+                : i === COLS.length - 1
+                  ? headerBorderStyle({ right: false })
+                  : headerBorderStyle()),
             }}
           >
             <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>{col.label}</span>
@@ -46,40 +62,53 @@ export function ThaiStructuredProductTable() {
         ))}
       </div>
       {/* Data rows */}
-      {THAI_STRUCTURED_PRODUCTS.map((row, rowIdx) => (
-        <div
-          key={row.theme}
-          className="flex items-stretch shrink-0 min-w-[1390px]"
-          style={{ backgroundColor: rowIdx % 2 === 0 ? "white" : "#f9fafb" }}
-        >
-          {COLS.map((col, i) => {
-            const value = col.key === "tenor" ? String(row[col.key]) : row[col.key];
-            const isCoupon = col.key === "couponPa";
-            const isLast = rowIdx === THAI_STRUCTURED_PRODUCTS.length - 1;
-            return (
-              <div
-                key={col.key}
-                className="flex items-center px-3 py-2.5"
-                style={{
-                  width: col.width,
-                  flexShrink: 0,
-                  ...(i === COLS.length - 1
-                    ? cellBorderStyle({ bottom: !isLast })
-                    : { ...cellBorderStyle({ bottom: !isLast }), borderRight: `1px solid ${BORDER_COLOR}` }),
-                  ...(i === 0 ? { borderLeft: `1px solid ${BORDER_COLOR}` } : {}),
-                }}
-              >
-                <span
-                  className="text-sm leading-5 whitespace-nowrap"
-                  style={{ color: isCoupon ? "#0a6ee7" : "#101828", fontWeight: isCoupon ? 600 : 400 }}
+      {THAI_STRUCTURED_PRODUCTS.map((row, rowIdx) => {
+        const rowBg = rowIdx % 2 === 0 ? "white" : "#f9fafb";
+        const isLast = rowIdx === THAI_STRUCTURED_PRODUCTS.length - 1;
+        return (
+          <div
+            key={row.theme}
+            className="flex items-stretch shrink-0 min-w-[1290px]"
+            style={{ backgroundColor: rowBg }}
+          >
+            {COLS.map((col, i) => {
+              const value = col.key === "tenor" ? String(row[col.key]) : row[col.key];
+              const isCoupon = col.key === "couponPa";
+              return (
+                <div
+                  key={col.key}
+                  className="flex items-center px-3 py-2.5"
+                  style={{
+                    width: col.width,
+                    flexShrink: 0,
+                    ...(i === 0
+                      ? {
+                          position: "sticky",
+                          left: 0,
+                          zIndex: 1,
+                          backgroundColor: rowBg,
+                          boxShadow: isScrolled ? "2px 0 4px rgba(0,0,0,0.06)" : undefined,
+                          borderBottom: isLast ? undefined : `1px solid ${BORDER_COLOR}`,
+                          borderRight: `1px solid ${BORDER_COLOR}`,
+                        }
+                      : i === COLS.length - 1
+                        ? cellBorderStyle({ bottom: !isLast })
+                        : { ...cellBorderStyle({ bottom: !isLast }), borderRight: `1px solid ${BORDER_COLOR}` }),
+                  }}
                 >
-                  {value}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      ))}
+                  <span
+                    className="text-sm leading-5 whitespace-nowrap"
+                    style={{ color: isCoupon ? "#0a6ee7" : "#101828", fontWeight: isCoupon ? 600 : 400 }}
+                  >
+                    {value}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+      </div>
     </div>
   );
 }

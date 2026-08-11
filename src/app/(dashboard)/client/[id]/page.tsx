@@ -203,40 +203,68 @@ function CallLogTable({ callLogs }: { callLogs: CallLogEntry[] }) {
     );
   }
   return (
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Date</TableHeaderCell>
-          <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Direction</TableHeaderCell>
-          <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Duration</TableHeaderCell>
-          <TableHeaderCell sortable={false} className="min-w-0">Summary</TableHeaderCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
+    <>
+      {/* Mobile / tablet — stacked cards (table columns can't shrink below their content width) */}
+      <div className="flex flex-col gap-3 md:hidden">
         {callLogs.map((log) => (
-          <TableRow key={log.id}>
-            <TableCell className="min-w-0 whitespace-nowrap">
-              <div className="flex flex-col">
-                <span className="type-body-2 text-foreground font-medium">{log.date} · {log.time}</span>
-                <span className="type-caption text-muted-foreground">{relativeCallDate(log.date)}</span>
-              </div>
-            </TableCell>
-            <TableCell className="min-w-0 whitespace-nowrap">
-              <div className="flex items-center gap-1.5">
+          <div key={log.id} className="flex flex-col gap-1.5 rounded-xl border border-border p-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="type-body-2 text-foreground font-semibold">{log.date} · {log.time}</span>
+              <div className="flex items-center gap-1.5 shrink-0 text-muted-foreground">
                 {log.direction === "outbound" ? (
-                  <PhoneOutgoingIcon size={16} className="text-[var(--text-brand-primary)]" />
+                  <PhoneOutgoingIcon size={14} className="text-[var(--text-brand-primary)]" />
                 ) : (
-                  <PhoneIncomingIcon size={16} className="text-[var(--icon-success)]" />
+                  <PhoneIncomingIcon size={14} className="text-[var(--icon-success)]" />
                 )}
-                <span className="type-body-2 text-foreground">{log.direction === "outbound" ? "Outbound" : "Inbound"}</span>
+                <span className="type-caption">{log.direction === "outbound" ? "Outbound" : "Inbound"}</span>
               </div>
-            </TableCell>
-            <TableCell className="min-w-0 whitespace-nowrap"><span className="type-body-2 text-foreground">{log.duration}</span></TableCell>
-            <TableCell className="min-w-0"><span className="type-body-2 text-foreground">{log.summary}</span></TableCell>
-          </TableRow>
+            </div>
+            <p className="type-caption text-muted-foreground">
+              {relativeCallDate(log.date)} · {log.duration}
+            </p>
+            <p className="type-body-2 text-foreground mt-1">{log.summary}</p>
+          </div>
         ))}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop — table */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Date</TableHeaderCell>
+              <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Direction</TableHeaderCell>
+              <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Duration</TableHeaderCell>
+              <TableHeaderCell sortable={false} className="min-w-0">Summary</TableHeaderCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {callLogs.map((log) => (
+              <TableRow key={log.id}>
+                <TableCell className="min-w-0 whitespace-nowrap">
+                  <div className="flex flex-col">
+                    <span className="type-body-2 text-foreground font-medium">{log.date} · {log.time}</span>
+                    <span className="type-caption text-muted-foreground">{relativeCallDate(log.date)}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="min-w-0 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    {log.direction === "outbound" ? (
+                      <PhoneOutgoingIcon size={16} className="text-[var(--text-brand-primary)]" />
+                    ) : (
+                      <PhoneIncomingIcon size={16} className="text-[var(--icon-success)]" />
+                    )}
+                    <span className="type-body-2 text-foreground">{log.direction === "outbound" ? "Outbound" : "Inbound"}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="min-w-0 whitespace-nowrap"><span className="type-body-2 text-foreground">{log.duration}</span></TableCell>
+                <TableCell className="min-w-0"><span className="type-body-2 text-foreground">{log.summary}</span></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }
 
@@ -266,6 +294,13 @@ export default function ClientPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  // Keyed remount on client id — this page reuses the same component instance
+  // across in-app navigations between different clients (same route segment),
+  // so header-collapse / active-tab / sort state would otherwise leak between clients.
+  return <ClientPageInner key={id} id={id} />;
+}
+
+function ClientPageInner({ id }: { id: string }) {
   const { isPrivate } = usePrivacy();
   const clients = useClients();
   const nbaActions = useNBAActions(clients);
@@ -301,6 +336,13 @@ export default function ClientPage({
   const [scrolled, setScrolled] = useState(false);
   const collapsedRef = useRef(false);
   const lockUntilRef = useRef(0);
+  const quickContactRef = useRef<HTMLDivElement>(null);
+
+  // Force the initial scroll offset to 0 — with scroll-snap + a negative-margin
+  // bleed container, some browsers land on a non-zero offset on first paint.
+  useEffect(() => {
+    if (quickContactRef.current) quickContactRef.current.scrollLeft = 0;
+  }, []);
 
   useEffect(() => {
     const main = document.querySelector("main");
@@ -341,7 +383,7 @@ export default function ClientPage({
     <div className="flex flex-col -mt-6">
 
       {/* Sticky Identity + KPI bar + Tabs */}
-      <div className="sticky -top-6 z-20 -mx-[9999px] px-[9999px] bg-card will-change-transform [overflow-anchor:none]">
+      <div className={`sticky -top-6 z-20 -mx-[9999px] px-[9999px] bg-card will-change-transform [overflow-anchor:none] transition-shadow duration-300 ease-out ${scrolled ? "shadow-sm" : ""}`}>
         {/* Mobile/Tablet breadcrumb — inside sticky header */}
         <div className="xl:hidden pt-5 pb-0">
           <Breadcrumb items={[
@@ -349,7 +391,7 @@ export default function ClientPage({
             { label: maskedClientName },
           ]} />
         </div>
-        <div className={`flex flex-wrap md:flex-nowrap items-center justify-between gap-4 lg:gap-8 transition-[padding] duration-300 ease-out ${scrolled ? "py-3" : "py-5"}`}>
+        <div className={`flex flex-wrap md:flex-nowrap items-center md:items-start xl:items-center justify-between gap-4 lg:gap-8 transition-[padding] duration-300 ease-out ${scrolled ? "py-3" : "py-5"}`}>
 
           {/* Left: identity + actions */}
           <div className={`flex flex-col ${scrolled ? "justify-center" : "gap-4"}`}>
@@ -396,11 +438,14 @@ export default function ClientPage({
 
             {/* Quick contact — collapses on scroll */}
             <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${scrolled ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"}`}>
-              <div className="overflow-hidden min-h-0">
-                <div className="flex items-center gap-2 flex-wrap">
+              <div className="overflow-hidden min-h-0 -mx-4 xl:-mx-6">
+                <div
+                  ref={quickContactRef}
+                  className="flex items-center gap-2 overflow-x-auto snap-x snap-mandatory px-4 xl:px-6 py-0.5 [scroll-padding-inline:1rem] xl:[scroll-padding-inline:1.5rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
                   <a
                     href={`tel:${profile.phone}`}
-                    className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground hover:text-primary-action hover:bg-primary-action-light transition-colors"
+                    className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground hover:text-primary-action hover:bg-primary-action-light transition-colors shrink-0 whitespace-nowrap snap-start"
                   >
                     <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0">
                       <PhoneIcon size={13} className="text-muted-foreground" />
@@ -409,7 +454,7 @@ export default function ClientPage({
                   </a>
                   <a
                     href={`mailto:${profile.email}`}
-                    className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground hover:text-primary-action hover:bg-primary-action-light transition-colors"
+                    className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground hover:text-primary-action hover:bg-primary-action-light transition-colors shrink-0 whitespace-nowrap snap-start"
                   >
                     <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0">
                       <EnvelopeSimpleIcon size={13} className="text-muted-foreground" />
@@ -417,7 +462,7 @@ export default function ClientPage({
                     <span className="type-caption font-medium">{profile.email}</span>
                   </a>
                   {profile.lineId && (
-                    <span className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground">
+                    <span className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground shrink-0 whitespace-nowrap snap-start">
                       <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0">
                         <ChatCircleIcon size={13} className="text-muted-foreground" />
                       </span>
@@ -430,13 +475,13 @@ export default function ClientPage({
           </div>
 
           {/* Right: KPIs — fade between sizes, hide on mobile when scrolled */}
-          <div className={`flex items-center shrink-0 w-full md:w-auto ${scrolled ? "hidden sm:flex" : ""}`}>
-            <div className="flex flex-col items-end gap-1 pr-8">
+          <div className={`flex items-center justify-center gap-8 md:justify-start md:gap-0 shrink-0 w-full md:w-auto bg-[var(--bg-default-secondary)] md:!bg-transparent border border-border md:!border-0 rounded-2xl md:!rounded-none p-4 md:!p-0 ${scrolled ? "hidden sm:flex" : ""}`}>
+            <div className="flex flex-col items-center text-center md:items-end md:text-right gap-1 md:pr-8">
               <p className="type-caption text-muted-foreground">Total AUM</p>
               <p className={`text-foreground transition-opacity duration-150 ${scrolled ? "type-subtitle-1" : "type-h3"}`}>{client.aum}</p>
             </div>
-            <div className="w-px bg-border self-stretch my-1 shrink-0" />
-            <div className="flex flex-col items-end gap-1 pl-8">
+            <div className="w-px bg-border self-stretch -my-4 md:my-1 shrink-0" />
+            <div className="flex flex-col items-center text-center md:items-end md:text-right gap-1 md:pl-8">
               <p className="type-caption text-muted-foreground">YTD P&L</p>
               <div className="flex items-center gap-1.5">
                 {client.plPositive ? (
@@ -472,11 +517,11 @@ export default function ClientPage({
 
       {/* ── Body content ── */}
       {activeTab === "kyc" ? (
-        <div className="pt-10 max-w-6xl mx-auto w-full">
+        <div className="pt-8 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
           {/* ── Single profile card ── */}
-          <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+          <div className="rounded-[6px] md:rounded-[8px] border border-border bg-card overflow-hidden shadow-sm">
 
             {/* Stat tiles 2×2 */}
             <div className="grid grid-cols-2 divide-x divide-y divide-blue-100 bg-blue-50">
@@ -500,7 +545,7 @@ export default function ClientPage({
             <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border border-t border-border">
 
               {/* Personal */}
-              <div className="p-6 flex flex-col gap-3">
+              <div className="p-4 md:p-6 flex flex-col gap-3">
                 <p className="type-caption font-bold text-muted-foreground uppercase tracking-widest">Personal</p>
                 <div className="flex flex-col divide-y divide-border">
                   {[
@@ -522,7 +567,7 @@ export default function ClientPage({
               </div>
 
               {/* Contact */}
-              <div className="p-6 flex flex-col gap-3">
+              <div className="p-4 md:p-6 flex flex-col gap-3">
                 <p className="type-caption font-bold text-muted-foreground uppercase tracking-widest">Contact</p>
                 <div className="flex flex-col divide-y divide-border">
                   {[
@@ -554,11 +599,11 @@ export default function ClientPage({
 
           {/* ── Important Forms ── */}
           <div className="pb-2">
-            <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
-              <div className="px-6 py-4 border-b border-border">
+            <div className="rounded-[6px] md:rounded-[8px] border border-border bg-card overflow-hidden shadow-sm">
+              <div className="px-4 py-3 md:px-6 md:py-4 border-b border-border">
                 <p className="type-subtitle-2 font-bold text-foreground">Important Forms</p>
               </div>
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   { title: "Wealth Declaration", description: "แบบแจ้งการเป็นผู้ลงทุนรายใหญ่ / รายใหญ่พิเศษ / ที่มีลักษณะเฉพาะ", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "done" as const },
                   { title: "FATCA and CRS", description: "แบบแจ้งความเป็นบุคคลอเมริกัน และผู้มีถิ่นที่อยู่ทางภาษีในประเทศอื่น", date: "อัปเดตล่าสุด: 24 Jul 2024", status: "pending" as const },

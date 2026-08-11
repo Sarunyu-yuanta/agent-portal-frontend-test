@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { Chip, Button, BottomSheet, Modal } from "@sarunyu/system-one";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { mockHouseViewStrategies } from "@/lib/mock-data";
@@ -97,7 +97,9 @@ export function StrategyPlaybooks() {
         const hasMore = gridItems.length > GRID_LIMIT;
 
         return (
-          <div key={`${group.period}-${group.periodLabel}`} className="flex flex-col gap-4">
+          <Fragment key={`${group.period}-${group.periodLabel}`}>
+            {idx > 0 && <div className="border-t border-border my-4" />}
+            <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="px-2.5 py-1 rounded bg-primary-action-light text-primary-action text-[11px] font-bold">
@@ -153,7 +155,8 @@ export function StrategyPlaybooks() {
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          </Fragment>
         );
       })}
 

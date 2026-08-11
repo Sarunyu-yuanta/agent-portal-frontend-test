@@ -145,14 +145,14 @@ export function StructuredProductCard({
     return (
       <div
         {...interactiveProps}
-        className={`flex flex-col items-center gap-4 overflow-hidden p-4 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
+        className={`flex flex-col items-center gap-3 overflow-hidden p-5 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
         style={cardStyle}
       >
         <div className="flex flex-col gap-2 items-start w-full">
           <LogoRow logos={logos} tags={tags} />
           <UnderlyingCouponRow underlying={underlying} coupon={coupon} />
         </div>
-        <StatsGrid stats={stats} className="w-full py-1.5" />
+        <StatsGrid stats={stats} className="w-full py-2" />
       </div>
     );
   }
@@ -162,20 +162,20 @@ export function StructuredProductCard({
       {/* Mobile — vertical stack */}
       <div
         {...interactiveProps}
-        className={`flex md:hidden flex-col items-center gap-4 overflow-hidden p-4 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
+        className={`flex md:hidden flex-col items-center gap-3 overflow-hidden p-5 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
         style={cardStyle}
       >
         <div className="flex flex-col gap-2 items-start w-full">
           <LogoRow logos={logos} tags={tags} />
           <UnderlyingCouponRow underlying={underlying} coupon={coupon} />
         </div>
-        <StatsGrid stats={stats} className="w-full py-1.5" />
+        <StatsGrid stats={stats} className="w-full py-2" />
       </div>
 
-      {/* Tablet — Figma 33964:144147 horizontal h-[100px] */}
+      {/* Tablet — horizontal */}
       <div
         {...interactiveProps}
-        className={`hidden md:flex lg:hidden h-[100px] box-border items-start gap-4 overflow-hidden p-4 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
+        className={`hidden md:flex lg:hidden h-[120px] box-border items-start gap-4 overflow-hidden p-5 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
         style={cardStyle}
       >
         <div className="flex flex-1 flex-col gap-2 items-start min-w-0">
@@ -188,14 +188,14 @@ export function StructuredProductCard({
       {/* Desktop — vertical grid card */}
       <div
         {...interactiveProps}
-        className={`hidden lg:flex flex-col items-center gap-4 overflow-hidden p-4 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
+        className={`hidden lg:flex flex-col items-center gap-3 overflow-hidden p-5 relative rounded-[12px] w-full ${interactiveProps.className ?? ""}`}
         style={cardStyle}
       >
         <div className="flex flex-col gap-2 items-start w-full">
           <LogoRow logos={logos} tags={tags} />
           <UnderlyingCouponRow underlying={underlying} coupon={coupon} />
         </div>
-        <StatsGrid stats={stats} className="w-full py-1.5" />
+        <StatsGrid stats={stats} className="w-full py-2" />
       </div>
     </>
   );

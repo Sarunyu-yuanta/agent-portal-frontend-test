@@ -146,8 +146,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Content area */}
         <div className="flex flex-col flex-1 min-w-0">
           {/* Top bar */}
-          <header className="shrink-0 min-h-[60px] flex items-center justify-between gap-4 px-4 border-b border-border bg-background z-30 relative">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
+          <header
+            className={`shrink-0 min-h-[60px] flex items-center justify-between gap-4 px-4 border-b border-border bg-background z-30 relative ${
+              headerSlot ? "xl:grid xl:grid-cols-[1fr_minmax(0,28rem)_1fr]" : ""
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
               {/* Logo — mobile + tablet (sidebar hidden below xl) */}
               <div className="flex items-center gap-2.5 xl:hidden shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size icon, no responsive sizes needed */}
@@ -176,12 +180,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
 
             {headerSlot && (
-              <div className="hidden xl:flex flex-1 max-w-sm items-center">
-                {headerSlot}
+              <div className="hidden xl:flex">
+                <div className="w-full">{headerSlot}</div>
               </div>
             )}
 
-            <div className="flex items-center gap-4">
+            <div className={`flex items-center gap-4 ${headerSlot ? "xl:justify-self-end" : ""}`}>
               <NavHeaderNotification
                 groups={notificationGroups}
                 badgeCount={4}

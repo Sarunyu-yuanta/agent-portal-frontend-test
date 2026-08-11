@@ -268,7 +268,7 @@ function ClientSummaryCards({ clients }: { clients: Client[] }) {
   );
 
   return (
-    <div className="grid grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {/* 1. Total Clients */}
       <div ref={segment.ref} className="relative min-w-0" {...segment.hoverProps}>
         <CardShell open={segment.open} onClick={() => segment.setOpen((p) => !p)}>

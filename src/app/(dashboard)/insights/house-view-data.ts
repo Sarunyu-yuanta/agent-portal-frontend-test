@@ -1,8 +1,56 @@
 // ─── Shared House View / Insights data ─────────────────────────────────────────
 // Used by both the Insights list (page.tsx) and the Insight detail page ([id]/).
 
+import { TOP_PICKS, type StructuredProduct } from "../client/[id]/structured-product-data";
+import { FIXED_INCOME_BONDS, type FixedIncomeBond } from "../client/[id]/fixed-income-data";
+import { GLOBAL_BOND_ISSUERS, type GlobalBondIssuer } from "../client/[id]/global-bond-data";
+
 export function getCategory(strategy: { category?: string }): string {
   return strategy.category ?? "";
+}
+
+// ─── Related products ───────────────────────────────────────────────────────
+// Each insight is tagged with an `assetClass` (Equity, Fixed Income, Alternatives,
+// Mixed, Real Estate). We use that to pull whichever real product types are
+// actually relevant — a plain "one array per type" shape (rather than a
+// discriminated union per combo) so any mix can be composed without adding a
+// new "kind" every time. Real Estate has no matching catalog data yet, so all
+// three arrays stay empty rather than showing an unrelated product type.
+
+const ALL_GLOBAL_BOND_ISSUERS: GlobalBondIssuer[] = Object.values(GLOBAL_BOND_ISSUERS);
+
+export type RelatedProducts = {
+  structured: StructuredProduct[];
+  fixedIncome: FixedIncomeBond[];
+  globalBond: GlobalBondIssuer[];
+};
+
+export function getRelatedProducts(strategy?: { assetClass?: string }): RelatedProducts {
+  switch (strategy?.assetClass) {
+    case "Fixed Income":
+      // Domestic THB bonds + a USD-denominated global bond issuer — both are
+      // fixed income, so both are relevant here.
+      return {
+        structured: [],
+        fixedIncome: FIXED_INCOME_BONDS.slice(0, 1),
+        globalBond: ALL_GLOBAL_BOND_ISSUERS.slice(0, 1),
+      };
+    case "Equity":
+    case "Alternatives":
+      return { structured: TOP_PICKS.slice(0, 2), fixedIncome: [], globalBond: [] };
+    case "Mixed":
+      return {
+        structured: TOP_PICKS.slice(0, 1),
+        fixedIncome: FIXED_INCOME_BONDS.slice(0, 1),
+        globalBond: [],
+      };
+    case "Real Estate":
+      return { structured: [], fixedIncome: [], globalBond: [] };
+    default:
+      // No specific strategy in context (e.g. the Insights list sidebar) —
+      // show trending structured notes as a generic default.
+      return { structured: TOP_PICKS.slice(0, 2), fixedIncome: [], globalBond: [] };
+  }
 }
 
 export const CATEGORY_TAG_VARIANT: Record<string, "red" | "green" | "blue" | "lime" | "yellow" | "gray"> = {

@@ -37,6 +37,7 @@ import {
   FlagIcon,
   ArrowRightIcon,
   FireIcon,
+  ChartPieSliceIcon,
 } from "@phosphor-icons/react";
 const IMG_SECURE_INCOME = "/invest-secure-income.png";
 const IMG_BALANCED_GROWTH = "/invest-balanced-growth.png";
@@ -63,6 +64,11 @@ const PRODUCT_TABS = [
     id: "global-bond",
     title: "Global Bond",
     icon: <GlobeHemisphereWestIcon size={18} />,
+  },
+  {
+    id: "mutual-fund",
+    title: "Mutual Fund",
+    icon: <ChartPieSliceIcon size={18} />,
   },
 ];
 
@@ -540,41 +546,19 @@ export function ProductCatalogTab({
   return (
     // Root: full-bleed — negative margin + matching width expansion
     <div className="flex flex-col w-full" style={{ backgroundColor: "white" }}>
-      {/* ── Mobile: static search (visible only when not scrolled) ── */}
-      {!mobileScrolled && (
-        <div className="lg:hidden">
-          <div
-            className="relative shrink-0 w-full"
-            style={{ backgroundColor: "#f3f4f6", height: 96 }}
-          >
-            <div className="absolute left-4 right-4" style={{ top: 24 }}>
-              <SearchInput
-                value={searchValue}
-                onChange={setSearchValue}
-                placeholder="ค้นหาสินทรัพย์"
-                className="w-full"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Mobile/Tablet: sticky search + tab bar ── */}
+      {/* ── Mobile/Tablet: sticky search + tab bar — always expanded, never collapses ── */}
       <div
         className="sticky top-0 z-30 flex flex-col lg:hidden"
         style={{ backgroundColor: "#f3f4f6" }}
       >
-        {mobileScrolled && (
-          <div className="px-4 pt-2 pb-1">
-            <SearchInput
-              value={searchValue}
-              onChange={setSearchValue}
-              placeholder="ค้นหาสินทรัพย์"
-              size="sm"
-              className="w-full"
-            />
-          </div>
-        )}
+        <div className="px-4 pt-6 pb-4">
+          <SearchInput
+            value={searchValue}
+            onChange={setSearchValue}
+            placeholder="ค้นหาสินทรัพย์"
+            className="w-full"
+          />
+        </div>
         <div
           className="overflow-x-auto"
           style={{
@@ -592,21 +576,27 @@ export function ProductCatalogTab({
         </div>
       </div>
 
-      {/* ── Desktop: gradient search section + tab bar with icons ────────────── */}
-      <div
-        className="hidden lg:flex flex-col items-center justify-center shrink-0 w-full bg-gradient-to-t from-[#f7f7f7] to-white px-6"
-        style={{ height: 120, paddingTop: 32, paddingBottom: 24 }}
-      >
-        <SearchInput
-          value={searchValue}
-          onChange={setSearchValue}
-          placeholder="ค้นหาสินทรัพย์"
-          className="w-full max-w-[792px]"
-        />
-      </div>
-      <div className="hidden lg:block sticky top-0 z-10 bg-white pt-4">
+      {/* ── Desktop: search + tab bar, one shared section ────────────── */}
+      <div className={`hidden lg:flex flex-col shrink-0 w-full bg-gradient-to-t from-[#f7f7f7] to-white sticky top-0 z-30 transition-shadow duration-300 ease-out ${mobileScrolled ? "shadow-sm" : ""}`}>
         <div
-          className="max-w-[1280px] mx-auto px-4 lg:px-6 overflow-x-auto"
+          className={`grid transition-[grid-template-rows] duration-300 ease-out ${mobileScrolled ? "grid-rows-[0fr]" : "grid-rows-[1fr]"}`}
+        >
+          <div className="overflow-hidden min-h-0">
+            <div
+              className="flex flex-col items-center justify-center px-6"
+              style={{ height: 120, paddingTop: 32, paddingBottom: 24 }}
+            >
+              <SearchInput
+                value={searchValue}
+                onChange={setSearchValue}
+                placeholder="ค้นหาสินทรัพย์"
+                className="w-full max-w-[792px]"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          className="max-w-[1280px] mx-auto w-full px-4 lg:px-6 overflow-x-auto [--bg-default-primary:transparent]"
           style={{ scrollbarWidth: "none" }}
         >
           <TabGroup
@@ -842,15 +832,237 @@ export function ProductCatalogTab({
       )}
 
       {activeProductTab === "thai-structured" && (
-        <div className="flex flex-col gap-6 items-center w-full" style={{ paddingTop: 24 }}>
-          <div className="w-full" style={{ backgroundColor: "white", paddingTop: 24, paddingBottom: 24 }}>
+        <div
+          className="flex flex-col gap-6 items-center w-full"
+          style={{ paddingTop: 24 }}
+        >
+          {/* ── Recommend 2 — bg-white (Top Idea) ────────────────────────────── */}
+          <div
+            className="flex flex-col gap-4 items-start shrink-0 w-full"
+            style={{
+              backgroundColor: "white",
+              paddingTop: 16,
+              paddingBottom: 16,
+            }}
+          >
+            <div className="flex gap-2 items-center shrink-0 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
+              <p
+                className="font-bold flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
+                style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}
+              >
+                Top idea
+              </p>
+              <Button
+                variant="plain"
+                size="sm"
+                rightIcon={<ArrowRightIcon size={18} />}
+                className="shrink-0"
+                onClick={nav.onAllTopIdeasView}
+              >
+                ทั้งหมด
+              </Button>
+            </div>
+            <div
+              ref={topIdeaDrag.ref}
+              className="overflow-x-auto w-full pb-3 hide-scrollbar"
+              style={{
+                scrollbarWidth: "none",
+                cursor: "grab",
+                paddingLeft: "max(1rem, calc((100% - 1280px) / 2 + 1.5rem))",
+              }}
+              onMouseDown={topIdeaDrag.onMouseDown}
+              onMouseMove={topIdeaDrag.onMouseMove}
+              onMouseUp={topIdeaDrag.onMouseUp}
+              onMouseLeave={topIdeaDrag.onMouseLeave}
+            >
+              <div className="flex gap-3.5 min-w-max pr-4 lg:pr-6">
+                {TOP_IDEAS.map((idea, i) => (
+                  <TopIdeaCard
+                    key={i}
+                    sector={idea.sector}
+                    onClick={() => nav.onTopIdeaSelect(idea.sector)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Investment Solution ─────────────────────────────────────────────── */}
+          <div
+            className="relative shrink-0 w-full"
+            style={{ paddingTop: 24, paddingBottom: 24 }}
+          >
+            <img
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              src={IMG_RECOMMEND_BG}
+            />
+            <div className="flex flex-col gap-4 items-start shrink-0 w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-6">
+              <p
+                className="font-bold relative shrink-0 overflow-hidden text-ellipsis w-full whitespace-nowrap"
+                style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}
+              >
+                Investment Solution
+              </p>
+              <div className="flex flex-col gap-6 items-start relative shrink-0 w-full">
+                <div className="flex flex-col lg:flex-row gap-4 shrink-0 w-full">
+                  {INVESTMENT_SOLUTIONS.map((solution) => {
+                    const isHighConviction = solution.id === "high-conviction";
+                    const isBalanced = solution.id === "balanced-growth";
+                    return (
+                      <InvestmentCard
+                        key={solution.id}
+                        name={solution.name}
+                        desc={solution.desc}
+                        coupon={solution.couponRange}
+                        tenor={solution.tenor}
+                        imgSrc={
+                          isHighConviction
+                            ? IMG_HIGH_CONVICTION
+                            : isBalanced
+                              ? IMG_BALANCED_GROWTH
+                              : IMG_SECURE_INCOME
+                        }
+                        gradient={
+                          isHighConviction
+                            ? GRAD_HIGH_CV
+                            : isBalanced
+                              ? GRAD_BALANCED
+                              : GRAD_SECURE
+                        }
+                        imgLeft={isHighConviction ? -67 : 12}
+                        imgW={isHighConviction ? 198 : 72}
+                        imgH={isHighConviction ? 132 : isBalanced ? 103 : 92}
+                        highConviction={isHighConviction}
+                        crop={
+                          !isHighConviction
+                            ? {
+                                scaleX: isBalanced ? 0.7006 : 0.439,
+                                scaleY: 1.0,
+                                tx: isBalanced ? 0.1464 : 0,
+                                ty: 0,
+                              }
+                            : undefined
+                        }
+                        onClick={() =>
+                          nav.onInvestmentSolutionSelect(solution.id)
+                        }
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Top Pick ──────────────────────────────────────────────────────── */}
+          <div
+            className="w-full"
+            style={{
+              backgroundColor: "white",
+              paddingTop: 24,
+              paddingBottom: 24,
+            }}
+          >
+            <div className="flex flex-col gap-4 items-center shrink-0 w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-6">
+              <div className="flex gap-1 items-center shrink-0 w-full">
+                <FireIcon
+                  size={24}
+                  weight="fill"
+                  color="#f97316"
+                  className="shrink-0 md:hidden lg:block"
+                />
+                <FireIcon
+                  size={20}
+                  weight="fill"
+                  color="#f97316"
+                  className="shrink-0 hidden md:block lg:hidden"
+                />
+                <p
+                  className="font-bold overflow-hidden text-ellipsis whitespace-nowrap text-xl leading-[30px] md:text-lg md:leading-6 lg:text-xl lg:leading-[30px]"
+                  style={{ color: "#101828" }}
+                >
+                  Top pick
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:flex md:flex-col lg:grid lg:grid-cols-3 gap-4 shrink-0 w-full">
+                {TOP_PICKS.map((p) => (
+                  <StructuredProductCard
+                    key={p.id}
+                    {...p}
+                    onClick={() => nav.onProductSelect(p)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Structured Product ────────────────────────────────────────────── */}
+          <div
+            className="flex flex-col gap-4 items-center relative shrink-0 w-full"
+            style={{
+              backgroundColor: "#f9fafb",
+              paddingTop: 24,
+              paddingBottom: 24,
+            }}
+          >
+            <div className="flex gap-2 items-center shrink-0 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
+              <p
+                className="font-bold flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
+                style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}
+              >
+                Structured Product
+              </p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
+              {STRUCTURED_PRODUCTS.map((p) => (
+                <StructuredProductCard
+                  key={p.id}
+                  {...p}
+                  onClick={() => nav.onProductSelect(p)}
+                />
+              ))}
+            </div>
+            <Button
+              variant="plain"
+              size="sm"
+              className="shrink-0"
+              onClick={nav.onAllProductsView}
+            >
+              ดูทั้งหมด
+            </Button>
+          </div>
+
+          {/* ── Thai FCN Table ─────────────────────────────────────────────────── */}
+          <div
+            className="w-full"
+            style={{
+              backgroundColor: "white",
+              paddingTop: 24,
+              paddingBottom: 24,
+            }}
+          >
             <div className="flex flex-col gap-4 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
-              <p className="font-bold" style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}>
+              <p
+                className="font-bold"
+                style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}
+              >
                 Thai FCN
               </p>
               <ThaiStructuredProductTable />
             </div>
           </div>
+        </div>
+      )}
+
+      {activeProductTab === "mutual-fund" && (
+        <div
+          className="flex flex-col items-center justify-center gap-3 w-full text-center px-4"
+          style={{ backgroundColor: "#f9fafb", paddingTop: 96, paddingBottom: 96 }}
+        >
+          <ChartPieSliceIcon size={40} className="text-muted-foreground/40" weight="duotone" />
+          <p className="type-subtitle-1 font-semibold text-[var(--text-default-secondary)]">Mutual Fund</p>
+          <p className="type-body-2 text-[var(--text-default-tertiary)] max-w-xs">กองทุนรวมจะแสดงที่นี่เร็วๆ นี้</p>
         </div>
       )}
     </div>

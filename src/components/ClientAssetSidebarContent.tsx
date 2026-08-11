@@ -358,7 +358,7 @@ export function ClientAssetSidebarContent({
 
   if (accordionCards) {
     return (
-      <div className="w-full max-w-6xl mx-auto">
+      <div className="w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Left: Summary */}
           <div className="flex flex-col gap-2 lg:sticky lg:top-24">
@@ -371,7 +371,7 @@ export function ClientAssetSidebarContent({
           </div>
 
           {/* Right: Asset list */}
-          <div className="flex flex-col gap-4 bg-white rounded-2xl border border-border p-4">
+          <div className="flex flex-col gap-4 bg-white rounded-2xl border border-border p-3 md:p-4">
             <AssetListHeader
               viewMode={viewMode}
               onViewModeChange={(mode) => { setViewMode(mode); setExpandedCards(new Set()); }}
