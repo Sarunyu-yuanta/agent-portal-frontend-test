@@ -75,3 +75,29 @@ export function formatLiabilitiesStr(aum: string): string {
 export function parseAmount(value: string): number {
   return parseFloat(value.replace(/,/g, "")) || 0;
 }
+
+/**
+ * Initials for an avatar: first + last word initial, or the first two
+ * characters for a single-word name. Purely presentational — safe to compute
+ * from either a real or a masked name.
+ */
+export function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+/**
+ * Initials from the first two words, e.g. "Somchai Rattanakul" → "SR".
+ * Differs from {@link getInitials} on 3+ word and masked single-token names
+ * (here "S*****" → "S"); kept as a distinct helper to preserve existing output.
+ */
+export function getInitialsFromWords(name: string): string {
+  return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+/** Compact THB in millions, e.g. 12_300_000 → "฿ 12M". */
+export function formatMillionThb(thb: number): string {
+  const m = thb / 1_000_000;
+  return `฿ ${m.toLocaleString("en-US", { maximumFractionDigits: 0 })}M`;
+}

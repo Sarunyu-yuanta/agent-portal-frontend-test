@@ -23,6 +23,15 @@ tags:
     description: Sales pipeline and deal tracking
   - name: Mini Kanban
     description: Simplified kanban board for deal stages
+  - name: KYC
+    description: Know-Your-Customer compliance records per client
+  - name: Client Allocations
+    description: Per-client asset-class allocation used by the Client Hub
+  - name: Product Holdings
+    description: >
+      Asset classes aggregated across all clients (Client Hub "Product" view).
+      Currently derived on the client from allocations; expose as a server-side
+      aggregation to move the computation off the browser.
 
 paths:
   /clients:
@@ -341,6 +350,82 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /kyc-data:
+    get:
+      tags: [KYC]
+      summary: List KYC records
+      description: >
+        Drives the "KYC ครบกำหนด" summary card on the Client Hub. The UI flags
+        clients whose daysUntilExpiry is under 30.
+      parameters:
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: List of KYC records
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KYCRecordList'
+
+  /kyc-data/{id}:
+    get:
+      tags: [KYC]
+      summary: Get a single KYC record
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: KYC record detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KYCRecordSingle'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /client-allocations/{clientId}:
+    get:
+      tags: [Client Allocations]
+      summary: Get a client's asset-class allocation
+      description: >
+        Percentage split of a client's portfolio by asset class. The Client Hub
+        table multiplies each slice percent by the client's AUM to show the THB
+        held per asset class — return those amounts directly if available.
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "1"
+      responses:
+        '200':
+          description: Client allocation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientAllocationSingle'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /product-holdings:
+    get:
+      tags: [Product Holdings]
+      summary: List asset classes aggregated across all clients
+      description: >
+        The Client Hub "Product" view. Each row is an asset class with the number
+        of holders, total THB, average allocation, and the per-client holders.
+        Today this is computed in the browser (see buildProductRows in
+        client-hub-data.ts); a server-side aggregation is preferred.
+      responses:
+        '200':
+          description: List of product-holding rows
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductRowList'
+
 components:
   parameters:
     Id:
@@ -636,6 +721,152 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/MiniKanban'
+
+    # ── KYC ───────────────────────────────────────────────────────────────────
+
+    KYCRecord:
+      type: object
+      required: [id, clientId, riskRating, kycStatus, nextReview, daysUntilExpiry]
+      properties:
+        id:
+          type: integer
+          example: 1
+        clientId:
+          type: string
+          description: References the id field of the Client resource
+          example: "1"
+        riskRating:
+          type: string
+          example: Aggressive
+        kycStatus:
+          type: string
+          enum: [success, error, hold, processing]
+          description: success = valid, error = expired, hold = review due, processing = in progress
+          example: success
+        nextReview:
+          type: string
+          description: Next review date label (as displayed)
+          example: "15 ก.ค. 2026"
+        daysUntilExpiry:
+          type: integer
+          description: Days until KYC expires; the UI flags anything under 30
+          example: 12
+
+    KYCRecordList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/KYCRecord'
+        meta:
+          type: object
+          properties:
+            pagination:
+              $ref: '#/components/schemas/Pagination'
+
+    KYCRecordSingle:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/KYCRecord'
+
+    # ── Client Allocations ─────────────────────────────────────────────────────
+
+    AssetAllocationSlice:
+      type: object
+      required: [label, percent, statusIcon]
+      properties:
+        label:
+          type: string
+          description: Asset-class name (Thai), e.g. หุ้นไทย, กองทุนรวม, เงินสด
+          example: หุ้นไทย
+        percent:
+          type: number
+          description: Share of the client's portfolio in this asset class (0–100)
+          example: 20
+        statusIcon:
+          type: string
+          description: Icon path used to colour the slice
+          example: /asset-allocation/status-1.svg
+
+    ClientAllocation:
+      type: object
+      required: [clientId, slices]
+      properties:
+        clientId:
+          type: string
+          example: "1"
+        slices:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetAllocationSlice'
+
+    ClientAllocationSingle:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ClientAllocation'
+
+    # ── Product Holdings (aggregated) ──────────────────────────────────────────
+
+    ProductHolder:
+      type: object
+      required: [clientId, clientName, tier, allocationPct, amountThb]
+      properties:
+        clientId:
+          type: string
+          example: "1"
+        clientName:
+          type: string
+          example: Somchai Rattanakul
+        tier:
+          type: string
+          enum: [UHNW, HNW]
+          example: UHNW
+        allocationPct:
+          type: number
+          description: This client's allocation to the product (0–100)
+          example: 20
+        amountThb:
+          type: number
+          description: Absolute amount held in THB (AUM × allocationPct / 100)
+          example: 90000000
+
+    ProductRow:
+      type: object
+      required: [label, statusIcon, clientCount, totalAmountThb, avgAllocationPct, holders]
+      properties:
+        label:
+          type: string
+          description: Asset-class name (Thai)
+          example: หุ้นไทย
+        statusIcon:
+          type: string
+          example: /asset-allocation/status-1.svg
+        clientCount:
+          type: integer
+          example: 6
+        totalAmountThb:
+          type: number
+          description: Sum of holders' amountThb
+          example: 540000000
+        avgAllocationPct:
+          type: number
+          description: Mean allocationPct across holders
+          example: 18.5
+        holders:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductHolder'
+
+    ProductRowList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductRow'
 
     # ── Input schemas (POST / PUT request bodies — no id field) ──────────────
 

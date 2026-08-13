@@ -31,10 +31,10 @@ import {
   type InvestmentSolutionId,
 } from "./investment-solution-data";
 import {
-  ShapesIcon,
-  CertificateIcon,
   GlobeHemisphereWestIcon,
   FlagIcon,
+  HandCoinsIcon,
+  HandshakeIcon,
   ArrowRightIcon,
   FireIcon,
   ChartPieSliceIcon,
@@ -48,7 +48,7 @@ const PRODUCT_TABS = [
   {
     id: "structured",
     title: "Global Structured Product",
-    icon: <ShapesIcon size={18} />,
+    icon: <GlobeHemisphereWestIcon size={18} />,
   },
   {
     id: "thai-structured",
@@ -58,12 +58,12 @@ const PRODUCT_TABS = [
   {
     id: "fixed-income",
     title: "Fixed Income",
-    icon: <CertificateIcon size={18} />,
+    icon: <HandCoinsIcon size={18} />,
   },
   {
     id: "global-bond",
     title: "Global Bond",
-    icon: <GlobeHemisphereWestIcon size={18} />,
+    icon: <HandshakeIcon size={18} />,
   },
   {
     id: "mutual-fund",
@@ -596,7 +596,7 @@ export function ProductCatalogTab({
           </div>
         </div>
         <div
-          className="max-w-[1280px] mx-auto w-full px-4 lg:px-6 overflow-x-auto [--bg-default-primary:transparent]"
+          className={`max-w-[1280px] mx-auto w-full px-4 lg:px-6 overflow-x-auto [--bg-default-primary:transparent] transition-[padding] duration-300 ease-out ${mobileScrolled ? "pt-6" : ""}`}
           style={{ scrollbarWidth: "none" }}
         >
           <TabGroup
@@ -805,7 +805,7 @@ export function ProductCatalogTab({
                 className="font-bold flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
                 style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}
               >
-                Structured Product
+                All Global Structured Product
               </p>
             </div>
             {/* 3-column grid */}
@@ -1047,7 +1047,7 @@ export function ProductCatalogTab({
                 className="font-bold"
                 style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}
               >
-                Thai FCN
+                All Thai FCN
               </p>
               <ThaiStructuredProductTable />
             </div>

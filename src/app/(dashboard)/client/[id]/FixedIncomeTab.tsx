@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Tag } from "@sarunyu/system-one";
+import { Badge, Button, Pagination, Tag } from "@sarunyu/system-one";
 import type { TagVariant } from "@sarunyu/system-one";
 import {
   BuildingsIcon,
@@ -50,6 +50,8 @@ function OfferTypeTag({ offerType }: { offerType: string }) {
     </div>
   );
 }
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 const TAB_SHADOW =
   "0px 4px 6px -1px rgba(0,0,0,0.1),0px 2px 4px -2px rgba(0,0,0,0.1)";
@@ -429,6 +431,8 @@ export function FixedIncomeTab({
     EMPTY_FIXED_INCOME_FILTERS,
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     const t = setTimeout(() => setIsLoading(false), 800);
@@ -439,6 +443,11 @@ export function FixedIncomeTab({
     () => filterFixedIncomeBonds(FIXED_INCOME_BONDS, appliedFilters),
     [appliedFilters],
   );
+
+  const total = filteredBonds.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedBonds = filteredBonds.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const activeFilterCount = countFixedIncomeFilters(appliedFilters);
   const appliedFilterChips = useMemo(
@@ -520,7 +529,7 @@ export function FixedIncomeTab({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full lg:hidden">
-        {filteredBonds.map((bond) => (
+        {pagedBonds.map((bond) => (
           <FixedIncomeCard key={bond.id} bond={bond} onSelect={onBondSelect} />
         ))}
       </div>
@@ -534,17 +543,56 @@ export function FixedIncomeTab({
         }}
       >
         <div className="overflow-x-auto">
-          <div className="flex flex-col items-start shrink-0 min-w-[1420px]">
-            <TableHeader />
-            {filteredBonds.map((bond, i) => (
-              <BondTableRow
-                key={bond.id}
-                bond={bond}
-                isLast={i === filteredBonds.length - 1}
-                onSelect={onBondSelect}
-              />
+        <div className="flex flex-col items-start min-w-[1420px]">
+          <TableHeader />
+          {pagedBonds.map((bond, i) => (
+            <BondTableRow
+              key={bond.id}
+              bond={bond}
+              isLast={i === pagedBonds.length - 1}
+              onSelect={onBondSelect}
+            />
+          ))}
+        </div>
+        </div>
+      </div>
+
+      {/* Pagination bar */}
+      <div className="flex flex-wrap-reverse items-center justify-end gap-3 w-full">
+        <div className="flex items-center gap-2">
+          <p className="text-[12px] text-muted-foreground whitespace-nowrap">Show per page</p>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="text-[12px] border border-border rounded-md px-2 py-1 bg-background text-foreground cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-action"
+          >
+            {PAGE_SIZE_OPTIONS.map((n) => (
+              <option key={n} value={n}>{n}</option>
             ))}
-          </div>
+          </select>
+        </div>
+        <div className="flex items-center gap-3">
+          <p className="text-[12px] text-muted-foreground">
+            Showing{" "}
+            <span className="font-medium text-foreground">
+              {(safePage - 1) * pageSize + 1}
+            </span>
+            {" – "}
+            <span className="font-medium text-foreground">
+              {Math.min(safePage * pageSize, total)}
+            </span>
+            {" of "}
+            <span className="font-medium text-foreground">{total}</span>{" "}
+            items
+          </p>
+          <Pagination
+            totalPages={totalPages}
+            currentPage={safePage}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 
@@ -563,6 +611,7 @@ export function FixedIncomeTab({
         onClose={() => setFiltersOpen(false)}
         onApply={(filters) => {
           setAppliedFilters(filters);
+          setCurrentPage(1);
           setFiltersOpen(false);
         }}
       />

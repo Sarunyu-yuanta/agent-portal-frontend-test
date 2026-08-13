@@ -26,9 +26,10 @@ import {
   CalendarPlusIcon,
 } from "@phosphor-icons/react";
 import { mockInsights, mockClients, mockClientDetails } from "@/lib/mock-data";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { DetailDrawer } from "@/components/ui/detail-drawer";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
+import { getInitialsFromWords } from "@/lib/client-utils";
 
 type SortOption = "priority" | "recent";
 type TabId = "all" | "product" | "risk" | "engagement" | "portfolio";
@@ -97,9 +98,6 @@ function KpiBar() {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getInitials(name: string) {
-  return name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
-}
 
 // ─── Insight Row ──────────────────────────────────────────────────────────────
 
@@ -208,7 +206,7 @@ function InsightDrawerPanel({ insight }: { insight: Insight }) {
       {/* Header */}
       <div className="flex flex-col gap-4 px-5 pt-5 pb-4 border-b border-[var(--border-default)]">
         <div className="flex items-center gap-3">
-          <Avatar type="text" initials={getInitials(maskedName)} size="m" />
+          <Avatar type="text" initials={getInitialsFromWords(maskedName)} size="m" />
           <div className="flex-1 min-w-0">
             <p className="type-subtitle-1 text-foreground leading-tight">{maskedName}</p>
             <div className="flex items-center gap-1.5 mt-1">
@@ -583,18 +581,17 @@ export default function AiInsightsPage() {
     </div>
 
     {/* Client Profile Drawer */}
-    <Sheet
-      modal={false}
+    <DetailDrawer
+      size="narrow"
+      className="overflow-y-auto"
       open={drawerOpen}
       onOpenChange={(open) => {
         setDrawerOpen(open);
         if (!open) setSelectedInsightId(null);
       }}
     >
-      <SheetContent side="right" className="w-full sm:w-[400px] sm:max-w-[400px] overflow-y-auto p-0">
-        {selectedInsight && <InsightDrawerPanel insight={selectedInsight} />}
-      </SheetContent>
-    </Sheet>
+      {selectedInsight && <InsightDrawerPanel insight={selectedInsight} />}
+    </DetailDrawer>
     </>
   );
 }
