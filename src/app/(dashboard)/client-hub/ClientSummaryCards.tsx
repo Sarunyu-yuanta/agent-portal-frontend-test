@@ -78,9 +78,24 @@ function ClientListRow({ rank, name, sub, right }: { rank?: number; name: string
 export function ClientSummaryCards({ clients }: { clients: Client[] }) {
   const { isPrivate } = usePrivacy();
   const isMobile = useMediaQuery("(max-width: 767px)");
-  const segment = usePopover();
-  const asset = usePopover();
-  const kyc = usePopover();
+  const {
+    open: segmentOpen,
+    setOpen: setSegmentOpen,
+    ref: segmentRef,
+    hoverProps: segmentHoverProps,
+  } = usePopover();
+  const {
+    open: assetOpen,
+    setOpen: setAssetOpen,
+    ref: assetRef,
+    hoverProps: assetHoverProps,
+  } = usePopover();
+  const {
+    open: kycOpen,
+    setOpen: setKycOpen,
+    ref: kycRef,
+    hoverProps: kycHoverProps,
+  } = usePopover();
 
   const { totalAum, totalCash } = useMemo(() => getClientTotals(clients), [clients]);
   const segmentBreakdown = useMemo(() => getSegmentBreakdown(clients), [clients]);
@@ -152,16 +167,16 @@ export function ClientSummaryCards({ clients }: { clients: Client[] }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {/* 1. Total Clients */}
-      <div ref={segment.ref} className="relative min-w-0" {...segment.hoverProps}>
-        <CardShell open={segment.open} onClick={() => segment.setOpen((p) => !p)}>
+      <div ref={segmentRef} className="relative min-w-0" {...segmentHoverProps}>
+        <CardShell open={segmentOpen} onClick={() => setSegmentOpen((p) => !p)}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total Clients</p>
-            <PopoverChevron open={segment.open} />
+            <PopoverChevron open={segmentOpen} />
           </div>
           <p className="text-[24px] font-bold text-foreground leading-none">{clients.length}</p>
           <p className="text-[11px] text-muted-foreground">ราย</p>
         </CardShell>
-        {!isMobile && segment.open && clients.length > 0 && (
+        {!isMobile && segmentOpen && clients.length > 0 && (
           <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-border rounded-xl shadow-xl p-4 min-w-[200px]">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2.5">สัดส่วนตาม Segment</p>
             {segmentBreakdownContent}
@@ -169,8 +184,8 @@ export function ClientSummaryCards({ clients }: { clients: Client[] }) {
         )}
         {isMobile && (
           <BottomSheet
-            open={segment.open && clients.length > 0}
-            onOpenChange={segment.setOpen}
+            open={segmentOpen && clients.length > 0}
+            onOpenChange={setSegmentOpen}
             title="สัดส่วนตาม Segment"
             showHandle
             showHeader
@@ -186,24 +201,24 @@ export function ClientSummaryCards({ clients }: { clients: Client[] }) {
       <StaticCard label="Wealth Under Advice" value={formatMillionThb(totalAum)} sub="AUM รวมทั้งหมด" />
 
       {/* 3. มูลค่าทรัพย์สิน */}
-      <div ref={asset.ref} className="relative min-w-0" {...asset.hoverProps}>
-        <CardShell open={asset.open} onClick={() => asset.setOpen((p) => !p)}>
+      <div ref={assetRef} className="relative min-w-0" {...assetHoverProps}>
+        <CardShell open={assetOpen} onClick={() => setAssetOpen((p) => !p)}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">มูลค่าทรัพย์สิน</p>
-            <PopoverChevron open={asset.open} />
+            <PopoverChevron open={assetOpen} />
           </div>
           <p className="text-[24px] font-bold text-foreground leading-none">{formatMillionThb(totalAum - totalCash)}</p>
           <p className="text-[11px] text-muted-foreground">ไม่รวม cash</p>
         </CardShell>
-        {!isMobile && asset.open && (
+        {!isMobile && assetOpen && (
           <PopoverList title="ลูกค้าเรียงตามมูลค่าทรัพย์สิน">
             {assetListContent}
           </PopoverList>
         )}
         {isMobile && (
           <BottomSheet
-            open={asset.open}
-            onOpenChange={asset.setOpen}
+            open={assetOpen}
+            onOpenChange={setAssetOpen}
             title="ลูกค้าเรียงตามมูลค่าทรัพย์สิน"
             showHandle
             showHeader
@@ -216,26 +231,26 @@ export function ClientSummaryCards({ clients }: { clients: Client[] }) {
       </div>
 
       {/* 4. KYC ครบกำหนด */}
-      <div ref={kyc.ref} className="relative min-w-0" {...kyc.hoverProps}>
-        <CardShell open={kyc.open} onClick={() => kyc.setOpen((p) => !p)}>
+      <div ref={kycRef} className="relative min-w-0" {...kycHoverProps}>
+        <CardShell open={kycOpen} onClick={() => setKycOpen((p) => !p)}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">KYC ครบกำหนด</p>
-            <PopoverChevron open={kyc.open} />
+            <PopoverChevron open={kycOpen} />
           </div>
           <p className={`text-[24px] font-bold leading-none ${kycDueClients.length > 0 ? "text-[var(--text-warning-primary)]" : "text-foreground"}`}>
             {kycDueClients.length}
           </p>
           <p className="text-[11px] text-muted-foreground">ภายใน 30 วัน</p>
         </CardShell>
-        {!isMobile && kyc.open && (
+        {!isMobile && kycOpen && (
           <PopoverList title="ลูกค้าที่ KYC ใกล้หมดอายุ">
             {kycListContent}
           </PopoverList>
         )}
         {isMobile && (
           <BottomSheet
-            open={kyc.open}
-            onOpenChange={kyc.setOpen}
+            open={kycOpen}
+            onOpenChange={setKycOpen}
             title="ลูกค้าที่ KYC ใกล้หมดอายุ"
             showHandle
             showHeader

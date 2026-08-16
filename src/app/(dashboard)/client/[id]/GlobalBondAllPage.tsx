@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Pagination } from "@sarunyu/system-one";
 import {
   ArrowLeftIcon,
-  ArrowSquareOutIcon,
   CaretDownIcon,
   CaretUpIcon,
   FileTextIcon,
@@ -21,10 +20,21 @@ import {
   type TickerFilter,
   type YieldFilter,
 } from "./global-bond-data";
-import { BORDER_COLOR, HEADER_TEXT_CLS, headerBorderStyle, cellBorderStyle, BondLogo } from "./fixed-income-shared";
+import {
+  BORDER_COLOR,
+  HEADER_TEXT_CLS,
+  TABLE_SHADOW,
+  headerBorderStyle,
+  cellBorderStyle,
+  BondLogo,
+  TopPickTag,
+  DetailRow,
+  FactsheetButton,
+  InvestButton,
+} from "./fixed-income-shared";
 
+const INVEST_URL = "https://placeholder.example.com/create-order";
 const BONDS_COL_MIN_CLS = "min-w-[400px]";
-const TABLE_SHADOW = "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 const TICKER_OPTIONS: { id: TickerFilter; label: string }[] = [
@@ -133,27 +143,6 @@ function IssuerLogo({ src }: { src: string }) {
   );
 }
 
-function TopPickTag({ small }: { small?: boolean }) {
-  return (
-    <span
-      className={`inline-flex shrink-0 items-center justify-center rounded bg-[#fff7ed] text-[#f54a00] whitespace-nowrap ${
-        small ? "px-1 py-0.5 text-[9px] leading-[14px]" : "px-1 py-0.5 text-xs leading-4"
-      }`}
-    >
-      Top Pick
-    </span>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex gap-3 items-start w-full text-sm leading-[22px]">
-      <span className="flex-1 text-[#4a5565]">{label}</span>
-      <span className="shrink-0 text-[#101828] text-right whitespace-nowrap">{value}</span>
-    </div>
-  );
-}
-
 function AllBondsFilterPanel({
   tickerFilter,
   couponFilter,
@@ -194,10 +183,11 @@ function AllBondsFilterPanel({
 
 function AllBondsAccordionList({ bonds }: { bonds: GlobalBondRow[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [prevBonds, setPrevBonds] = useState(bonds);
+  if (prevBonds !== bonds) {
+    setPrevBonds(bonds);
     setExpandedId(null);
-  }, [bonds]);
+  }
 
   if (bonds.length === 0) {
     return (
@@ -286,37 +276,6 @@ function AllBondsAccordionList({ bonds }: { bonds: GlobalBondRow[] }) {
         );
       })}
     </div>
-  );
-}
-
-function FactsheetButton() {
-  return (
-    <Button
-      variant="outline"
-      size="xs"
-      leftIcon={<FileTextIcon size={16} />}
-      className="whitespace-nowrap"
-      onClick={(e) => e.stopPropagation()}
-    >
-      Factsheet
-    </Button>
-  );
-}
-
-function InvestButton() {
-  return (
-    <Button
-      variant="primary"
-      size="xs"
-      rightIcon={<ArrowSquareOutIcon size={16} />}
-      className="whitespace-nowrap"
-      onClick={(e) => {
-        e.stopPropagation();
-        window.open("https://placeholder.example.com/create-order", "_blank", "noopener,noreferrer");
-      }}
-    >
-      สร้างคำสั่งซื้อ
-    </Button>
   );
 }
 
@@ -447,7 +406,7 @@ function AllBondsTable({ bonds }: { bonds: GlobalBondRow[] }) {
                   <FactsheetButton />
                 </div>
                 <div className="flex items-center justify-center w-[138px] shrink-0 px-4 py-3 h-[65px]" style={border}>
-                  <InvestButton />
+                  <InvestButton href={INVEST_URL} />
                 </div>
               </div>
             );
@@ -505,9 +464,21 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
     setCurrentPage(1);
   };
 
-  useEffect(() => {
+  const [prevFilterKey, setPrevFilterKey] = useState({
+    tickerFilter,
+    couponFilter,
+    yieldFilter,
+    maturityFilter,
+  });
+  if (
+    prevFilterKey.tickerFilter !== tickerFilter ||
+    prevFilterKey.couponFilter !== couponFilter ||
+    prevFilterKey.yieldFilter !== yieldFilter ||
+    prevFilterKey.maturityFilter !== maturityFilter
+  ) {
+    setPrevFilterKey({ tickerFilter, couponFilter, yieldFilter, maturityFilter });
     setCurrentPage(1);
-  }, [tickerFilter, couponFilter, yieldFilter, maturityFilter]);
+  }
 
   useEffect(() => {
     const main = document.querySelector("main");

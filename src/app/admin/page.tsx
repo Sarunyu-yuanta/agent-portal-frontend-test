@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Button,
   SearchInput,
@@ -258,16 +258,20 @@ export default function AdminPage() {
   }, []);
 
   const active = resources[activeIdx];
+  const [prevActive, setPrevActive] = useState(active);
+  if (prevActive !== active) {
+    setPrevActive(active);
+    setItems([]);
+    setItemsLoading(!!(active && API_BASE));
+  }
 
-  const loadItems = useCallback(() => {
-    if (!active || !API_BASE) {
-      setItems([]);
-      return;
-    }
-    setItemsLoading(true);
+  useEffect(() => {
+    if (!active || !API_BASE) return;
+    let cancelled = false;
     fetch(`${API_BASE}${active.path}?pagination[pageSize]=100`, { cache: "no-store" })
       .then((r) => r.json())
       .then((json: unknown) => {
+        if (cancelled) return;
         const raw = json as Record<string, unknown>;
         const data = Array.isArray(raw)
           ? raw
@@ -276,13 +280,16 @@ export default function AdminPage() {
           : [];
         setItems(data);
       })
-      .catch(() => setItems([]))
-      .finally(() => setItemsLoading(false));
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setItemsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [active]);
-
-  useEffect(() => {
-    loadItems();
-  }, [loadItems]);
 
   const handleDelete = (id: number | string) => setDeleteTarget(id);
 

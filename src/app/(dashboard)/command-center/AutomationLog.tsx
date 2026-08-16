@@ -6,7 +6,7 @@ import { automationLog } from "./command-center-data";
 export function AutomationLog() {
   return (
     <div className="flex flex-col gap-3">
-      <p className="type-subtitle-1 text-foreground">Today's Automation</p>
+      <p className="type-subtitle-1 text-foreground">Today&apos;s Automation</p>
       <div className="flex flex-col">
         {automationLog.map((entry, i) => (
           <div key={entry.id} className="flex gap-3 group">

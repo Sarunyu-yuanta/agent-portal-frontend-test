@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@sarunyu/system-one";
-import { mockNBAActions } from "@/lib/mock-data";
 import { useClients, useNBAActions } from "@/hooks/use-api";
 import { DetailDrawer } from "@/components/ui/detail-drawer";
 import { KpiBar } from "./KpiBar";
@@ -15,8 +14,12 @@ import { AutomationLog } from "./AutomationLog";
 export default function CommandCenterPage() {
   const clients = useClients();
   const strapiNBA = useNBAActions(clients);
-  const [nbaActions, setNbaActions] = useState(mockNBAActions);
-  useEffect(() => { setNbaActions(strapiNBA); }, [strapiNBA]);
+  const [nbaActions, setNbaActions] = useState(strapiNBA);
+  const [nbaSource, setNbaSource] = useState(strapiNBA);
+  if (nbaSource !== strapiNBA) {
+    setNbaSource(strapiNBA);
+    setNbaActions(strapiNBA);
+  }
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 

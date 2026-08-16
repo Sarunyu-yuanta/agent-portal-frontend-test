@@ -105,9 +105,13 @@ function ClientPageInner({ id }: { id: string }) {
   }, []);
 
   // Reset header + scroll position on tab change
+  const [prevTab, setPrevTab] = useState(activeTab);
+  if (prevTab !== activeTab) {
+    setPrevTab(activeTab);
+    setScrolled(false);
+  }
   useEffect(() => {
     collapsedRef.current = false;
-    setScrolled(false);
     const main = document.querySelector("main");
     if (main) main.scrollTop = 0;
   }, [activeTab]);

@@ -15,14 +15,13 @@ import {
 import {
   BORDER_COLOR,
   HEADER_TEXT_CLS,
+  TABLE_SHADOW_SM as TABLE_SHADOW,
   headerBorderStyle,
   cellBorderStyle,
   StatusTag,
   BondLogo,
 } from "./fixed-income-shared";
 
-const TABLE_SHADOW =
-  "0px 0px 1px rgba(102,102,102,0.16),0px 4px 4px rgba(102,102,102,0.12)";
 const GRADIENT_TITLE =
   "bg-gradient-to-r from-[#00a1e9] to-[#004eba] bg-clip-text text-transparent";
 

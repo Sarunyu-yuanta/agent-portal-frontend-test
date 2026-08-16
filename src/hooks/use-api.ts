@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+
+import { useCallback, useEffect, useState } from "react";
 import {
   mockClients,
   mockNBAActions,
@@ -15,62 +16,49 @@ import {
 
 const POLL_MS = 300_000;
 
-export function useClients() {
-  const [data, setData] = useState(mockClients);
+/**
+ * Polls `fetcher` every {@link POLL_MS} and returns the latest value,
+ * falling back to `fallback` until the first fetch resolves.
+ * Rejections are logged (label) but don't reset the state.
+ */
+function useResource<T>(
+  label: string,
+  fetcher: () => Promise<T>,
+  fallback: T,
+): T {
+  const [data, setData] = useState<T>(fallback);
+
   const load = useCallback(() => {
-    fetchClients()
+    fetcher()
       .then(setData)
-      .catch((err) => console.warn("[useClients]", err));
-  }, []);
+      .catch((err) => console.warn(`[${label}]`, err));
+  }, [fetcher, label]);
+
   useEffect(() => {
     load();
     const id = setInterval(load, POLL_MS);
     return () => clearInterval(id);
   }, [load]);
+
   return data;
+}
+
+export function useClients() {
+  const fetcher = useCallback(() => fetchClients(), []);
+  return useResource("useClients", fetcher, mockClients);
 }
 
 export function useNBAActions(clients = mockClients) {
-  const [data, setData] = useState(mockNBAActions);
-  const load = useCallback(() => {
-    fetchNBAActions(clients)
-      .then(setData)
-      .catch((err) => console.warn("[useNBAActions]", err));
-  }, [clients]);
-  useEffect(() => {
-    load();
-    const id = setInterval(load, POLL_MS);
-    return () => clearInterval(id);
-  }, [load]);
-  return data;
+  const fetcher = useCallback(() => fetchNBAActions(clients), [clients]);
+  return useResource("useNBAActions", fetcher, mockNBAActions);
 }
 
 export function usePipelineDeals(clients = mockClients) {
-  const [data, setData] = useState(mockPipelineDeals);
-  const load = useCallback(() => {
-    fetchPipelineDeals(clients)
-      .then(setData)
-      .catch((err) => console.warn("[usePipelineDeals]", err));
-  }, [clients]);
-  useEffect(() => {
-    load();
-    const id = setInterval(load, POLL_MS);
-    return () => clearInterval(id);
-  }, [load]);
-  return data;
+  const fetcher = useCallback(() => fetchPipelineDeals(clients), [clients]);
+  return useResource("usePipelineDeals", fetcher, mockPipelineDeals);
 }
 
 export function useMiniKanban(clients = mockClients) {
-  const [data, setData] = useState(mockMiniKanban);
-  const load = useCallback(() => {
-    fetchMiniKanban(clients)
-      .then(setData)
-      .catch((err) => console.warn("[useMiniKanban]", err));
-  }, [clients]);
-  useEffect(() => {
-    load();
-    const id = setInterval(load, POLL_MS);
-    return () => clearInterval(id);
-  }, [load]);
-  return data;
+  const fetcher = useCallback(() => fetchMiniKanban(clients), [clients]);
+  return useResource("useMiniKanban", fetcher, mockMiniKanban);
 }

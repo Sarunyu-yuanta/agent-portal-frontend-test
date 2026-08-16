@@ -370,7 +370,13 @@ export function ProductCatalogTab({
 
   const mobileScrolled = useScrollThreshold();
 
-  const topIdeaDrag = useDragScroll();
+  const {
+    ref: topIdeaDragRef,
+    onMouseDown: topIdeaOnMouseDown,
+    onMouseMove: topIdeaOnMouseMove,
+    onMouseUp: topIdeaOnMouseUp,
+    onMouseLeave: topIdeaOnMouseLeave,
+  } = useDragScroll();
 
   const isDetailView = !!(
     showAllGlobalBonds ||
@@ -655,17 +661,17 @@ export function ProductCatalogTab({
             </div>
             {/* Scrollable cards — starts aligned with header, overflows right */}
             <div
-              ref={topIdeaDrag.ref}
+              ref={topIdeaDragRef}
               className="overflow-x-auto w-full pb-3 hide-scrollbar"
               style={{
                 scrollbarWidth: "none",
                 cursor: "grab",
                 paddingLeft: "max(1rem, calc((100% - 1280px) / 2 + 1.5rem))",
               }}
-              onMouseDown={topIdeaDrag.onMouseDown}
-              onMouseMove={topIdeaDrag.onMouseMove}
-              onMouseUp={topIdeaDrag.onMouseUp}
-              onMouseLeave={topIdeaDrag.onMouseLeave}
+              onMouseDown={topIdeaOnMouseDown}
+              onMouseMove={topIdeaOnMouseMove}
+              onMouseUp={topIdeaOnMouseUp}
+              onMouseLeave={topIdeaOnMouseLeave}
             >
               <div className="flex gap-3.5 min-w-max pr-4 lg:pr-6">
                 {TOP_IDEAS.map((idea, i) => (
@@ -863,17 +869,17 @@ export function ProductCatalogTab({
               </Button>
             </div>
             <div
-              ref={topIdeaDrag.ref}
+              ref={topIdeaDragRef}
               className="overflow-x-auto w-full pb-3 hide-scrollbar"
               style={{
                 scrollbarWidth: "none",
                 cursor: "grab",
                 paddingLeft: "max(1rem, calc((100% - 1280px) / 2 + 1.5rem))",
               }}
-              onMouseDown={topIdeaDrag.onMouseDown}
-              onMouseMove={topIdeaDrag.onMouseMove}
-              onMouseUp={topIdeaDrag.onMouseUp}
-              onMouseLeave={topIdeaDrag.onMouseLeave}
+              onMouseDown={topIdeaOnMouseDown}
+              onMouseMove={topIdeaOnMouseMove}
+              onMouseUp={topIdeaOnMouseUp}
+              onMouseLeave={topIdeaOnMouseLeave}
             >
               <div className="flex gap-3.5 min-w-max pr-4 lg:pr-6">
                 {TOP_IDEAS.map((idea, i) => (

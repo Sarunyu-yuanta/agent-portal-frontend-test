@@ -22,7 +22,6 @@ export function useScrollThreshold(enter = 120, exit = 32, lockMs = 400) {
     // visit always starts expanded instead of inheriting a "scrolled" state.
     main.scrollTop = 0;
     passedRef.current = false;
-    setPassed(false);
     const onScroll = () => {
       const now = Date.now();
       if (now < lockUntilRef.current) return; // ignore events during transition

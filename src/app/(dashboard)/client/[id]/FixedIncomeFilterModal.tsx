@@ -202,10 +202,11 @@ export function FixedIncomeFilterModal({
 }: FixedIncomeFilterModalProps) {
   const isMobile = useIsMobile();
   const [draft, setDraft] = useState<FixedIncomeFilters>(filters);
-
-  useEffect(() => {
+  const [syncSnapshot, setSyncSnapshot] = useState({ open, filters });
+  if (syncSnapshot.open !== open || syncSnapshot.filters !== filters) {
+    setSyncSnapshot({ open, filters });
     if (open) setDraft(filters);
-  }, [open, filters]);
+  }
 
   useEffect(() => {
     if (!open || isMobile) return;

@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, Tag, Button, Modal, Input, Dropdown, DropdownMultiple } from "@sarunyu/system-one";
 import { PlusIcon } from "@phosphor-icons/react";
-import { mockPipelineDeals } from "@/lib/mock-data";
 import { useClients, usePipelineDeals } from "@/hooks/use-api";
 import { StageAdvanceModal } from "./StageAdvanceModal";
 import { KanbanColumn } from "./KanbanColumn";
@@ -14,8 +13,12 @@ export default function PipelinePage() {
   const strapiDeals = usePipelineDeals(clients);
   const [showModal, setShowModal] = useState(false);
   const [newProposal, setNewProposal] = useState({ clientName: "", productType: "", dealSize: "" });
-  const [deals, setDeals] = useState<Deal[]>(mockPipelineDeals.map(d => ({ ...d })));
-  useEffect(() => { setDeals(strapiDeals.map(d => ({ ...d }))); }, [strapiDeals]);
+  const [deals, setDeals] = useState<Deal[]>(() => strapiDeals.map(d => ({ ...d })));
+  const [dealsSource, setDealsSource] = useState(strapiDeals);
+  if (dealsSource !== strapiDeals) {
+    setDealsSource(strapiDeals);
+    setDeals(strapiDeals.map(d => ({ ...d })));
+  }
   const [advancing, setAdvancing] = useState<{ deal: Deal; next: Stage } | null>(null);
 
   const activeStages: Stage[] = ["Qualified", "Proposed", "Under Review", "Negotiation"];

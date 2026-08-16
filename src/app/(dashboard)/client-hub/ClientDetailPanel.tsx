@@ -50,12 +50,16 @@ export function ClientDetailPanel({
 
   const { reset: resetDetail } = detail;
   const { reset: resetLiabilities } = liabilities;
-  useEffect(() => {
+  const [prevClientId, setPrevClientId] = useState(client.id);
+  if (prevClientId !== client.id) {
+    setPrevClientId(client.id);
     setCompact(false);
     resetDetail();
     resetLiabilities();
+  }
+  useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
-  }, [client.id, resetDetail, resetLiabilities]);
+  }, [client.id]);
 
   const holdingDetail = detail.data
     ? detail.data.viewMode === "account"

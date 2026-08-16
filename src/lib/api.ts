@@ -1,3 +1,12 @@
+import type {
+  ApiClient,
+  ApiMiniKanban,
+  ApiNBAAction,
+  ApiPipelineDeal,
+  ClientStatus,
+  PriorityVariant,
+} from "@/types/api";
+
 const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/mock").replace(/\/$/, "");
 
 async function apiGet<T>(path: string): Promise<T[]> {
@@ -11,17 +20,7 @@ async function apiGet<T>(path: string): Promise<T[]> {
 
 // ── Format helpers ────────────────────────────────────────────────────────────
 
-function formatAUM(millions: number): string {
-  if (millions >= 1000) return `฿ ${(millions / 1000).toFixed(1).replace(/\.0$/, "")}B`;
-  return `฿ ${millions}M`;
-}
-
-function formatPlYtd(pct: number): string {
-  const sign = pct >= 0 ? "+" : "";
-  return `${sign}${pct}%`;
-}
-
-function formatDealSize(millions: number): string {
+function formatBaht(millions: number): string {
   if (millions >= 1000) return `฿ ${(millions / 1000).toFixed(1).replace(/\.0$/, "")}B`;
   return `฿ ${millions}M`;
 }
@@ -42,62 +41,51 @@ function formatLastContact(isoDate: string): string {
   }
 }
 
-// ── Clients ───────────────────────────────────────────────────────────────────
-
-interface Client {
-  id: number;
-  name: string;
-  tier: string;
-  aum: number;
-  cashIdlePct: number;
-  plYtd: number;
-  aiScore: number;
-  status: string;
-  lastContact: string;
-  riskProfile: string;
+/** "Somchai Rattanakul" → "Somchai R." */
+function shortenName(full: string): string {
+  const parts = full.split(" ");
+  return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : full;
 }
 
+type NameLookup = { readonly [clientId: string]: string };
+
+function buildNameLookup(clients: readonly { id: string; name: string }[]): NameLookup {
+  return Object.fromEntries(clients.map((c) => [c.id, c.name]));
+}
+
+// ── Clients ───────────────────────────────────────────────────────────────────
+
 export async function fetchClients() {
-  const items = await apiGet<Client>("clients");
-  return items.map((item: Client) => ({
+  const items = await apiGet<ApiClient>("clients");
+  return items.map((item) => ({
     id: String(item.id),
     name: item.name,
     tier: item.tier,
-    aum: typeof item.aum === "string" ? item.aum : formatAUM(item.aum),
+    aum: typeof item.aum === "string" ? item.aum : formatBaht(item.aum),
     cashIdlePct: item.cashIdlePct,
     plYtd: String(item.plYtd),
     plPositive: !String(item.plYtd).startsWith("-"),
     aiScore: item.aiScore,
-    status: item.status as "success" | "error" | "hold" | "processing",
+    status: item.status as ClientStatus,
     lastContact: formatLastContact(item.lastContact),
     riskProfile: item.riskProfile,
   }));
 }
 
+type Clients = Awaited<ReturnType<typeof fetchClients>>;
+
 // ── NBA Actions ───────────────────────────────────────────────────────────────
 
-interface NBAAction {
-  id: number;
-  clientId: string;
-  tier: string;
-  priority: string;
-  priorityVariant: string;
-  insight: string;
-  aiDraft: string;
-  action: string;
-  revenueImpact: string;
-}
-
-export async function fetchNBAActions(clients: Awaited<ReturnType<typeof fetchClients>>) {
-  const nameById = Object.fromEntries(clients.map((c: { id: string; name: string }) => [c.id, c.name]));
-  const items = await apiGet<NBAAction>("nba-actions");
-  return items.map((item: NBAAction) => ({
+export async function fetchNBAActions(clients: Clients) {
+  const nameById = buildNameLookup(clients);
+  const items = await apiGet<ApiNBAAction>("nba-actions");
+  return items.map((item) => ({
     id: String(item.id),
     clientId: item.clientId,
     clientName: nameById[item.clientId] ?? item.clientId,
     tier: item.tier,
     priority: item.priority,
-    priorityVariant: item.priorityVariant as "red" | "yellow" | "blue",
+    priorityVariant: item.priorityVariant as PriorityVariant,
     insight: item.insight,
     aiDraft: item.aiDraft,
     action: item.action,
@@ -107,26 +95,15 @@ export async function fetchNBAActions(clients: Awaited<ReturnType<typeof fetchCl
 
 // ── Pipeline Deals ────────────────────────────────────────────────────────────
 
-interface PipelineDeal {
-  id: number;
-  clientId: string;
-  product: string;
-  dealSize: number;
-  probability: number;
-  stage: string;
-  daysInStage: number;
-  stalled: boolean;
-}
-
-export async function fetchPipelineDeals(clients: Awaited<ReturnType<typeof fetchClients>>) {
-  const nameById = Object.fromEntries(clients.map((c: { id: string; name: string }) => [c.id, c.name]));
-  const items = await apiGet<PipelineDeal>("pipeline-deals");
-  return items.map((item: PipelineDeal) => ({
+export async function fetchPipelineDeals(clients: Clients) {
+  const nameById = buildNameLookup(clients);
+  const items = await apiGet<ApiPipelineDeal>("pipeline-deals");
+  return items.map((item) => ({
     id: `p${item.id}`,
     clientId: item.clientId,
     client: nameById[item.clientId] ?? item.clientId,
     product: item.product,
-    dealSize: formatDealSize(item.dealSize),
+    dealSize: formatBaht(item.dealSize),
     probability: item.probability,
     stage: item.stage,
     daysInStage: item.daysInStage,
@@ -136,28 +113,15 @@ export async function fetchPipelineDeals(clients: Awaited<ReturnType<typeof fetc
 
 // ── Mini Kanban ───────────────────────────────────────────────────────────────
 
-interface MiniKanban {
-  id: number;
-  clientId: string;
-  dealName: string;
-  dealSize: number;
-  stage: string;
-}
-
-export async function fetchMiniKanban(clients: Awaited<ReturnType<typeof fetchClients>>) {
-  const nameById = Object.fromEntries(clients.map((c: { id: string; name: string }) => [c.id, c.name]));
-  const items = await apiGet<MiniKanban>("mini-kanbans");
-  return items.map((item: MiniKanban) => {
-    const full = nameById[item.clientId] ?? item.clientId;
-    const parts = full.split(" ");
-    const short = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : full;
-    return {
-      id: `k${item.id}`,
-      clientId: item.clientId,
-      client: short,
-      dealName: item.dealName,
-      dealSize: formatDealSize(item.dealSize),
-      stage: item.stage,
-    };
-  });
+export async function fetchMiniKanban(clients: Clients) {
+  const nameById = buildNameLookup(clients);
+  const items = await apiGet<ApiMiniKanban>("mini-kanbans");
+  return items.map((item) => ({
+    id: `k${item.id}`,
+    clientId: item.clientId,
+    client: shortenName(nameById[item.clientId] ?? item.clientId),
+    dealName: item.dealName,
+    dealSize: formatBaht(item.dealSize),
+    stage: item.stage,
+  }));
 }

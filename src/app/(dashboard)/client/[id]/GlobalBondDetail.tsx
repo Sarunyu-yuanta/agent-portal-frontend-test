@@ -6,7 +6,6 @@ import {
   ArrowLeftIcon,
   CaretDownIcon,
   CaretUpIcon,
-  FileTextIcon,
 } from "@phosphor-icons/react";
 import {
   DETAIL_RECOMMENDED_CARDS,
@@ -20,12 +19,16 @@ import {
   type MaturityFilter,
   type YieldFilter,
 } from "./global-bond-data";
+import {
+  BORDER_COLOR,
+  HEADER_TEXT_CLS as HEADER_CLS,
+  TABLE_SHADOW,
+  DetailRow,
+  FactsheetButton,
+  TopPickTag,
+} from "./fixed-income-shared";
 
-const BORDER_COLOR = "rgba(0,0,0,0.1)";
 const TOP_PICK_COL_CLS = "w-[70px]";
-const TABLE_SHADOW =
-  "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
-const HEADER_CLS = "text-sm leading-5 text-[#6a7282]";
 
 const HERO_GRADIENT =
   "linear-gradient(90deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.85) 60.096%, rgba(255,255,255,0.72) 84.135%, rgba(255,255,255,0.6) 100%)";
@@ -153,14 +156,6 @@ function IssuerLogo({ src }: { src: string }) {
   );
 }
 
-function TopPickTag() {
-  return (
-    <span className="inline-flex shrink-0 items-center justify-center rounded bg-[#fff7ed] px-1 py-0.5 text-xs leading-4 text-[#f54a00] whitespace-nowrap">
-      Top Pick
-    </span>
-  );
-}
-
 function BondNameCell({ row }: { row: GlobalBondRow }) {
   return (
     <>
@@ -172,20 +167,11 @@ function BondNameCell({ row }: { row: GlobalBondRow }) {
   );
 }
 
-function FactsheetButton() {
-  return (
-    <Button
-      variant="outline"
-      size="xs"
-      leftIcon={<FileTextIcon size={16} />}
-      className="whitespace-nowrap"
-      onClick={(e) => e.stopPropagation()}
-    >
-      Factsheet
-    </Button>
-  );
-}
-
+/**
+ * Detail-page "สนใจลงทุน" CTA — same visuals as fixed-income-shared
+ * `InvestButton`, but a different label because it captures interest rather
+ * than placing an order directly.
+ */
 function InvestButton({ fullWidth }: { fullWidth?: boolean }) {
   return (
     <Button
@@ -199,25 +185,15 @@ function InvestButton({ fullWidth }: { fullWidth?: boolean }) {
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex gap-3 items-start w-full text-sm leading-[22px]">
-      <span className="flex-1 text-[#4a5565]">{label}</span>
-      <span className="shrink-0 text-[#101828] text-right whitespace-nowrap">
-        {value}
-      </span>
-    </div>
-  );
-}
-
 function BondAccordionList({ bonds }: { bonds: GlobalBondRow[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(
     bonds[0]?.id ?? null,
   );
-
-  useEffect(() => {
+  const [prevBonds, setPrevBonds] = useState(bonds);
+  if (prevBonds !== bonds) {
+    setPrevBonds(bonds);
     setExpandedId(bonds[0]?.id ?? null);
-  }, [bonds]);
+  }
 
   if (bonds.length === 0) {
     return (
@@ -673,10 +649,12 @@ export function GlobalBondDetail({
     }
   }, [issuerId]);
 
-  useEffect(() => {
+  const [prevIssuerId, setPrevIssuerId] = useState(issuerId);
+  if (prevIssuerId !== issuerId) {
+    setPrevIssuerId(issuerId);
     setYieldFilter("all");
     setMaturityFilter("all");
-  }, [issuerId]);
+  }
 
   if (!issuer) {
     return (

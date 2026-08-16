@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useState, Fragment } from "react";
 import { Chip, Button, BottomSheet, Modal } from "@sarunyu/system-one";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { mockHouseViewStrategies } from "@/lib/mock-data";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { PlaybookCard } from "./PlaybookCard";
 import { PlaybookCardCompact } from "./PlaybookCardCompact";
 
@@ -61,15 +62,7 @@ function modalTitle(group: PeriodGroup) {
 export function StrategyPlaybooks() {
   const [filter, setFilter] = useState<AssetClassFilter>("All");
   const [modalGroup, setModalGroup] = useState<ModalGroup>(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    setIsMobile(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+  const isMobile = useMediaQuery("(max-width: 767px)");
 
   const all = mockHouseViewStrategies;
   const filtered = filter === "All" ? all : all.filter((s) => s.category === filter);

@@ -16,9 +16,18 @@ import {
   getIssuerIdForBondRow,
   type GlobalBondIssuerId,
 } from "./global-bond-data";
-import { BORDER_COLOR, HEADER_TEXT_CLS, headerBorderStyle, cellBorderStyle, BondLogo } from "./fixed-income-shared";
-
-const TABLE_SHADOW = "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
+import {
+  BORDER_COLOR,
+  HEADER_TEXT_CLS,
+  TABLE_SHADOW,
+  headerBorderStyle,
+  cellBorderStyle,
+  BondLogo,
+  TopPickTag,
+  DetailRow,
+  FactsheetButton,
+  InvestButton,
+} from "./fixed-income-shared";
 
 const BANNER_ASSETS = {
   adsIndexCard: "/banner-ads-index-card.png",
@@ -76,16 +85,6 @@ const RECOMMENDED_ROWS = RECOMMENDED_ISSUERS.map((id, i) => {
 });
 
 type RecommendedRow = (typeof RECOMMENDED_ROWS)[number];
-
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex gap-3 items-start w-full text-sm leading-5">
-      <span className="flex-1 text-[#4a5565]">{label}</span>
-      <span className="shrink-0 text-[#101828] text-right whitespace-nowrap">{value}</span>
-    </div>
-  );
-}
 
 function TopPickAccordionList() {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(0);
@@ -226,32 +225,6 @@ function RecommendedAccordionList({ onIssuerSelect }: { onIssuerSelect?: (id: Gl
   );
 }
 
-function TopPickTag({ small }: { small?: boolean }) {
-  return (
-    <span
-      className={`inline-flex shrink-0 items-center justify-center rounded bg-[#fff7ed] text-[#f54a00] whitespace-nowrap ${
-        small ? "px-1 py-0.5 text-[9px] leading-[14px]" : "px-1 py-0.5 text-xs leading-4"
-      }`}
-    >
-      Top Pick
-    </span>
-  );
-}
-
-function FactsheetButton() {
-  return (
-    <Button
-      variant="outline"
-      size="xs"
-      leftIcon={<FileTextIcon size={16} />}
-      className="whitespace-nowrap"
-      onClick={(e) => e.stopPropagation()}
-    >
-      Factsheet
-    </Button>
-  );
-}
-
 function ViewInfoButton({ fullWidth, onClick }: { fullWidth?: boolean; onClick?: () => void }) {
   if (fullWidth) {
     return (
@@ -263,21 +236,6 @@ function ViewInfoButton({ fullWidth, onClick }: { fullWidth?: boolean; onClick?:
   return (
     <Button variant="outline" size="xs" className="whitespace-nowrap" onClick={onClick}>
       ดูข้อมูล
-    </Button>
-  );
-}
-
-function InvestButton({ fullWidth }: { fullWidth?: boolean }) {
-  if (fullWidth) {
-    return (
-      <Button variant="primary" size="xl" className="w-full max-w-[343px]">
-        สร้างคำสั่งซื้อ
-      </Button>
-    );
-  }
-  return (
-    <Button variant="primary" size="xs" className="whitespace-nowrap">
-      สร้างคำสั่งซื้อ
     </Button>
   );
 }

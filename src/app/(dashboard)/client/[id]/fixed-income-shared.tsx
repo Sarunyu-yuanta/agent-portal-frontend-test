@@ -1,9 +1,19 @@
+import { Button } from "@sarunyu/system-one";
+import { ArrowSquareOutIcon, FileTextIcon } from "@phosphor-icons/react";
 import type { FixedIncomeStatus } from "./fixed-income-data";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
 export const BORDER_COLOR = "rgba(0,0,0,0.1)";
 export const HEADER_TEXT_CLS = "text-sm leading-5 text-[#6a7282]";
+
+/** Card/table drop-shadow used across GlobalBond tables. */
+export const TABLE_SHADOW =
+  "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
+
+/** Smaller drop-shadow variant used by the FixedIncome table card. */
+export const TABLE_SHADOW_SM =
+  "0px 0px 1px rgba(102,102,102,0.16),0px 4px 4px rgba(102,102,102,0.12)";
 
 // ─── Border style helpers ─────────────────────────────────────────────────────
 
@@ -94,5 +104,84 @@ export function BondLogo({
         />
       )}
     </div>
+  );
+}
+
+// ─── Shared bond-list primitives (used by GlobalBondTab + GlobalBondAllPage) ─
+
+export function TopPickTag({ small }: { small?: boolean }) {
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center justify-center rounded bg-[#fff7ed] text-[#f54a00] whitespace-nowrap ${
+        small ? "px-1 py-0.5 text-[9px] leading-[14px]" : "px-1 py-0.5 text-xs leading-4"
+      }`}
+    >
+      Top Pick
+    </span>
+  );
+}
+
+export function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex gap-3 items-start w-full text-sm leading-5">
+      <span className="flex-1 text-[#4a5565]">{label}</span>
+      <span className="shrink-0 text-[#101828] text-right whitespace-nowrap">{value}</span>
+    </div>
+  );
+}
+
+export function FactsheetButton() {
+  return (
+    <Button
+      variant="outline"
+      size="xs"
+      leftIcon={<FileTextIcon size={16} />}
+      className="whitespace-nowrap"
+      onClick={(e) => e.stopPropagation()}
+    >
+      Factsheet
+    </Button>
+  );
+}
+
+/**
+ * "สร้างคำสั่งซื้อ" — primary CTA. Behavior varies by call site:
+ * - `fullWidth`: renders large button (accordion detail).
+ * - `href`: opens URL in new tab and shows external-link icon.
+ * - neither: compact table-row button that just stops propagation.
+ */
+export function InvestButton({
+  fullWidth,
+  href,
+}: {
+  fullWidth?: boolean;
+  href?: string;
+}) {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (href) window.open(href, "_blank", "noopener,noreferrer");
+  };
+  if (fullWidth) {
+    return (
+      <Button
+        variant="primary"
+        size="xl"
+        className="w-full max-w-[343px]"
+        onClick={handleClick}
+      >
+        สร้างคำสั่งซื้อ
+      </Button>
+    );
+  }
+  return (
+    <Button
+      variant="primary"
+      size="xs"
+      rightIcon={href ? <ArrowSquareOutIcon size={16} /> : undefined}
+      className="whitespace-nowrap"
+      onClick={handleClick}
+    >
+      สร้างคำสั่งซื้อ
+    </Button>
   );
 }

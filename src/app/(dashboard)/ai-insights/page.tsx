@@ -328,7 +328,7 @@ function AiSummaryCard() {
     <Card variant="default" className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <SparkleIcon size={16} weight="duotone" className="text-foreground" />
-        <p className="type-subtitle-1 text-foreground">Today's AI Summary</p>
+        <p className="type-subtitle-1 text-foreground">Today&apos;s AI Summary</p>
       </div>
       <p className="text-[12px] text-muted-foreground leading-relaxed">
         8 active insights across your book. Focus on{" "}

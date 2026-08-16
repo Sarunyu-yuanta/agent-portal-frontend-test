@@ -25,6 +25,7 @@ import {
 import {
   BORDER_COLOR,
   HEADER_TEXT_CLS,
+  TABLE_SHADOW_SM,
   headerBorderStyle,
   cellBorderStyle,
   ACTION_LABELS,
@@ -542,8 +543,7 @@ export function FixedIncomeTab({
         className="group/card hidden lg:block w-full rounded-xl bg-white"
         style={{
           border: `1px solid ${BORDER_COLOR}`,
-          boxShadow:
-            "0px 0px 1px rgba(102,102,102,0.16),0px 4px 4px rgba(102,102,102,0.12)",
+          boxShadow: TABLE_SHADOW_SM,
           overflow: "clip",
         }}
       >

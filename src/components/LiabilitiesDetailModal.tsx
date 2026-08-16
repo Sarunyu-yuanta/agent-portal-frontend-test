@@ -13,14 +13,16 @@ function LiabilitiesDonutChart({
 }: {
   categories: LiabilityCategory[];
 }) {
-  let offset = 0;
-  const gradientStops = categories
-    .map((category) => {
-      const start = offset;
-      offset += category.percent;
-      return `${category.color} ${start}% ${offset}%`;
-    })
-    .join(", ");
+  const { stops } = categories.reduce<{ offset: number; stops: string[] }>(
+    (acc, category) => {
+      const start = acc.offset;
+      const end = start + category.percent;
+      acc.stops.push(`${category.color} ${start}% ${end}%`);
+      return { offset: end, stops: acc.stops };
+    },
+    { offset: 0, stops: [] },
+  );
+  const gradientStops = stops.join(", ");
 
   return (
     <div
