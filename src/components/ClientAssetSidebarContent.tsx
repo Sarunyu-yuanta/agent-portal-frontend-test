@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  CaretDownIcon,
-  CaretRightIcon,
-} from "@phosphor-icons/react";
+import { CaretDownIcon } from "@phosphor-icons/react";
 import {
   ALLOCATION_SLICES,
   AllocationBreakdownSidebar,
@@ -20,9 +17,7 @@ import {
   DEFAULT_ASSET_ACCOUNTS,
   getAssetAccountDetail,
   getAssetProductDetail,
-  type AssetAccountDetail,
   type AssetAccountItem,
-  type HoldingItem,
 } from "@/data/asset-account-details";
 import { getLiabilitiesDetail } from "@/data/liabilities-details";
 import { mockClientDetails } from "@/lib/mock-data";
@@ -33,249 +28,13 @@ import {
   parseAmount,
   type ClientSummaryInput,
 } from "@/lib/client-utils";
-import { ProfitLossBadge } from "@/components/ui/finance-ui";
+import {
+  AssetAccountCard,
+  AssetDetailDrawerHeader,
+  type AssetListViewMode,
+} from "@/components/AssetAccountCard";
 
-function HoldingItemRow({
-  item,
-  open,
-  onToggle,
-}: {
-  item: HoldingItem;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  const hasPosition = item.position && item.position.fields.length > 0;
-  const avgCost = item.position?.fields.find((f) => f.label.startsWith("Average Cost"))?.value;
-
-  return (
-    <div className={`rounded-md overflow-hidden border ${open ? "border-[rgba(0,0,0,0.1)] bg-[var(--bg-default-secondary)]" : "border-transparent"}`}>
-      <button
-        type="button"
-        className={`flex items-center gap-2 py-1.5 w-full text-left transition-colors px-2 ${!open ? "hover:bg-[rgba(0,0,0,0.04)]" : ""}`}
-        onClick={() => hasPosition && onToggle()}
-        style={{ cursor: hasPosition ? "pointer" : "default" }}
-      >
-        <div className="flex-1 min-w-0">
-          <p className="type-caption font-semibold text-[var(--text-default-primary)] leading-4">
-            {item.symbol}
-          </p>
-          <p className="type-caption text-[var(--text-default-tertiary)] truncate leading-4">
-            {item.fullName}
-          </p>
-        </div>
-        <div className="flex flex-col items-end shrink-0">
-          <p className="type-caption font-bold text-[var(--text-default-primary)]">
-            {item.value}
-          </p>
-          {avgCost && (
-            <p className="type-caption text-[var(--text-default-tertiary)] leading-4 whitespace-nowrap">
-              ราคาทุนเฉลี่ย {avgCost}
-            </p>
-          )}
-          <ProfitLossBadge
-            changeAmount={item.changeAmount}
-            changePercent={item.changePercent}
-            changePositive={item.changePositive}
-          />
-        </div>
-        {hasPosition && (
-          <CaretDownIcon
-            size={14}
-            className={`text-[var(--text-default-tertiary)] shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          />
-        )}
-      </button>
-
-      {open && hasPosition && (
-        <div className="px-2 pb-2 flex flex-col gap-1">
-          {item.position!.fields.map((field) => (
-            <div key={field.label} className="flex items-center justify-between gap-2">
-              <p className="type-caption text-[var(--text-default-tertiary)] leading-4">{field.label}</p>
-              <p className="type-caption font-semibold text-[var(--text-default-primary)] leading-4 shrink-0">{field.value}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function InnerAccordion({ detail }: { detail: AssetAccountDetail }) {
-  const allItems = detail.sections.flatMap((s) => s.items);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const allExpanded = allItems.length > 0 && allItems.every((item) => expandedIds.has(item.id));
-
-  const toggleItem = (id: string) =>
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-
-  const handleExpandCollapseAll = () =>
-    setExpandedIds(allExpanded ? new Set() : new Set(allItems.map((i) => i.id)));
-
-  return (
-    <div className="border-t border-[rgba(0,0,0,0.06)] divide-y divide-[rgba(0,0,0,0.04)]">
-      {detail.sections.map((section, sIdx) => (
-        <div key={section.title} className="px-3 py-2 flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <p className="type-caption font-bold text-[var(--text-default-secondary)] leading-5">
-              {section.title}
-            </p>
-            {sIdx === 0 && (
-              <button
-                type="button"
-                onClick={handleExpandCollapseAll}
-                className="type-caption text-primary-action font-medium hover:underline cursor-pointer"
-              >
-                {allExpanded ? "Collapse All" : "Expand All"}
-              </button>
-            )}
-          </div>
-          {section.items.map((item) => (
-            <HoldingItemRow
-              key={item.id}
-              item={item}
-              open={expandedIds.has(item.id)}
-              onToggle={() => toggleItem(item.id)}
-            />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function AssetAccountCard({
-  account,
-  viewMode,
-  accordion,
-  open: controlledOpen,
-  onToggle,
-  onClick,
-  selected,
-}: {
-  account: AssetAccountItem;
-  viewMode: AssetListViewMode;
-  accordion?: boolean;
-  open?: boolean;
-  onToggle?: () => void;
-  onClick?: () => void;
-  /** Highlights the card as the active selection — used by the desktop
-   * list+detail layout, where clicking a row opens its detail in the side
-   * panel instead of expanding inline. */
-  selected?: boolean;
-}) {
-  const [internalOpen, setInternalOpen] = useState(false);
-  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
-  const toggleOpen = onToggle ?? (() => setInternalOpen((p) => !p));
-  const detail = accordion
-    ? (viewMode === "account"
-        ? getAssetAccountDetail(account.accountNo)
-        : getAssetProductDetail(account.name))
-    : null;
-
-  return (
-    <div
-      className={`bg-white border rounded-lg overflow-hidden w-full transition-colors ${
-        selected ? "border-[color:var(--primary-action)]/50" : "border-[rgba(0,0,0,0.1)]"
-      }`}
-    >
-      <button
-        type="button"
-        className={`flex gap-2 items-center p-3 w-full cursor-pointer transition-colors text-left ${
-          selected ? "bg-primary-action-light" : "hover:bg-[var(--bg-default-secondary)]"
-        }`}
-        onClick={accordion ? toggleOpen : onClick}
-      >
-        <div className="flex flex-1 gap-2 items-center min-w-0">
-          <span className="relative shrink-0 size-2">
-            <img
-              alt=""
-              className="block size-full max-w-none"
-              src={account.statusIcon}
-            />
-          </span>
-          <div className="flex flex-1 flex-col items-start min-w-0">
-            <p className="type-subtitle-2 text-[var(--text-default-primary)] whitespace-nowrap leading-5 truncate w-full">
-              {account.name}
-            </p>
-            <p className="type-caption text-[var(--text-default-tertiary)] leading-4 truncate w-full">
-              {account.accountNo}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-end shrink-0">
-          <div className="flex gap-1 items-center text-right whitespace-nowrap">
-            <p className="type-subtitle-2 font-bold text-[var(--text-default-primary)] leading-5">
-              {account.value}
-            </p>
-            <p className="type-body-2 text-[var(--text-default-tertiary)] leading-5">THB</p>
-          </div>
-          {account.avgYield ? (
-            <p className="type-caption text-[var(--text-default-tertiary)] leading-4 whitespace-nowrap">
-              Avg. Yield: {account.avgYield}%
-            </p>
-          ) : account.changeAmount && account.changePercent ? (
-            <ProfitLossBadge
-              changeAmount={account.changeAmount}
-              changePercent={account.changePercent}
-              changePositive={account.changePositive ?? true}
-            />
-          ) : null}
-        </div>
-
-        {accordion ? (
-          <CaretDownIcon
-            size={20}
-            className={`text-[var(--text-default-tertiary)] shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          />
-        ) : (
-          <CaretRightIcon
-            size={20}
-            className={`shrink-0 transition-colors ${selected ? "text-primary-action" : "text-[var(--text-default-tertiary)]"}`}
-          />
-        )}
-      </button>
-
-      {accordion && open && detail && (
-        <InnerAccordion detail={detail} />
-      )}
-    </div>
-  );
-}
-
-/** Header row shown at the top of the asset detail drawer — icon, name,
- * account number, and value, matching the row that was clicked. */
-function AssetDetailDrawerHeader({ item }: { item: AssetAccountItem }) {
-  return (
-    <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border-default)] shrink-0">
-      <span className="relative shrink-0 size-2">
-        <img alt="" className="block size-full max-w-none" src={item.statusIcon} />
-      </span>
-      <div className="flex-1 min-w-0">
-        <p className="type-subtitle-2 font-bold text-[var(--text-default-primary)] truncate leading-5">
-          {item.name}
-        </p>
-        <p className="type-caption text-[var(--text-default-tertiary)] truncate leading-4">
-          {item.accountNo}
-        </p>
-      </div>
-      <div className="flex gap-1 items-center whitespace-nowrap shrink-0">
-        <p className="type-subtitle-2 font-bold text-[var(--text-default-primary)] leading-5">
-          {item.value}
-        </p>
-        <p className="type-body-2 text-[var(--text-default-tertiary)] leading-5">THB</p>
-      </div>
-      {/* Reserves space for the drawer's own absolute close button */}
-      <div className="w-8 shrink-0" />
-    </div>
-  );
-}
-
-export type AssetListViewMode = "product" | "account";
+export type { AssetListViewMode } from "@/components/AssetAccountCard";
 
 const ASSET_LIST_VIEW_OPTIONS: { id: AssetListViewMode; label: string }[] = [
   { id: "product", label: "By Product" },

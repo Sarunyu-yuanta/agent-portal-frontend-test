@@ -1,0 +1,353 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@sarunyu/system-one";
+import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
+import type { GlobalBondRow } from "./global-bond-data";
+import {
+  BORDER_COLOR,
+  HEADER_TEXT_CLS as HEADER_CLS,
+  TABLE_SHADOW,
+  DetailRow,
+  FactsheetButton,
+  TopPickTag,
+} from "./fixed-income-shared";
+
+const TOP_PICK_COL_CLS = "w-[70px]";
+
+const headerBorder = (opts?: { right?: boolean; left?: boolean }) => ({
+  borderBottom: `1px solid ${BORDER_COLOR}`,
+  borderRight: opts?.right === false ? undefined : `1px solid ${BORDER_COLOR}`,
+  borderLeft: opts?.left ? `1px solid ${BORDER_COLOR}` : undefined,
+});
+
+const cellBorder = (opts?: { bottom?: boolean }) => ({
+  borderBottom: opts?.bottom === false ? undefined : `1px solid ${BORDER_COLOR}`,
+});
+
+function IssuerLogo({ src }: { src: string }) {
+  return (
+    <div
+      className="relative shrink-0 size-8 rounded overflow-hidden"
+      style={{ border: `1px solid ${BORDER_COLOR}` }}
+    >
+      <img
+        alt=""
+        className="absolute inset-0 size-full object-cover rounded pointer-events-none"
+        src={src}
+      />
+    </div>
+  );
+}
+
+/**
+ * Detail-page "สนใจลงทุน" CTA — captures interest rather than placing an order,
+ * so the label differs from the shared `InvestButton` in fixed-income-shared.
+ */
+function InvestButton({ fullWidth }: { fullWidth?: boolean }) {
+  return (
+    <Button
+      variant="primary"
+      size={fullWidth ? "lg" : "xs"}
+      className={fullWidth ? "w-full max-w-[343px]" : "whitespace-nowrap"}
+      onClick={(e) => e.stopPropagation()}
+    >
+      สนใจลงทุน
+    </Button>
+  );
+}
+
+function EmptyBondsCard() {
+  return (
+    <div
+      className="w-full rounded-xl overflow-hidden bg-white px-4 py-10 text-center text-sm text-[#6a7282]"
+      style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW }}
+    >
+      ไม่พบรายการที่ตรงกับตัวกรอง
+    </div>
+  );
+}
+
+export function GlobalBondDetailAccordion({ bonds }: { bonds: GlobalBondRow[] }) {
+  const [expandedId, setExpandedId] = useState<string | null>(
+    bonds[0]?.id ?? null,
+  );
+  const [prevBonds, setPrevBonds] = useState(bonds);
+  if (prevBonds !== bonds) {
+    setPrevBonds(bonds);
+    setExpandedId(bonds[0]?.id ?? null);
+  }
+
+  if (bonds.length === 0) return <EmptyBondsCard />;
+
+  return (
+    <div
+      className="flex flex-col w-full rounded-xl overflow-hidden bg-white"
+      style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW }}
+    >
+      {bonds.map((row, i) => {
+        const expanded = expandedId === row.id;
+        const isLast = i === bonds.length - 1;
+        return (
+          <div
+            key={row.id}
+            className="w-full"
+            style={{
+              borderBottom: isLast ? undefined : `1px solid ${BORDER_COLOR}`,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setExpandedId(expanded ? null : row.id)}
+              className="flex w-full items-start gap-2 p-3 bg-white border-none cursor-pointer text-left"
+            >
+              <div className="flex items-center py-0.5 shrink-0">
+                <IssuerLogo src={row.logo} />
+              </div>
+              <div className="flex flex-1 min-w-0 flex-col gap-0.5">
+                <span className="text-sm font-semibold leading-[22px] text-[#101828] truncate">
+                  {row.name}
+                </span>
+                <span className="text-xs leading-[18px] text-[#4a5565]">
+                  {row.isin}
+                </span>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <span className="text-sm leading-[22px] text-[#101828]">
+                  {row.yieldPct}
+                </span>
+                {expanded ? (
+                  <CaretUpIcon size={22} className="text-[#101828]" />
+                ) : (
+                  <CaretDownIcon size={22} className="text-[#101828]" />
+                )}
+              </div>
+            </button>
+            {expanded && (
+              <div className="flex flex-col gap-3 items-center px-3 pb-3 w-full">
+                <div className="flex flex-col gap-1 rounded-md bg-[#f9fafb] px-3 py-2 w-full">
+                  <DetailRow label="Currency" value={row.currency} />
+                  <DetailRow label="Coupon Rate" value={row.couponRate} />
+                  <DetailRow label="Price" value={row.price} />
+                  <DetailRow label="ผลตอบแทนโดยประมาณ" value={row.yieldPct} />
+                  <DetailRow label="วันครบกำหนด" value={row.maturity} />
+                  <DetailRow label="ระยะเวลา (ปี)" value={row.duration} />
+                </div>
+                <InvestButton fullWidth />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function GlobalBondDetailTable({ bonds }: { bonds: GlobalBondRow[] }) {
+  if (bonds.length === 0) return <EmptyBondsCard />;
+
+  const isLastRow = (i: number) => (i === bonds.length - 1 ? false : undefined);
+
+  return (
+    <div
+      className="w-full rounded-xl overflow-hidden bg-white"
+      style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW }}
+    >
+      <div className="overflow-x-auto">
+        <div className="flex items-stretch min-w-[1280px]">
+          <div className="flex flex-col flex-1 min-w-0">
+            <div
+              className="flex h-11 items-center px-4"
+              style={headerBorder({ left: true, right: false })}
+            >
+              <span className={`${HEADER_CLS} whitespace-nowrap`}>Bonds</span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                <IssuerLogo src={row.logo} />
+                <span className="min-w-0 flex-1 truncate text-sm leading-5 text-[#101828]">
+                  {row.name}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className={`flex flex-col shrink-0 ${TOP_PICK_COL_CLS}`}>
+            <div
+              className="flex h-11 items-center justify-center px-4"
+              style={headerBorder()}
+            >
+              <span className={`${HEADER_CLS} opacity-0`} aria-hidden>
+                Top Pick
+              </span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex flex-1 items-center justify-center px-4 py-3 min-h-[52px]"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                {row.topPick && <TopPickTag />}
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col w-[138px] shrink-0">
+            <div className="flex h-11 items-center px-4" style={headerBorder()}>
+              <span className={`${HEADER_CLS} whitespace-nowrap`}>ISIN</span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex flex-1 items-center px-4 py-3.5 min-h-[52px]"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                <span className="text-sm leading-5 text-[#101828]">{row.isin}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col w-[80px] shrink-0">
+            <div
+              className="flex h-11 items-center justify-center px-4"
+              style={headerBorder()}
+            >
+              <span className={`${HEADER_CLS} whitespace-nowrap`}>Currency</span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                <span className="text-sm leading-5 text-[#101828]">{row.currency}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col shrink-0">
+            <div
+              className="flex h-11 items-center justify-end px-4"
+              style={headerBorder()}
+            >
+              <span className={`${HEADER_CLS} whitespace-nowrap`}>Coupon Rate</span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                <span className="text-sm leading-5 text-[#101828]">{row.couponRate}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col w-[76px] shrink-0">
+            <div
+              className="flex h-11 items-center justify-end px-4"
+              style={headerBorder()}
+            >
+              <span className={`${HEADER_CLS} whitespace-nowrap`}>Price</span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                <span className="text-sm leading-5 text-[#101828]">{row.price}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col w-[165px] shrink-0">
+            <div
+              className="flex h-11 items-center justify-end px-4"
+              style={headerBorder()}
+            >
+              <span className={`${HEADER_CLS} whitespace-nowrap`}>ผลตอบแทนโดยประมาณ</span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                <span className="text-sm leading-5 text-[#101828]">{row.yieldPct}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col shrink-0">
+            <div
+              className="flex h-11 items-center justify-end px-4"
+              style={headerBorder()}
+            >
+              <span className={`${HEADER_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                <span className="text-sm leading-5 text-[#101828]">{row.maturity}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col shrink-0">
+            <div
+              className="flex h-11 items-center justify-end px-4"
+              style={headerBorder()}
+            >
+              <span className={`${HEADER_CLS} whitespace-nowrap`}>ระยะเวลา (ปี)</span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                <span className="text-sm leading-5 text-[#101828]">{row.duration}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col shrink-0">
+            <div
+              className="flex items-center justify-center p-3"
+              style={headerBorder()}
+            >
+              <span className={`${HEADER_CLS} whitespace-nowrap`}>เอกสาร</span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex flex-1 items-center justify-center px-3 py-[11px] min-h-[52px]"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                <FactsheetButton />
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col shrink-0">
+            <div
+              className="flex items-center justify-end p-3"
+              style={headerBorder({ right: false })}
+            >
+              <span className={`${HEADER_CLS} opacity-0`} aria-hidden>
+                Action
+              </span>
+            </div>
+            {bonds.map((row, i) => (
+              <div
+                key={row.id}
+                className="flex flex-1 items-center justify-center px-4 py-[11px] min-h-[52px]"
+                style={cellBorder({ bottom: isLastRow(i) })}
+              >
+                <InvestButton />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,179 +1,25 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
-import {
-  Button,
-  SearchInput,
-  Modal,
-  Toaster,
-} from "@sarunyu/system-one";
+import { useEffect, useState } from "react";
+import { Button, Modal, SearchInput, Toaster } from "@sarunyu/system-one";
 import type { ToastProps } from "@sarunyu/system-one";
-import Form from "@rjsf/core";
-import validator from "@rjsf/validator-ajv8";
-import type { RJSFSchema } from "@rjsf/utils";
-import { customWidgets, FieldTemplate, SubmitButton } from "./rjsf-widgets";
 import {
-  ChevronsUpDown,
-  ChevronUp,
-  ChevronDown,
+  ChevronRight,
   Database,
-  Plus,
-  Pencil,
-  Trash2,
   ExternalLink,
   Loader2,
-  LayoutGrid,
-  ChevronRight,
+  Plus,
 } from "lucide-react";
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-interface OpenAPISpec {
-  paths: Record<string, PathItem>;
-  components?: { schemas?: Record<string, RJSFSchema> };
-}
-interface PathItem {
-  get?: Operation;
-  post?: Operation;
-}
-interface Operation {
-  tags?: string[];
-  requestBody?: {
-    content?: { "application/json"?: { schema?: { $ref?: string } } };
-  };
-}
-interface Resource {
-  path: string;
-  name: string;
-  schema: RJSFSchema;
-}
-interface ApiItem {
-  id: number | string;
-  [key: string]: unknown;
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-function resolveRef(ref: string, spec: OpenAPISpec): RJSFSchema | null {
-  const parts = ref.split("/").filter((p) => p !== "#");
-  let node: unknown = spec;
-  for (const part of parts) {
-    if (typeof node !== "object" || node === null) return null;
-    node = (node as Record<string, unknown>)[part];
-  }
-  return (node as RJSFSchema) ?? null;
-}
-
-function extractResources(spec: OpenAPISpec): Resource[] {
-  const result: Resource[] = [];
-  for (const [path, item] of Object.entries(spec.paths ?? {})) {
-    if (path.includes("{")) continue;
-    const postOp = item.post;
-    if (!postOp?.requestBody) continue;
-    const ref = postOp.requestBody.content?.["application/json"]?.schema?.$ref;
-    if (!ref) continue;
-    const schema = resolveRef(ref, spec);
-    if (!schema) continue;
-    const name = postOp.tags?.[0] ?? item.get?.tags?.[0] ?? path.replace(/^\//, "");
-    result.push({ path, name, schema });
-  }
-  return result;
-}
-
-function previewColumns(schema: RJSFSchema): string[] {
-  return Object.keys(schema.properties ?? {});
-}
-
-function formatCellValue(key: string, value: unknown, schema: RJSFSchema): string {
-  if (value == null || value === "") return "—";
-  const props = (schema.properties ?? {}) as Record<string, { type?: string; description?: string }>;
-  const field = props[key];
-  if (!field) return String(value);
-
-  const desc = (field.description ?? "").toLowerCase();
-  const keyLower = key.toLowerCase();
-  const isNumeric = field.type === "number" || field.type === "integer";
-
-  if (isNumeric && typeof value === "number") {
-    const isPct = keyLower.includes("pct") || keyLower.includes("ytd") || keyLower.includes("probability") ||
-      desc.includes("percentage") || desc.includes("percent");
-    const isCurrency = desc.includes("฿") || desc.includes("thb") || desc.includes("millions");
-
-    if (isPct) {
-      const sign = value >= 0 ? "+" : "";
-      return `${sign}${value}%`;
-    }
-    if (isCurrency) {
-      if (value >= 1000) return `฿ ${(value / 1000).toFixed(1).replace(/\.0$/, "")}B`;
-      return `฿ ${value}M`;
-    }
-  }
-
-  return String(value);
-}
-
-function formatColName(key: string): string {
-  return key
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^[a-z]/, (c) => c.toUpperCase())
-    .trim();
-}
-
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
-
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-function LoadingScreen() {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-[#F5F5F5]">
-      <div className="flex flex-col items-center gap-3">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Loading resources…</p>
-      </div>
-    </div>
-  );
-}
-
-function ErrorScreen({ message }: { message: string }) {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-[#F5F5F5]">
-      <div className="bg-white rounded-xl border border-border p-8 max-w-sm text-center shadow-sm">
-        <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-3">
-          <Database className="w-5 h-5 text-destructive" />
-        </div>
-        <p className="text-sm font-medium text-foreground mb-1">Connection Error</p>
-        <p className="text-xs text-muted-foreground">{message}</p>
-      </div>
-    </div>
-  );
-}
-
-function EmptyState({ hasApiBase, onAdd }: { hasApiBase: boolean; onAdd: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 px-4">
-      <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
-        <LayoutGrid className="w-7 h-7 text-muted-foreground" />
-      </div>
-      <p className="text-sm font-semibold text-foreground mb-1">No records yet</p>
-      {!hasApiBase ? (
-        <p className="text-xs text-muted-foreground text-center max-w-xs">
-          Set <code className="bg-muted px-1 py-0.5 rounded font-mono">NEXT_PUBLIC_API_URL</code> in{" "}
-          <code className="bg-muted px-1 py-0.5 rounded font-mono">.env.local</code> to connect.
-        </p>
-      ) : (
-        <>
-          <p className="text-xs text-muted-foreground mb-4">Add your first record to get started.</p>
-          <Button variant="primary" size="sm" onClick={onAdd}>
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
-            Add Record
-          </Button>
-        </>
-      )}
-    </div>
-  );
-}
-
-// ── Component ──────────────────────────────────────────────────────────────────
+import {
+  API_BASE,
+  extractResources,
+  type ApiItem,
+  type OpenAPISpec,
+  type Resource,
+} from "./admin-utils";
+import { EmptyState, ErrorScreen, LoadingScreen } from "./admin-states";
+import { ResourceTable, tableFilteredCount } from "./ResourceTable";
+import { RecordFormModal, type RecordFormMode } from "./RecordFormModal";
 
 export default function AdminPage() {
   const [resources, setResources] = useState<Resource[]>([]);
@@ -185,7 +31,7 @@ export default function AdminPage() {
   const [itemsLoading, setItemsLoading] = useState(false);
   const [search, setSearch] = useState("");
 
-  const [modal, setModal] = useState<{ mode: "add" | "edit"; data?: ApiItem } | null>(null);
+  const [modal, setModal] = useState<{ mode: RecordFormMode; data?: ApiItem } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<number | string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -195,54 +41,6 @@ export default function AdminPage() {
     const id = String(Date.now());
     setToasts((prev) => [...prev, { id, message, status }]);
   };
-  const formRef = useRef<Form>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [hasRightOverflow, setHasRightOverflow] = useState(false);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const check = () => {
-      setHasRightOverflow(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
-    };
-    check();
-    el.addEventListener("scroll", check, { passive: true });
-    const ro = new ResizeObserver(check);
-    ro.observe(el);
-    return () => {
-      el.removeEventListener("scroll", check);
-      ro.disconnect();
-    };
-  }, [items, activeIdx]);
-  const [sortKey, setSortKey] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<"none" | "asc" | "desc">("none");
-
-  const dirFor = (k: string): "none" | "asc" | "desc" => (sortKey === k ? sortDir : "none");
-  const handleSort = (k: string) => (next: "none" | "asc" | "desc") => {
-    setSortKey(next === "none" ? null : k);
-    setSortDir(next);
-  };
-
-  const sortedItems = useMemo(() => {
-    if (!sortKey || sortDir === "none") return items;
-    return [...items].sort((a, b) => {
-      const av = a[sortKey] ?? "";
-      const bv = b[sortKey] ?? "";
-      const cmp =
-        typeof av === "number" && typeof bv === "number"
-          ? av - bv
-          : String(av).localeCompare(String(bv));
-      return sortDir === "asc" ? cmp : -cmp;
-    });
-  }, [items, sortKey, sortDir]);
-
-  const filteredItems = useMemo(() => {
-    if (!search.trim()) return sortedItems;
-    const q = search.toLowerCase();
-    return sortedItems.filter((item) =>
-      Object.values(item).some((v) => String(v ?? "").toLowerCase().includes(q))
-    );
-  }, [sortedItems, search]);
 
   useEffect(() => {
     fetch("/api/openapi", { cache: "no-store" })
@@ -291,8 +89,6 @@ export default function AdminPage() {
     };
   }, [active]);
 
-  const handleDelete = (id: number | string) => setDeleteTarget(id);
-
   const confirmDelete = async () => {
     if (!active || !API_BASE || deleteTarget == null) return;
     setDeleting(true);
@@ -324,8 +120,8 @@ export default function AdminPage() {
       if (isEdit) {
         setItems((prev) =>
           prev.map((item) =>
-            String(item.id) === String(modal!.data!.id) ? json.data : item
-          )
+            String(item.id) === String(modal!.data!.id) ? json.data : item,
+          ),
         );
         toast("Updated successfully", "success");
       } else {
@@ -339,18 +135,13 @@ export default function AdminPage() {
     }
   };
 
-  // ── Render states ────────────────────────────────────────────────────────────
-
   if (specLoading) return <LoadingScreen />;
   if (specError) return <ErrorScreen message={specError} />;
 
-  // ── Main UI ──────────────────────────────────────────────────────────────────
-
-  const cols = active ? previewColumns(active.schema) : [];
+  const filteredCount = tableFilteredCount(items, search);
 
   return (
     <div className="min-h-screen bg-[#F5F5F5] flex flex-col">
-
       {/* Top Bar */}
       <header className="h-12 bg-white border-b border-border flex items-center px-4 gap-3 shrink-0">
         <div className="flex items-center gap-2">
@@ -388,7 +179,6 @@ export default function AdminPage() {
       </header>
 
       <div className="flex flex-1 min-h-0">
-
         {/* Sidebar */}
         <aside className="w-52 shrink-0 bg-white border-r border-border flex flex-col">
           <div className="px-3 pt-4 pb-2">
@@ -429,16 +219,13 @@ export default function AdminPage() {
                   <h1 className="text-sm font-semibold text-foreground">{active.name}</h1>
                   {!itemsLoading && items.length > 0 && (
                     <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full font-medium">
-                      {filteredItems.length}
-                      {search && items.length !== filteredItems.length
-                        ? ` / ${items.length}`
-                        : ""}
+                      {filteredCount}
+                      {search && items.length !== filteredCount ? ` / ${items.length}` : ""}
                     </span>
                   )}
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">
-                  {/* Search */}
                   <SearchInput
                     placeholder="Search records…"
                     value={search}
@@ -470,96 +257,13 @@ export default function AdminPage() {
                     <EmptyState hasApiBase={!!API_BASE} onAdd={() => setModal({ mode: "add" })} />
                   </div>
                 ) : (
-                  <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
-                    <div ref={scrollRef} className="overflow-x-auto">
-                      <table className="border-separate border-spacing-0 text-sm whitespace-nowrap min-w-full">
-                        <thead>
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground bg-muted/40 border-b border-border w-[52px]">
-                              #
-                            </th>
-                            {cols.map((col) => (
-                              <th key={col} className="px-4 py-3 text-left text-xs font-medium text-muted-foreground bg-muted/40 border-b border-border">
-                                <button
-                                  onClick={() => {
-                                    const cur = dirFor(col);
-                                    const next = cur === "none" ? "asc" : cur === "asc" ? "desc" : "none";
-                                    handleSort(col)(next);
-                                  }}
-                                  className="flex items-center gap-1 hover:text-foreground transition-colors"
-                                >
-                                  {formatColName(col)}
-                                  {dirFor(col) === "asc" ? (
-                                    <ChevronUp className="w-3 h-3" />
-                                  ) : dirFor(col) === "desc" ? (
-                                    <ChevronDown className="w-3 h-3" />
-                                  ) : (
-                                    <ChevronsUpDown className="w-3 h-3 opacity-40" />
-                                  )}
-                                </button>
-                              </th>
-                            ))}
-                            <th className={`px-4 py-3 text-left text-xs font-medium text-muted-foreground border-b border-border w-20 ${hasRightOverflow ? "sticky right-0 bg-gray-50 border-l shadow-[-8px_0_12px_-4px_rgba(0,0,0,0.06)]" : "bg-muted/40"}`}>
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredItems.length === 0 ? (
-                            <tr>
-                              <td colSpan={cols.length + 2} className="px-4 py-10 text-center text-xs text-muted-foreground">
-                                No results for &ldquo;{search}&rdquo;
-                              </td>
-                            </tr>
-                          ) : (
-                            filteredItems.map((item, idx) => (
-                              <tr
-                                key={item.id}
-                                className={`group hover:bg-muted/30 transition-colors ${idx % 2 === 1 ? "bg-muted/10" : ""}`}
-                              >
-                                <td className="px-4 py-3 font-mono text-xs text-muted-foreground border-b border-border w-[52px]">
-                                  {String(item.id)}
-                                </td>
-                                {cols.map((col) => (
-                                  <td key={col} className="px-4 py-3 text-sm text-foreground max-w-[200px] border-b border-border">
-                                    <span className="truncate block">{formatCellValue(col, item[col], active.schema)}</span>
-                                  </td>
-                                ))}
-                                <td className={`px-4 py-3 border-b border-border transition-colors ${hasRightOverflow ? "sticky right-0 bg-white group-hover:bg-gray-50 border-l shadow-[-8px_0_12px_-4px_rgba(0,0,0,0.06)]" : ""}`}>
-                                  <div className="flex items-center gap-1">
-                                    <Button
-                                      variant="plain"
-                                      size="icon-sm"
-                                      onClick={() => setModal({ mode: "edit", data: item })}
-                                    >
-                                      <Pencil className="w-3.5 h-3.5" />
-                                    </Button>
-                                    <Button
-                                      variant="plain"
-                                      size="icon-sm"
-                                      onClick={() => handleDelete(item.id)}
-                                      className="text-destructive [&_svg]:text-destructive"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Footer */}
-                    {!search && (
-                      <div className="px-4 py-2.5 border-t border-border bg-muted/30 flex items-center">
-                        <p className="text-xs text-muted-foreground">
-                          {items.length} {items.length === 1 ? "record" : "records"}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  <ResourceTable
+                    active={active}
+                    items={items}
+                    search={search}
+                    onEdit={(item) => setModal({ mode: "edit", data: item })}
+                    onDelete={(id) => setDeleteTarget(id)}
+                  />
                 )}
               </div>
             </>
@@ -569,61 +273,14 @@ export default function AdminPage() {
 
       {/* Modal */}
       {modal && active && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setModal(null);
-          }}
-        >
-          <Modal
-            variant="content"
-            title={`${modal.mode === "add" ? "Add" : "Edit"} ${active.name}`}
-            className="w-[560px] max-w-[95vw]"
-            actionLayout="none"
-            onClose={() => setModal(null)}
-          >
-            <div className="overflow-y-auto max-h-[60vh] pr-1 pl-px py-px">
-              <Form
-                ref={formRef}
-                schema={active.schema}
-                validator={validator}
-                formData={modal.data as Record<string, unknown>}
-                onSubmit={handleSubmit}
-                disabled={saving}
-                showErrorList={false}
-                widgets={customWidgets}
-                templates={{ FieldTemplate, ButtonTemplates: { SubmitButton } }}
-                uiSchema={{
-                  "ui:submitButtonOptions": { norender: true },
-                }}
-              />
-            </div>
-            <div className="pt-4 border-t border-border flex items-center justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setModal(null)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                disabled={saving}
-                onClick={() => formRef.current?.submit()}
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
-                    Saving…
-                  </>
-                ) : modal.mode === "add" ? (
-                  "Create Record"
-                ) : (
-                  "Save Changes"
-                )}
-              </Button>
-            </div>
-          </Modal>
-        </div>
+        <RecordFormModal
+          active={active}
+          mode={modal.mode}
+          initialData={modal.data}
+          saving={saving}
+          onClose={() => setModal(null)}
+          onSubmit={handleSubmit}
+        />
       )}
 
       {deleteTarget != null && (

@@ -80,6 +80,38 @@ export const GLOBAL_BOND_ISSUERS: Record<GlobalBondIssuerId, GlobalBondIssuer> =
 
 export const TOP_PICK_ROWS = globalBondsRaw.topPickRows as GlobalBondRow[];
 export const RECOMMENDED_ISSUERS = globalBondsRaw.recommendedIssuers as GlobalBondIssuerId[];
+
+/** Table/accordion row projection of the recommended issuers — used by both
+ *  desktop (RecommendedBondsTable) and mobile (RecommendedAccordionList). */
+export type RecommendedIssuerRow = {
+  id: GlobalBondIssuerId;
+  issuer: string;
+  logo: string;
+  couponRate: string;
+  maturity: string;
+  sp: string;
+  moodys: string;
+  fitch: string;
+  estimatedYield: string;
+  alt: boolean;
+};
+
+export const RECOMMENDED_ISSUER_ROWS: RecommendedIssuerRow[] =
+  RECOMMENDED_ISSUERS.map((id, i) => {
+    const issuer = GLOBAL_BOND_ISSUERS[id];
+    return {
+      id,
+      issuer: issuer.fullName,
+      logo: issuer.logo,
+      couponRate: issuer.couponRateRange,
+      maturity: issuer.maturityRange,
+      sp: issuer.sp,
+      moodys: issuer.moodys,
+      fitch: issuer.fitch,
+      estimatedYield: issuer.estimatedYield,
+      alt: i % 2 === 0,
+    };
+  });
 export const DETAIL_RECOMMENDED_ISSUERS: GlobalBondIssuerId[] = ["meta", "microsoft", "amazon"];
 export const DETAIL_RECOMMENDED_CARDS =
   globalBondsRaw.detailRecommendedCards as DetailRecommendedCard[];
