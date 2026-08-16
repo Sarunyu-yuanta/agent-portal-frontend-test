@@ -14,20 +14,57 @@ import {
   PhoneIncomingIcon,
   PhoneOutgoingIcon,
 } from "@phosphor-icons/react";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
 import { ALLOCATION_COLORS, type SortDir } from "./client-detail-data";
 
-export function CurrentAllocationSection({ slices }: { slices: { label: string; percent: number }[] }) {
+function AllocationTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { name: string; value: number }[];
+}) {
+  if (!active || !payload?.length) return null;
+  const { name, value } = payload[0];
   return (
-    <div className="flex flex-col gap-3">
-      {/* Stacked bar */}
-      <div className="flex h-4 rounded-full overflow-hidden">
-        {slices.map((s, i) => (
-          <div key={s.label} style={{ width: `${s.percent}%`, backgroundColor: ALLOCATION_COLORS[i] }} />
-        ))}
+    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-sm">
+      <p className="text-[11px] font-semibold text-muted-foreground">{name}</p>
+      <p className="type-subtitle-2 font-bold text-foreground">{value}%</p>
+    </div>
+  );
+}
+
+export function CurrentAllocationSection({ slices }: { slices: { label: string; percent: number }[] }) {
+  const data = slices.map((s, i) => ({ name: s.label, value: s.percent, color: ALLOCATION_COLORS[i] }));
+
+  return (
+    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-center">
+      {/* Pie chart */}
+      <div className="h-[180px] shrink-0 mx-auto sm:mx-0" style={{ width: 180 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={50}
+              outerRadius={80}
+              paddingAngle={1}
+              stroke="none"
+            >
+              {data.map((d) => (
+                <Cell key={d.name} fill={d.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<AllocationTooltip />} />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
       {/* KPI tiles */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-2 flex-1 min-w-0">
         {slices.map((s, i) => (
           <div key={s.label} className="flex flex-col gap-1 rounded-xl p-3 bg-[var(--bg-default-secondary)]">
             <div className="flex items-center gap-1.5">

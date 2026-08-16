@@ -99,7 +99,7 @@ export function FixedIncomeDetail({
           <ArrowLeftIcon size={20} />
         </Button>
         <h1 className="flex-1 min-w-0 text-lg font-bold leading-[26px] text-[#101828] truncate">
-          {bond.symbol}
+          Fixed Income
         </h1>
       </div>
 

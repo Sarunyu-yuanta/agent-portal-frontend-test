@@ -128,7 +128,7 @@ export function StrategyPlaybooks() {
                     <PlaybookCard strategy={featured} noBorder />
                   </div>
                   {rest.length > 0 && (
-                    <div className="flex flex-col border-t lg:border-t-0 lg:border-l border-border lg:w-[45%] shrink-0 overflow-y-auto max-h-[306px]">
+                    <div className="flex flex-col border-t lg:border-t-0 lg:border-l border-border lg:w-[45%] shrink-0 overflow-y-auto max-h-[306px] visible-scrollbar">
                       <div className="flex flex-col divide-y divide-border">
                         {rest.map((s) => (
                           <PlaybookCardCompact key={s.id} strategy={s} noBorder />

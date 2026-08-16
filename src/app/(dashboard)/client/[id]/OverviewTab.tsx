@@ -23,12 +23,14 @@ export function OverviewTab({
   holdingsSortKey,
   holdingsSortDir,
   onSort,
+  onViewAllHoldings,
 }: {
   detail: ClientDetail;
   nbaAction: NbaAction | undefined;
   holdingsSortKey: HoldingsSortKey;
   holdingsSortDir: SortDir;
   onSort: (key: "value" | "pnlPct" | "pct", dir: SortDir) => void;
+  onViewAllHoldings?: () => void;
 }) {
   return (
     <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start pt-8">
@@ -131,7 +133,10 @@ export function OverviewTab({
         {/* Top Holdings */}
         <Card variant="default">
           <div className="flex flex-col gap-4">
-            <h6 className="type-h6 text-foreground">Top Holdings</h6>
+            <div className="flex items-center justify-between gap-2">
+              <h6 className="type-h6 text-foreground">Top Holdings</h6>
+              <Button variant="plain" size="sm" onClick={onViewAllHoldings}>ดูทั้งหมด</Button>
+            </div>
             <TopHoldingsSection
               holdings={detail.topHoldings}
               sortKey={holdingsSortKey}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, Pagination, Tag } from "@sarunyu/system-one";
 import type { TagVariant } from "@sarunyu/system-one";
 import {
@@ -221,9 +221,9 @@ function FixedIncomeCard({
 
 function TableHeader() {
   return (
-    <div className="flex h-11 items-stretch shrink-0 min-w-[1420px] bg-white">
+    <div className="flex h-11 items-stretch shrink-0 min-w-[1440px] bg-white">
       <div
-        className="flex flex-1 items-center px-3"
+        className="sticky left-0 z-[1] flex w-[160px] shrink-0 items-center px-3 bg-white group-data-[scrolled=true]/card:shadow-[4px_0_8px_-2px_rgba(0,0,0,0.1)]"
         style={headerBorderStyle({ left: true })}
       >
         <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>หุ้นกู้</span>
@@ -343,10 +343,10 @@ function BondTableRow({
           onSelect(bond);
         }
       }}
-      className="flex items-stretch shrink-0 min-w-[1420px] bg-white cursor-pointer hover:bg-[#f9fafb] transition-colors"
+      className="group flex items-stretch shrink-0 min-w-[1440px] bg-white cursor-pointer hover:bg-[#f9fafb] transition-colors"
     >
       <div
-        className="flex flex-1 items-center gap-2 px-3 py-3.5"
+        className="sticky left-0 z-[1] flex w-[160px] shrink-0 items-center gap-2 px-3 py-3.5 bg-white group-hover:bg-[#f9fafb] transition-colors group-data-[scrolled=true]/card:shadow-[4px_0_8px_-2px_rgba(0,0,0,0.1)]"
         style={border()}
       >
         <BondLogo src={BOND_LOGOS[bond.logoIdx]} logoCrop={bond.logoCrop} className="size-8 rounded" />
@@ -433,6 +433,9 @@ export function FixedIncomeTab({
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const bodyScrollRef = useRef<HTMLDivElement>(null);
+  const tableCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setIsLoading(false), 800);
@@ -535,25 +538,49 @@ export function FixedIncomeTab({
       </div>
 
       <div
-        className="hidden lg:block w-full rounded-xl overflow-hidden bg-white"
+        ref={tableCardRef}
+        className="group/card hidden lg:block w-full rounded-xl bg-white"
         style={{
           border: `1px solid ${BORDER_COLOR}`,
           boxShadow:
             "0px 0px 1px rgba(102,102,102,0.16),0px 4px 4px rgba(102,102,102,0.12)",
+          overflow: "clip",
         }}
       >
-        <div className="overflow-x-auto">
-        <div className="flex flex-col items-start min-w-[1420px]">
+        <div
+          ref={headerScrollRef}
+          className="sticky top-[60px] z-20 overflow-x-hidden bg-white rounded-t-xl"
+          style={{
+            scrollbarWidth: "none",
+            borderTop: `1px solid ${BORDER_COLOR}`,
+            borderLeft: `1px solid ${BORDER_COLOR}`,
+            borderRight: `1px solid ${BORDER_COLOR}`,
+          }}
+        >
           <TableHeader />
-          {pagedBonds.map((bond, i) => (
-            <BondTableRow
-              key={bond.id}
-              bond={bond}
-              isLast={i === pagedBonds.length - 1}
-              onSelect={onBondSelect}
-            />
-          ))}
         </div>
+        {/* Scrollable body */}
+        <div
+          ref={bodyScrollRef}
+          className="overflow-x-scroll [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-black/15 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-black/25"
+          onScroll={() => {
+            const body = bodyScrollRef.current;
+            const header = headerScrollRef.current;
+            if (header && body) header.scrollLeft = body.scrollLeft;
+            if (tableCardRef.current)
+              tableCardRef.current.dataset.scrolled = String((body?.scrollLeft ?? 0) > 0);
+          }}
+        >
+          <div className="flex flex-col min-w-[1440px]">
+            {pagedBonds.map((bond, i) => (
+              <BondTableRow
+                key={bond.id}
+                bond={bond}
+                isLast={i === pagedBonds.length - 1}
+                onSelect={onBondSelect}
+              />
+            ))}
+          </div>
         </div>
       </div>
 

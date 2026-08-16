@@ -299,6 +299,7 @@ function ClientPageInner({ id }: { id: string }) {
             setHoldingsSortKey(dir === "none" ? null : key);
             setHoldingsSortDir(dir);
           }}
+          onViewAllHoldings={() => setActiveTab("assets")}
         />
       )}
 

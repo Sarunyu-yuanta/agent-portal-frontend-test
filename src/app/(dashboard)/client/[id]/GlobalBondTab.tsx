@@ -13,6 +13,7 @@ import {
   GLOBAL_BOND_ISSUERS,
   RECOMMENDED_ISSUERS,
   TOP_PICK_ROWS,
+  getIssuerIdForBondRow,
   type GlobalBondIssuerId,
 } from "./global-bond-data";
 import { BORDER_COLOR, HEADER_TEXT_CLS, headerBorderStyle, cellBorderStyle, BondLogo } from "./fixed-income-shared";
@@ -244,7 +245,7 @@ function FactsheetButton() {
       size="xs"
       leftIcon={<FileTextIcon size={16} />}
       className="whitespace-nowrap"
-      onClick={() => {}}
+      onClick={(e) => e.stopPropagation()}
     >
       Factsheet
     </Button>
@@ -281,13 +282,37 @@ function InvestButton({ fullWidth }: { fullWidth?: boolean }) {
   );
 }
 
-function TopPickTable() {
+function TopPickTable({
+  onIssuerSelect,
+}: {
+  onIssuerSelect?: (id: GlobalBondIssuerId) => void;
+}) {
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+  const rowCellCls = "cursor-pointer transition-colors";
+
+  function handleRowClick(row: (typeof TOP_PICK_ROWS)[number]) {
+    const issuerId = getIssuerIdForBondRow(row);
+    if (issuerId) onIssuerSelect?.(issuerId);
+  }
+
+  function rowCellProps(i: number, bottom?: boolean) {
+    return {
+      onClick: () => handleRowClick(TOP_PICK_ROWS[i]),
+      onMouseEnter: () => setHoveredRow(i),
+      onMouseLeave: () => setHoveredRow(null),
+      style: {
+        ...cellBorderStyle({ bottom }),
+        backgroundColor: hoveredRow === i ? "#f9fafb" : undefined,
+      },
+    };
+  }
+
   return (
     <div
-      className="w-full rounded-xl overflow-hidden bg-white"
+      className="w-full rounded-xl overflow-hidden bg-white table-scroll"
       style={{ boxShadow: TABLE_SHADOW }}
     >
-      <div className="overflow-x-auto hide-scrollbar" style={{ scrollbarWidth: "none" }}>
+      <div className="overflow-x-auto">
         <div className="flex items-stretch min-w-[1165px]">
           {/* Bond name */}
           <div className="flex flex-col flex-1 min-w-0">
@@ -300,10 +325,8 @@ function TopPickTable() {
             {TOP_PICK_ROWS.map((row, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden"
-                style={cellBorderStyle({
-                  bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined,
-                })}
+                className={`flex items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden ${rowCellCls}`}
+                {...rowCellProps(i, i === TOP_PICK_ROWS.length - 1 ? false : undefined)}
               >
                 <BondLogo src={row.logo} className="size-8 rounded" />
                 <span className="flex-1 min-w-0 truncate text-sm leading-5 text-[#101828]">
@@ -321,10 +344,8 @@ function TopPickTable() {
             {TOP_PICK_ROWS.map((row, i) => (
               <div
                 key={i}
-                className="flex flex-1 items-center justify-center px-4 py-3 min-h-[52px]"
-                style={cellBorderStyle({
-                  bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined,
-                })}
+                className={`flex flex-1 items-center justify-center px-4 py-3 min-h-[52px] ${rowCellCls}`}
+                {...rowCellProps(i, i === TOP_PICK_ROWS.length - 1 ? false : undefined)}
               >
                 <TopPickTag />
               </div>
@@ -336,7 +357,7 @@ function TopPickTable() {
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ISIN</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className={`flex flex-1 items-center px-4 py-3.5 min-h-[52px] ${rowCellCls}`} {...rowCellProps(i, i === TOP_PICK_ROWS.length - 1 ? false : undefined)}>
                 <span className="text-sm leading-5 text-[#101828]">{row.isin}</span>
               </div>
             ))}
@@ -347,7 +368,7 @@ function TopPickTable() {
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Currency</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className={`flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px] ${rowCellCls}`} {...rowCellProps(i, i === TOP_PICK_ROWS.length - 1 ? false : undefined)}>
                 <span className="text-sm leading-5 text-[#101828]">{row.currency}</span>
               </div>
             ))}
@@ -358,7 +379,7 @@ function TopPickTable() {
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Coupon Rate</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className={`flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px] ${rowCellCls}`} {...rowCellProps(i, i === TOP_PICK_ROWS.length - 1 ? false : undefined)}>
                 <span className="text-sm leading-5 text-[#101828]">{row.couponRate}</span>
               </div>
             ))}
@@ -369,7 +390,7 @@ function TopPickTable() {
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Price</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className={`flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px] ${rowCellCls}`} {...rowCellProps(i, i === TOP_PICK_ROWS.length - 1 ? false : undefined)}>
                 <span className="text-sm leading-5 text-[#101828]">{row.price}</span>
               </div>
             ))}
@@ -380,7 +401,7 @@ function TopPickTable() {
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ผลตอบแทน</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className={`flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px] ${rowCellCls}`} {...rowCellProps(i, i === TOP_PICK_ROWS.length - 1 ? false : undefined)}>
                 <span className="text-sm leading-5 text-[#101828]">{row.yieldPct}</span>
               </div>
             ))}
@@ -391,7 +412,7 @@ function TopPickTable() {
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className={`flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px] ${rowCellCls}`} {...rowCellProps(i, i === TOP_PICK_ROWS.length - 1 ? false : undefined)}>
                 <span className="text-sm leading-5 text-[#101828]">{row.maturity}</span>
               </div>
             ))}
@@ -402,28 +423,19 @@ function TopPickTable() {
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ระยะเวลา (ปี)</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className={`flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px] ${rowCellCls}`} {...rowCellProps(i, i === TOP_PICK_ROWS.length - 1 ? false : undefined)}>
                 <span className="text-sm leading-5 text-[#101828]">{row.duration}</span>
               </div>
             ))}
           </div>
           {/* Factsheet */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-3" style={headerBorderStyle()}>
+            <div className="flex h-11 items-center justify-center px-3" style={headerBorderStyle({ right: false })}>
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>เอกสาร</span>
             </div>
             {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-center px-3 py-[11px] min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
+              <div key={i} className={`flex flex-1 items-center justify-center px-3 py-[11px] min-h-[52px] ${rowCellCls}`} {...rowCellProps(i, i === TOP_PICK_ROWS.length - 1 ? false : undefined)}>
                 <FactsheetButton />
-              </div>
-            ))}
-          </div>
-          {/* Action */}
-          <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorderStyle({ right: false })} />
-            {TOP_PICK_ROWS.map((row, i) => (
-              <div key={i} className="flex flex-1 items-center justify-center px-4 py-[11px] min-h-[52px]" style={cellBorderStyle({ bottom: i === TOP_PICK_ROWS.length - 1 ? false : undefined })}>
-                <InvestButton />
               </div>
             ))}
           </div>
@@ -434,13 +446,28 @@ function TopPickTable() {
 }
 
 function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: GlobalBondIssuerId) => void }) {
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+
+  function rowCellProps(i: number, bottom?: boolean) {
+    const row = RECOMMENDED_ROWS[i];
+    return {
+      onClick: () => onIssuerSelect?.(row.id),
+      onMouseEnter: () => setHoveredRow(i),
+      onMouseLeave: () => setHoveredRow(null),
+      style: {
+        ...cellBorderStyle({ bottom }),
+        backgroundColor: hoveredRow === i ? "#f3f4f6" : row.alt ? "#f9fafb" : "white",
+      },
+    };
+  }
+
   return (
     <div
-      className="w-full rounded-xl overflow-hidden bg-white"
+      className="w-full rounded-xl overflow-hidden bg-white table-scroll"
       style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW }}
     >
-      <div className="overflow-x-auto hide-scrollbar" style={{ scrollbarWidth: "none" }}>
-        <div className="flex items-stretch min-w-[1165px]">
+      <div className="overflow-x-auto">
+        <div className="flex items-stretch">
           {/* Issuer */}
           <div className="flex flex-col w-[296px] shrink-0">
             <div className="flex h-11 items-center px-4" style={headerBorderStyle({ left: true })}>
@@ -449,11 +476,8 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
-                className="flex flex-1 items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden"
-                style={{
-                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
-                  backgroundColor: row.alt ? "#f9fafb" : "white",
-                }}
+                className="flex flex-1 items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden cursor-pointer transition-colors"
+                {...rowCellProps(i, i === RECOMMENDED_ROWS.length - 1 ? false : undefined)}
               >
                 <BondLogo src={row.logo} className="size-8 rounded" />
                 <span className="flex-1 min-w-0 text-sm font-bold leading-5 text-[#101828] truncate">{row.issuer}</span>
@@ -461,18 +485,15 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
             ))}
           </div>
           {/* Coupon Rate */}
-          <div className="flex flex-col flex-1 min-w-[100px]">
+          <div className="flex flex-col w-[120px] shrink-0">
             <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle()}>
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Coupon Rate</span>
             </div>
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
-                className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]"
-                style={{
-                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
-                  backgroundColor: row.alt ? "#f9fafb" : "white",
-                }}
+                className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px] cursor-pointer transition-colors"
+                {...rowCellProps(i, i === RECOMMENDED_ROWS.length - 1 ? false : undefined)}
               >
                 <span className="text-sm leading-5 text-[#101828] text-center">{row.couponRate}</span>
               </div>
@@ -486,11 +507,8 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
-                className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]"
-                style={{
-                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
-                  backgroundColor: row.alt ? "#f9fafb" : "white",
-                }}
+                className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px] cursor-pointer transition-colors"
+                {...rowCellProps(i, i === RECOMMENDED_ROWS.length - 1 ? false : undefined)}
               >
                 <span className="text-sm leading-5 text-[#101828] text-center">{row.maturity}</span>
               </div>
@@ -517,11 +535,8 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
-                className="flex flex-1 items-stretch min-h-[52px]"
-                style={{
-                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
-                  backgroundColor: row.alt ? "#f9fafb" : "white",
-                }}
+                className="flex flex-1 items-stretch min-h-[52px] cursor-pointer transition-colors"
+                {...rowCellProps(i, i === RECOMMENDED_ROWS.length - 1 ? false : undefined)}
               >
                 <div className="flex flex-1 items-center justify-center px-4 py-3.5">
                   <span className="text-sm leading-5 text-[#101828] text-center">{row.sp}</span>
@@ -537,35 +552,16 @@ function RecommendedBondsTable({ onIssuerSelect }: { onIssuerSelect?: (id: Globa
           </div>
           {/* Yield */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle()}>
+            <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle({ right: false })}>
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ผลตอบแทนโดยประมาณ</span>
             </div>
             {RECOMMENDED_ROWS.map((row, i) => (
               <div
                 key={i}
-                className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
-                style={{
-                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
-                  backgroundColor: row.alt ? "#f9fafb" : "white",
-                }}
+                className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px] cursor-pointer transition-colors"
+                {...rowCellProps(i, i === RECOMMENDED_ROWS.length - 1 ? false : undefined)}
               >
                 <span className="text-sm leading-5 text-[#101828] text-center">{row.estimatedYield}</span>
-              </div>
-            ))}
-          </div>
-          {/* View info */}
-          <div className="flex flex-col w-[129px] shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorderStyle({ right: false })} />
-            {RECOMMENDED_ROWS.map((row, i) => (
-              <div
-                key={i}
-                className="flex flex-1 items-center justify-center px-4 py-3 min-h-[52px]"
-                style={{
-                  ...cellBorderStyle({ bottom: i === RECOMMENDED_ROWS.length - 1 ? false : undefined }),
-                  backgroundColor: row.alt ? "#f9fafb" : "white",
-                }}
-              >
-                <ViewInfoButton onClick={() => onIssuerSelect?.(row.id)} />
               </div>
             ))}
           </div>
@@ -614,7 +610,7 @@ export function GlobalBondTab({
             <FireIcon size={16} weight="fill" color="#f97316" className="shrink-0" />
             <span className="text-sm font-bold leading-5 text-[#101828]">Top pick</span>
           </div>
-          <TopPickTable />
+          <TopPickTable onIssuerSelect={onIssuerSelect} />
         </div>
         <div className="flex flex-col gap-4 w-full">
           <div className="flex items-end justify-between w-full gap-3">

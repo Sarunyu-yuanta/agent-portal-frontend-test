@@ -14,6 +14,8 @@ import {
   type AssetAllocationSlice,
   type AssetHeroSummary,
 } from "@/components/AssetSummarySection";
+import { DetailDrawer } from "@/components/ui/detail-drawer";
+import { HoldingDetailContent } from "@/components/HoldingDetailContent";
 import {
   DEFAULT_ASSET_ACCOUNTS,
   getAssetAccountDetail,
@@ -152,6 +154,7 @@ function AssetAccountCard({
   open: controlledOpen,
   onToggle,
   onClick,
+  selected,
 }: {
   account: AssetAccountItem;
   viewMode: AssetListViewMode;
@@ -159,6 +162,10 @@ function AssetAccountCard({
   open?: boolean;
   onToggle?: () => void;
   onClick?: () => void;
+  /** Highlights the card as the active selection — used by the desktop
+   * list+detail layout, where clicking a row opens its detail in the side
+   * panel instead of expanding inline. */
+  selected?: boolean;
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -170,10 +177,16 @@ function AssetAccountCard({
     : null;
 
   return (
-    <div className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg overflow-hidden w-full">
+    <div
+      className={`bg-white border rounded-lg overflow-hidden w-full transition-colors ${
+        selected ? "border-[color:var(--primary-action)]/50" : "border-[rgba(0,0,0,0.1)]"
+      }`}
+    >
       <button
         type="button"
-        className="flex gap-2 items-center p-3 w-full cursor-pointer hover:bg-[var(--bg-default-secondary)] transition-colors text-left"
+        className={`flex gap-2 items-center p-3 w-full cursor-pointer transition-colors text-left ${
+          selected ? "bg-primary-action-light" : "hover:bg-[var(--bg-default-secondary)]"
+        }`}
         onClick={accordion ? toggleOpen : onClick}
       >
         <div className="flex flex-1 gap-2 items-center min-w-0">
@@ -220,13 +233,44 @@ function AssetAccountCard({
             className={`text-[var(--text-default-tertiary)] shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           />
         ) : (
-          <CaretRightIcon size={20} className="text-[var(--text-default-tertiary)] shrink-0" />
+          <CaretRightIcon
+            size={20}
+            className={`shrink-0 transition-colors ${selected ? "text-primary-action" : "text-[var(--text-default-tertiary)]"}`}
+          />
         )}
       </button>
 
       {accordion && open && detail && (
         <InnerAccordion detail={detail} />
       )}
+    </div>
+  );
+}
+
+/** Header row shown at the top of the asset detail drawer — icon, name,
+ * account number, and value, matching the row that was clicked. */
+function AssetDetailDrawerHeader({ item }: { item: AssetAccountItem }) {
+  return (
+    <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border-default)] shrink-0">
+      <span className="relative shrink-0 size-2">
+        <img alt="" className="block size-full max-w-none" src={item.statusIcon} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="type-subtitle-2 font-bold text-[var(--text-default-primary)] truncate leading-5">
+          {item.name}
+        </p>
+        <p className="type-caption text-[var(--text-default-tertiary)] truncate leading-4">
+          {item.accountNo}
+        </p>
+      </div>
+      <div className="flex gap-1 items-center whitespace-nowrap shrink-0">
+        <p className="type-subtitle-2 font-bold text-[var(--text-default-primary)] leading-5">
+          {item.value}
+        </p>
+        <p className="type-body-2 text-[var(--text-default-tertiary)] leading-5">THB</p>
+      </div>
+      {/* Reserves space for the drawer's own absolute close button */}
+      <div className="w-8 shrink-0" />
     </div>
   );
 }
@@ -323,6 +367,9 @@ export function ClientAssetSidebarContent({
 }) {
   const [viewMode, setViewMode] = useState<AssetListViewMode>("product");
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  // Desktop list+detail layout (accordionCards): key of the row whose detail
+  // is shown in the side panel, or null to show the summary there instead.
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const detail = mockClientDetails[clientId];
   const summary = heroSummary ?? detail?.assetSummary ?? buildHeroSummaryFromClient(client);
 
@@ -357,11 +404,19 @@ export function ClientAssetSidebarContent({
     setExpandedCards(allExpanded ? new Set() : new Set(cardKeys));
 
   if (accordionCards) {
+    const selectedIndex = cardKeys.findIndex((k) => k === selectedKey);
+    const selectedItem = selectedIndex >= 0 ? listItems[selectedIndex] : null;
+    const selectedDetail = selectedItem
+      ? viewMode === "account"
+        ? getAssetAccountDetail(selectedItem.accountNo)
+        : getAssetProductDetail(selectedItem.name)
+      : null;
+
     return (
       <div className="w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Left: Summary */}
-          <div className="flex flex-col gap-2 lg:sticky lg:top-24">
+        {/* Mobile / tablet — stacked, tap-to-expand-inline (no room for a side panel) */}
+        <div className="lg:hidden flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
             <HeroCard summary={summary} />
             <LiabilitiesBar
               amount={liabilitiesAmount}
@@ -370,7 +425,6 @@ export function ClientAssetSidebarContent({
             <LastUpdated summary={summary} />
           </div>
 
-          {/* Right: Asset list */}
           <div className="flex flex-col gap-4 bg-white rounded-2xl border border-border p-3 md:p-4">
             <AssetListHeader
               viewMode={viewMode}
@@ -393,16 +447,68 @@ export function ClientAssetSidebarContent({
                     key={cardKeys[i]}
                     account={item}
                     viewMode={viewMode}
-                    accordion={accordionCards}
+                    accordion
                     open={expandedCards.has(cardKeys[i])}
                     onToggle={() => toggleCard(cardKeys[i])}
-                    onClick={() => onItemClick?.(item, viewMode)}
                   />
                 ))}
               </div>
             </div>
           </div>
         </div>
+
+        {/* Desktop — list on the left (60%), summary sticky on the right (40%).
+            Clicking a row opens its detail in a drawer sliding in from the
+            right, so the net-value card up top is never covered. */}
+        <div className="hidden lg:grid grid-cols-[3fr_2fr] gap-6 items-start">
+          <div className="flex flex-col gap-4 bg-white rounded-2xl border border-border p-4">
+            <AssetListHeader
+              viewMode={viewMode}
+              onViewModeChange={(mode) => { setViewMode(mode); setSelectedKey(null); }}
+            />
+            <div className="flex flex-col gap-4">
+              <AllocationBreakdownSidebar slices={slices} />
+              <div className="flex flex-col gap-3">
+                {listItems.map((item, i) => (
+                  <AssetAccountCard
+                    key={cardKeys[i]}
+                    account={item}
+                    viewMode={viewMode}
+                    selected={selectedKey === cardKeys[i]}
+                    onClick={() => setSelectedKey(cardKeys[i])}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="sticky top-24 flex flex-col gap-2">
+            <HeroCard summary={summary} />
+            <LiabilitiesBar
+              amount={liabilitiesAmount}
+              onClick={() => onLiabilitiesOpen?.(liabilitiesAmount, liabilitiesDetail)}
+            />
+            <LastUpdated summary={summary} />
+          </div>
+        </div>
+
+        {/* Asset detail drawer — same right-side drawer style used across the
+            dashboard (client / product / nine-box detail drawers). */}
+        <DetailDrawer
+          size="narrow"
+          className="overflow-hidden flex flex-col"
+          open={selectedItem !== null}
+          onOpenChange={(open) => { if (!open) setSelectedKey(null); }}
+        >
+          {selectedItem && selectedDetail && (
+            <>
+              <AssetDetailDrawerHeader item={selectedItem} />
+              <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar">
+                <HoldingDetailContent detail={selectedDetail} />
+              </div>
+            </>
+          )}
+        </DetailDrawer>
       </div>
     );
   }

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Button } from "@sarunyu/system-one";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Button, Pagination } from "@sarunyu/system-one";
 import {
   ArrowLeftIcon,
-  CaretDoubleDownIcon,
+  ArrowSquareOutIcon,
   CaretDownIcon,
   CaretUpIcon,
   FileTextIcon,
@@ -13,7 +13,6 @@ import {
 import {
   ALL_OVERSEAS_BONDS,
   ALL_OVERSEAS_BONDS_COUNT,
-  ALL_OVERSEAS_BONDS_PAGE_SIZE,
   ALL_OVERSEAS_BONDS_UPDATED_AT,
   filterAllOverseasBonds,
   type CouponFilter,
@@ -26,6 +25,7 @@ import { BORDER_COLOR, HEADER_TEXT_CLS, headerBorderStyle, cellBorderStyle, Bond
 
 const BONDS_COL_MIN_CLS = "min-w-[400px]";
 const TABLE_SHADOW = "0px 0px 2px rgba(102,102,102,0.16), 0px 4px 8px rgba(102,102,102,0.12)";
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 const TICKER_OPTIONS: { id: TickerFilter; label: string }[] = [
   { id: "all", label: "All Ticker" },
@@ -303,6 +303,23 @@ function FactsheetButton() {
   );
 }
 
+function InvestButton() {
+  return (
+    <Button
+      variant="primary"
+      size="xs"
+      rightIcon={<ArrowSquareOutIcon size={16} />}
+      className="whitespace-nowrap"
+      onClick={(e) => {
+        e.stopPropagation();
+        window.open("https://placeholder.example.com/create-order", "_blank", "noopener,noreferrer");
+      }}
+    >
+      สร้างคำสั่งซื้อ
+    </Button>
+  );
+}
+
 function BondCheckbox() {
   return (
     <div className="relative flex size-6 shrink-0 items-center justify-center">
@@ -315,6 +332,10 @@ function BondCheckbox() {
 }
 
 function AllBondsTable({ bonds }: { bonds: GlobalBondRow[] }) {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const bodyScrollRef = useRef<HTMLDivElement>(null);
+
   if (bonds.length === 0) {
     return (
       <div
@@ -326,155 +347,111 @@ function AllBondsTable({ bonds }: { bonds: GlobalBondRow[] }) {
     );
   }
 
+  function handleBodyScroll(e: React.UIEvent<HTMLDivElement>) {
+    const left = e.currentTarget.scrollLeft;
+    if (headerScrollRef.current) headerScrollRef.current.scrollLeft = left;
+    setIsScrolled(left > 0);
+  }
+
+  const stickyColCls = `sticky left-0 z-[1] bg-white${isScrolled ? " shadow-[2px_0_4px_rgba(0,0,0,0.06)]" : ""}`;
+
   return (
     <div
-      className="w-full rounded-xl overflow-hidden bg-white"
-      style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW }}
+      className="w-full rounded-xl bg-white"
+      style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW, overflow: "clip" }}
     >
-      <div className="overflow-x-auto hide-scrollbar" style={{ scrollbarWidth: "none" }}>
-        <div className="flex items-stretch min-w-[1400px]">
-          <div className={`flex flex-col w-[400px] shrink-0 ${BONDS_COL_MIN_CLS}`}>
-            <div className="flex h-11 items-center px-4" style={headerBorderStyle({ left: true })}>
-              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Bonds</span>
-            </div>
-            {bonds.map((row, i) => (
-              <div
-                key={row.id}
-                className="flex items-center gap-2 min-w-0 px-4 py-3.5 min-h-[52px] overflow-hidden"
-                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
-              >
-                <IssuerLogo src={row.logo} />
-                <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
-                  <span className="min-w-0 truncate text-sm leading-5 text-[#101828]">{row.name}</span>
-                  {row.topPick && <TopPickTag />}
+      {/* Sticky header — pinned to the top of the page scroll; its own
+          horizontal scroll is hidden and driven programmatically to stay in
+          sync with the body below. */}
+      <div
+        ref={headerScrollRef}
+        className="sticky top-0 z-10 overflow-x-hidden bg-white"
+        style={{ scrollbarWidth: "none" }}
+      >
+        <div className="flex items-stretch">
+          <div className={`flex h-11 shrink-0 items-center w-[400px] ${BONDS_COL_MIN_CLS} px-4 ${stickyColCls}`} style={headerBorderStyle({ left: true })}>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Bonds</span>
+          </div>
+          <div className="flex h-11 shrink-0 items-center w-[138px] px-4" style={headerBorderStyle()}>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ISIN</span>
+          </div>
+          <div className="flex h-11 shrink-0 items-center justify-center w-[80px] px-4" style={headerBorderStyle()}>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Currency</span>
+          </div>
+          <div className="flex h-11 shrink-0 items-center justify-end w-[128px] px-4" style={headerBorderStyle()}>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Coupon Rate</span>
+          </div>
+          <div className="flex h-11 shrink-0 items-center justify-end w-[81px] px-4" style={headerBorderStyle()}>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Price</span>
+          </div>
+          <div className="flex h-11 shrink-0 items-center justify-end w-[180px] px-4" style={headerBorderStyle()}>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ผลตอบแทนโดยประมาณ</span>
+          </div>
+          <div className="flex h-11 shrink-0 items-center justify-center w-[122px] px-4" style={headerBorderStyle()}>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
+          </div>
+          <div className="flex h-11 shrink-0 items-center justify-end w-[112px] px-4" style={headerBorderStyle()}>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ระยะเวลา (ปี)</span>
+          </div>
+          <div className="flex h-11 shrink-0 items-center justify-center w-[122px] px-3" style={headerBorderStyle()}>
+            <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>เอกสาร</span>
+          </div>
+          <div className="flex h-11 shrink-0 items-center justify-center w-[138px] px-4" style={headerBorderStyle({ right: false })} />
+        </div>
+      </div>
+
+      {/* Scrollable body — the only element that shows a (default-styled)
+          native horizontal scrollbar, spanning the full width of the table. */}
+      <div
+        ref={bodyScrollRef}
+        className="overflow-x-scroll [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-black/15 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-black/25"
+        onScroll={handleBodyScroll}
+      >
+        <div className="flex flex-col">
+          {bonds.map((row, i) => {
+            const border = cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined });
+            return (
+              <div key={row.id} className="flex items-stretch">
+                <div
+                  className={`flex items-center gap-2 min-w-0 w-[400px] ${BONDS_COL_MIN_CLS} shrink-0 px-4 py-3.5 h-[65px] overflow-hidden ${stickyColCls}`}
+                  style={border}
+                >
+                  <IssuerLogo src={row.logo} />
+                  <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+                    <span className="min-w-0 truncate text-sm leading-5 text-[#101828]">{row.name}</span>
+                    {row.topPick && <TopPickTag />}
+                  </div>
+                </div>
+                <div className="flex items-center w-[138px] shrink-0 px-4 py-3.5 h-[65px]" style={border}>
+                  <span className="text-sm leading-5 text-[#101828]">{row.isin}</span>
+                </div>
+                <div className="flex items-center justify-center w-[80px] shrink-0 px-4 py-3.5 h-[65px]" style={border}>
+                  <span className="text-sm leading-5 text-[#101828]">{row.currency}</span>
+                </div>
+                <div className="flex items-center justify-end w-[128px] shrink-0 px-4 py-3.5 h-[65px]" style={border}>
+                  <span className="text-sm leading-5 text-[#101828]">{row.couponRate}</span>
+                </div>
+                <div className="flex items-center justify-end w-[81px] shrink-0 px-4 py-3.5 h-[65px]" style={border}>
+                  <span className="text-sm leading-5 text-[#101828]">{row.price}</span>
+                </div>
+                <div className="flex items-center justify-end w-[180px] shrink-0 px-4 py-3.5 h-[65px]" style={border}>
+                  <span className="text-sm leading-5 text-[#101828]">{row.yieldPct}</span>
+                </div>
+                <div className="flex items-center justify-center w-[122px] shrink-0 px-4 py-3.5 h-[65px]" style={border}>
+                  <span className="text-sm leading-5 text-[#101828]">{row.maturity}</span>
+                </div>
+                <div className="flex items-center justify-end w-[112px] shrink-0 px-4 py-3.5 h-[65px]" style={border}>
+                  <span className="text-sm leading-5 text-[#101828]">{row.duration}</span>
+                </div>
+                <div className="flex items-center justify-center w-[122px] shrink-0 px-3 py-[11px] h-[65px]" style={border}>
+                  <FactsheetButton />
+                </div>
+                <div className="flex items-center justify-center w-[138px] shrink-0 px-4 py-3 h-[65px]" style={border}>
+                  <InvestButton />
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="flex flex-col w-[138px] shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorderStyle()}>
-              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ISIN</span>
-            </div>
-            {bonds.map((row, i) => (
-              <div
-                key={row.id}
-                className="flex flex-1 items-center px-4 py-3.5 min-h-[52px]"
-                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
-              >
-                <span className="text-sm leading-5 text-[#101828]">{row.isin}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col w-[80px] shrink-0">
-            <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle()}>
-              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Currency</span>
-            </div>
-            {bonds.map((row, i) => (
-              <div
-                key={row.id}
-                className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]"
-                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
-              >
-                <span className="text-sm leading-5 text-[#101828]">{row.currency}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
-              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Coupon Rate</span>
-            </div>
-            {bonds.map((row, i) => (
-              <div
-                key={row.id}
-                className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
-                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
-              >
-                <span className="text-sm leading-5 text-[#101828]">{row.couponRate}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col w-[81px] shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
-              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Price</span>
-            </div>
-            {bonds.map((row, i) => (
-              <div
-                key={row.id}
-                className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
-                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
-              >
-                <span className="text-sm leading-5 text-[#101828]">{row.price}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
-              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ผลตอบแทนโดยประมาณ</span>
-            </div>
-            {bonds.map((row, i) => (
-              <div
-                key={row.id}
-                className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
-                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
-              >
-                <span className="text-sm leading-5 text-[#101828]">{row.yieldPct}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-4" style={headerBorderStyle()}>
-              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>วันครบกำหนด</span>
-            </div>
-            {bonds.map((row, i) => (
-              <div
-                key={row.id}
-                className="flex flex-1 items-center justify-center px-4 py-3.5 min-h-[52px]"
-                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
-              >
-                <span className="text-sm leading-5 text-[#101828]">{row.maturity}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-end px-4" style={headerBorderStyle()}>
-              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ระยะเวลา (ปี)</span>
-            </div>
-            {bonds.map((row, i) => (
-              <div
-                key={row.id}
-                className="flex flex-1 items-center justify-end px-4 py-3.5 min-h-[52px]"
-                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
-              >
-                <span className="text-sm leading-5 text-[#101828]">{row.duration}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-3" style={headerBorderStyle()}>
-              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>เอกสาร</span>
-            </div>
-            {bonds.map((row, i) => (
-              <div
-                key={row.id}
-                className="flex flex-1 items-center justify-center px-3 py-[11px] min-h-[52px]"
-                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
-              >
-                <FactsheetButton />
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorderStyle({ right: false })} />
-            {bonds.map((row, i) => (
-              <div
-                key={row.id}
-                className="flex flex-1 items-center justify-center px-4 py-3 min-h-[52px]"
-                style={cellBorderStyle({ bottom: i === bonds.length - 1 ? false : undefined })}
-              >
-                <BondCheckbox />
-              </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -486,7 +463,8 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
   const [couponFilter, setCouponFilter] = useState<CouponFilter>("all");
   const [yieldFilter, setYieldFilter] = useState<YieldFilter>("all");
   const [maturityFilter, setMaturityFilter] = useState<MaturityFilter>("all");
-  const [visibleCount, setVisibleCount] = useState(ALL_OVERSEAS_BONDS_PAGE_SIZE);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const updatedAtMobile = formatUpdatedAtMobile(ALL_OVERSEAS_BONDS_UPDATED_AT);
@@ -504,11 +482,6 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
     [tickerFilter, couponFilter, yieldFilter, maturityFilter],
   );
 
-  const visibleBonds = useMemo(
-    () => filteredBonds.slice(0, visibleCount),
-    [filteredBonds, visibleCount],
-  );
-
   const hasActiveFilters =
     tickerFilter !== "all" ||
     couponFilter !== "all" ||
@@ -516,18 +489,24 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
     maturityFilter !== "all";
 
   const displayCount = hasActiveFilters ? filteredBonds.length : ALL_OVERSEAS_BONDS_COUNT;
-  const canLoadMore = visibleCount < filteredBonds.length;
+  const totalPages = Math.max(1, Math.ceil(filteredBonds.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+
+  const pagedBonds = useMemo(
+    () => filteredBonds.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [filteredBonds, safePage, pageSize],
+  );
 
   const clearFilters = () => {
     setTickerFilter("all");
     setCouponFilter("all");
     setYieldFilter("all");
     setMaturityFilter("all");
-    setVisibleCount(ALL_OVERSEAS_BONDS_PAGE_SIZE);
+    setCurrentPage(1);
   };
 
   useEffect(() => {
-    setVisibleCount(ALL_OVERSEAS_BONDS_PAGE_SIZE);
+    setCurrentPage(1);
   }, [tickerFilter, couponFilter, yieldFilter, maturityFilter]);
 
   useEffect(() => {
@@ -669,20 +648,45 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
             </span>
           </div>
           <div className="w-full lg:hidden">
-            <AllBondsAccordionList bonds={visibleBonds} />
+            <AllBondsAccordionList bonds={pagedBonds} />
           </div>
           <div className="hidden w-full lg:block">
-            <AllBondsTable bonds={visibleBonds} />
+            <AllBondsTable bonds={pagedBonds} />
           </div>
-          {canLoadMore && (
-            <button
-              type="button"
-              onClick={() => setVisibleCount((c) => c + ALL_OVERSEAS_BONDS_PAGE_SIZE)}
-              className="inline-flex items-center gap-0.5 rounded-md py-1.5 pl-2 pr-2.5 text-sm font-semibold leading-5 text-[#0a6ee7] cursor-pointer"
-            >
-              <CaretDoubleDownIcon size={18} className="shrink-0" />
-              ดูเพิ่มเติม
-            </button>
+          {filteredBonds.length > 0 && (
+            <div className="flex w-full flex-wrap-reverse items-center justify-end gap-3">
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-[#6a7282] whitespace-nowrap">Show per page</p>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="rounded-md border border-[rgba(0,0,0,0.08)] bg-white px-2 py-1 text-xs text-[#101828] cursor-pointer focus:outline-none"
+                >
+                  {PAGE_SIZE_OPTIONS.map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <p className="text-xs text-[#6a7282] whitespace-nowrap">
+                  Showing{" "}
+                  <span className="font-medium text-[#101828]">
+                    {(safePage - 1) * pageSize + 1}
+                  </span>
+                  {" – "}
+                  <span className="font-medium text-[#101828]">
+                    {Math.min(safePage * pageSize, filteredBonds.length)}
+                  </span>
+                  {" of "}
+                  <span className="font-medium text-[#101828]">{filteredBonds.length}</span>{" "}
+                  items
+                </p>
+                <Pagination totalPages={totalPages} currentPage={safePage} onPageChange={setCurrentPage} />
+              </div>
+            </div>
           )}
         </div>
       </div>

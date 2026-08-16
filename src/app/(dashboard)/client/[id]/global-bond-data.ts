@@ -65,6 +65,14 @@ export type DetailRecommendedCard = {
 
 export const GLOBAL_BOND_LOGOS = globalBondsRaw.logos as Record<GlobalBondIssuerId, string>;
 
+const ISSUER_ID_BY_LOGO: Partial<Record<string, GlobalBondIssuerId>> = Object.fromEntries(
+  Object.entries(GLOBAL_BOND_LOGOS).map(([id, logo]) => [logo, id as GlobalBondIssuerId]),
+);
+
+export function getIssuerIdForBondRow(row: GlobalBondRow): GlobalBondIssuerId | undefined {
+  return ISSUER_ID_BY_LOGO[row.logo];
+}
+
 export const GLOBAL_BOND_ISSUERS: Record<GlobalBondIssuerId, GlobalBondIssuer> =
   Object.fromEntries(
     (globalBondsRaw.issuers as GlobalBondIssuer[]).map((issuer) => [issuer.id, issuer]),
@@ -78,7 +86,6 @@ export const DETAIL_RECOMMENDED_CARDS =
 
 export const ALL_OVERSEAS_BONDS_COUNT = globalBondsRaw.meta.allOverseasBondsCount;
 export const ALL_OVERSEAS_BONDS_UPDATED_AT = globalBondsRaw.meta.allOverseasBondsUpdatedAt;
-export const ALL_OVERSEAS_BONDS_PAGE_SIZE = globalBondsRaw.meta.allOverseasBondsPageSize;
 
 export const ALL_OVERSEAS_BONDS: GlobalBondRow[] = Array.from(
   { length: ALL_OVERSEAS_BONDS_COUNT },
