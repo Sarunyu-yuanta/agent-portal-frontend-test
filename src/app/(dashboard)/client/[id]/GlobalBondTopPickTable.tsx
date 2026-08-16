@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { TOP_PICK_ROWS, getIssuerIdForBondRow, type GlobalBondIssuerId } from "./global-bond-data";
 import {
+  BORDER_COLOR,
   HEADER_TEXT_CLS,
-  TABLE_SHADOW,
+  TABLE_SHADOW_SM,
   headerBorderStyle,
   cellBorderStyle,
   BondLogo,
@@ -41,7 +42,7 @@ export function GlobalBondTopPickTable({
   return (
     <div
       className="w-full rounded-xl overflow-hidden bg-white table-scroll"
-      style={{ boxShadow: TABLE_SHADOW }}
+      style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW_SM }}
     >
       <div className="overflow-x-auto">
         <div className="flex items-stretch min-w-[1165px]">
@@ -49,7 +50,7 @@ export function GlobalBondTopPickTable({
           <div className="flex flex-col flex-1 min-w-0">
             <div
               className="flex h-11 items-center px-4"
-              style={headerBorderStyle({ left: true, right: false })}
+              style={headerBorderStyle({ right: false })}
             >
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>Top pick</span>
             </div>

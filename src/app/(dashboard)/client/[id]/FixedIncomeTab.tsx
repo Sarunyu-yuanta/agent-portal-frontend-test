@@ -25,7 +25,8 @@ import {
 import {
   BORDER_COLOR,
   HEADER_TEXT_CLS,
-  TABLE_SHADOW_SM,
+  SCROLLABLE_TABLE_BODY_CLS,
+  TABLE_CARD_STYLE,
   headerBorderStyle,
   cellBorderStyle,
   ACTION_LABELS,
@@ -225,7 +226,7 @@ function TableHeader() {
     <div className="flex h-11 items-stretch shrink-0 min-w-[1440px] bg-white">
       <div
         className="sticky left-0 z-[1] flex w-[160px] shrink-0 items-center px-3 bg-white group-data-[scrolled=true]/card:shadow-[4px_0_8px_-2px_rgba(0,0,0,0.1)]"
-        style={headerBorderStyle({ left: true })}
+        style={headerBorderStyle()}
       >
         <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>หุ้นกู้</span>
       </div>
@@ -541,28 +542,19 @@ export function FixedIncomeTab({
       <div
         ref={tableCardRef}
         className="group/card hidden lg:block w-full rounded-xl bg-white"
-        style={{
-          border: `1px solid ${BORDER_COLOR}`,
-          boxShadow: TABLE_SHADOW_SM,
-          overflow: "clip",
-        }}
+        style={TABLE_CARD_STYLE}
       >
         <div
           ref={headerScrollRef}
           className="sticky top-[60px] z-20 overflow-x-hidden bg-white rounded-t-xl"
-          style={{
-            scrollbarWidth: "none",
-            borderTop: `1px solid ${BORDER_COLOR}`,
-            borderLeft: `1px solid ${BORDER_COLOR}`,
-            borderRight: `1px solid ${BORDER_COLOR}`,
-          }}
+          style={{ scrollbarWidth: "none" }}
         >
           <TableHeader />
         </div>
         {/* Scrollable body */}
         <div
           ref={bodyScrollRef}
-          className="overflow-x-scroll [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-black/15 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-black/25"
+          className={SCROLLABLE_TABLE_BODY_CLS}
           onScroll={() => {
             const body = bodyScrollRef.current;
             const header = headerScrollRef.current;

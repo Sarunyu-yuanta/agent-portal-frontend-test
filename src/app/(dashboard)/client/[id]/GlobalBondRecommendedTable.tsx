@@ -8,7 +8,7 @@ import {
 import {
   BORDER_COLOR,
   HEADER_TEXT_CLS,
-  TABLE_SHADOW,
+  TABLE_SHADOW_SM,
   headerBorderStyle,
   cellBorderStyle,
   BondLogo,
@@ -39,13 +39,13 @@ export function GlobalBondRecommendedTable({
   return (
     <div
       className="w-full rounded-xl overflow-hidden bg-white table-scroll"
-      style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW }}
+      style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW_SM }}
     >
       <div className="overflow-x-auto">
         <div className="flex items-stretch">
           {/* Issuer */}
           <div className="flex flex-col w-[296px] shrink-0">
-            <div className="flex h-11 items-center px-4" style={headerBorderStyle({ left: true })}>
+            <div className="flex h-11 items-center px-4" style={headerBorderStyle()}>
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>ผู้ออกตราสาร</span>
             </div>
             {RECOMMENDED_ISSUER_ROWS.map((row, i) => (

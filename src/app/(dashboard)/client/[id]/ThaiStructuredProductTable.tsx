@@ -5,12 +5,17 @@ import { Pagination } from "@sarunyu/system-one";
 import {
   BORDER_COLOR,
   HEADER_TEXT_CLS,
-  headerBorderStyle,
+  SCROLLABLE_TABLE_BODY_CLS,
+  TABLE_CARD_STYLE,
   cellBorderStyle,
+  headerBorderStyle,
+  stickyFirstColStyle,
 } from "./fixed-income-shared";
+import { useSyncedTableScroll } from "./use-synced-table-scroll";
 import { THAI_STRUCTURED_PRODUCTS } from "./thai-structured-data";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const MIN_TABLE_WIDTH = 1290;
 
 const COLS = [
   { key: "theme", label: "Investment Theme", width: 160 },
@@ -28,9 +33,9 @@ const COLS = [
 ] as const;
 
 export function ThaiStructuredProductTable() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const { isScrolled, headerScrollRef, bodyScrollRef, onBodyScroll } = useSyncedTableScroll();
 
   const total = THAI_STRUCTURED_PRODUCTS.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -39,87 +44,83 @@ export function ThaiStructuredProductTable() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div style={{ border: `1px solid ${BORDER_COLOR}`, borderRadius: 12, overflow: "hidden" }}>
+      <div className="w-full rounded-xl bg-white" style={TABLE_CARD_STYLE}>
+        {/* Sticky header — pinned below the parent tab bar; its own horizontal
+            scroll is hidden and driven by the body below to stay in sync. */}
         <div
-          className="w-full overflow-x-auto"
-          onScroll={(e) => setIsScrolled((e.currentTarget as HTMLDivElement).scrollLeft > 0)}
+          ref={headerScrollRef}
+          className="sticky top-[60px] z-20 overflow-x-hidden bg-white rounded-t-xl"
+          style={{ scrollbarWidth: "none" }}
         >
-          {/* Header row */}
-          <div className="flex h-11 items-stretch shrink-0 min-w-[1290px] bg-white">
-            {COLS.map((col, i) => (
-              <div
-                key={col.key}
-                className="flex items-center px-3"
-                style={{
-                  width: col.width,
-                  flexShrink: 0,
-                  ...(i === 0
-                    ? {
-                        position: "sticky",
-                        left: 0,
-                        zIndex: 2,
-                        backgroundColor: "white",
-                        boxShadow: isScrolled ? "2px 0 4px rgba(0,0,0,0.06)" : undefined,
-                        borderBottom: `1px solid ${BORDER_COLOR}`,
-                        borderRight: `1px solid ${BORDER_COLOR}`,
-                      }
-                    : i === COLS.length - 1
-                      ? headerBorderStyle({ right: false })
-                      : headerBorderStyle()),
-                }}
-              >
-                <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>{col.label}</span>
-              </div>
-            ))}
+          <div className="flex h-11 items-stretch shrink-0" style={{ minWidth: MIN_TABLE_WIDTH }}>
+            {COLS.map((col, i) => {
+              const isFirst = i === 0;
+              const isLast = i === COLS.length - 1;
+              return (
+                <div
+                  key={col.key}
+                  className="flex items-center px-3"
+                  style={{
+                    width: col.width,
+                    flexShrink: 0,
+                    ...(isFirst
+                      ? { ...stickyFirstColStyle("white", isScrolled), ...headerBorderStyle() }
+                      : isLast
+                        ? headerBorderStyle({ right: false })
+                        : headerBorderStyle()),
+                  }}
+                >
+                  <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>{col.label}</span>
+                </div>
+              );
+            })}
           </div>
-          {/* Data rows */}
-          {paged.map((row, rowIdx) => {
-            const rowBg = rowIdx % 2 === 0 ? "white" : "#f9fafb";
-            const isLast = rowIdx === paged.length - 1;
-            return (
-              <div
-                key={row.theme}
-                className="flex items-stretch shrink-0 min-w-[1290px]"
-                style={{ backgroundColor: rowBg }}
-              >
-                {COLS.map((col, i) => {
-                  const value = col.key === "tenor" ? String(row[col.key]) : row[col.key];
-                  const isCoupon = col.key === "couponPa";
-                  const isFirst = i === 0;
-                  return (
-                    <div
-                      key={col.key}
-                      className="flex items-center px-3 py-2.5"
-                      style={{
-                        width: col.width,
-                        flexShrink: 0,
-                        ...(i === 0
-                          ? {
-                              position: "sticky",
-                              left: 0,
-                              zIndex: 1,
-                              backgroundColor: rowBg,
-                              boxShadow: isScrolled ? "2px 0 4px rgba(0,0,0,0.06)" : undefined,
-                              borderBottom: isLast ? undefined : `1px solid ${BORDER_COLOR}`,
-                              borderRight: `1px solid ${BORDER_COLOR}`,
-                            }
-                          : i === COLS.length - 1
-                            ? cellBorderStyle({ bottom: !isLast })
-                            : { ...cellBorderStyle({ bottom: !isLast }), borderRight: `1px solid ${BORDER_COLOR}` }),
-                      }}
-                    >
-                      <span
-                        className="text-sm leading-5 whitespace-nowrap"
-                        style={{ color: isCoupon ? "#0a6ee7" : "#101828", fontWeight: isCoupon || isFirst ? 600 : 400 }}
+        </div>
+
+        {/* Scrollable body */}
+        <div ref={bodyScrollRef} className={SCROLLABLE_TABLE_BODY_CLS} onScroll={onBodyScroll}>
+          <div className="flex flex-col" style={{ minWidth: MIN_TABLE_WIDTH }}>
+            {paged.map((row, rowIdx) => {
+              const rowBg = rowIdx % 2 === 0 ? "white" : "#f9fafb";
+              const isLast = rowIdx === paged.length - 1;
+              return (
+                <div
+                  key={row.theme}
+                  className="flex items-stretch shrink-0"
+                  style={{ backgroundColor: rowBg, minWidth: MIN_TABLE_WIDTH }}
+                >
+                  {COLS.map((col, i) => {
+                    const value = col.key === "tenor" ? String(row[col.key]) : row[col.key];
+                    const isCoupon = col.key === "couponPa";
+                    const isFirst = i === 0;
+                    const cellBorders = i === COLS.length - 1
+                      ? cellBorderStyle({ bottom: !isLast })
+                      : { ...cellBorderStyle({ bottom: !isLast }), borderRight: `1px solid ${BORDER_COLOR}` };
+                    return (
+                      <div
+                        key={col.key}
+                        className="flex items-center px-3 py-2.5"
+                        style={{
+                          width: col.width,
+                          flexShrink: 0,
+                          ...(isFirst
+                            ? { ...stickyFirstColStyle(rowBg, isScrolled), ...cellBorders }
+                            : cellBorders),
+                        }}
                       >
-                        {value}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
+                        <span
+                          className="text-sm leading-5 whitespace-nowrap"
+                          style={{ color: isCoupon ? "#0a6ee7" : "#101828", fontWeight: isCoupon || isFirst ? 600 : 400 }}
+                        >
+                          {value}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

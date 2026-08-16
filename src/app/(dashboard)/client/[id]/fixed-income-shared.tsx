@@ -15,6 +15,30 @@ export const TABLE_SHADOW =
 export const TABLE_SHADOW_SM =
   "0px 0px 1px rgba(102,102,102,0.16),0px 4px 4px rgba(102,102,102,0.12)";
 
+/** Wrapper style for a data-table card — border + small shadow + clipped
+ *  corners. Paired with a sticky sync-scroll header (see
+ *  `useSyncedTableScroll`) and a `SCROLLABLE_TABLE_BODY_CLS` body. */
+export const TABLE_CARD_STYLE = {
+  border: `1px solid ${BORDER_COLOR}`,
+  boxShadow: TABLE_SHADOW_SM,
+  overflow: "clip",
+} as const;
+
+/** Custom horizontal scrollbar for the table body — thin, dark-on-hover. */
+export const SCROLLABLE_TABLE_BODY_CLS =
+  "overflow-x-scroll [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-black/15 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-black/25";
+
+/** Base style for the sticky first column of a scrollable table. Pass the
+ *  row/header background so the sticky cell paints over the columns beneath
+ *  it, and `isScrolled` to show the shadow-hint once the body has scrolled. */
+export const stickyFirstColStyle = (bg: string, isScrolled: boolean) => ({
+  position: "sticky" as const,
+  left: 0,
+  zIndex: 1,
+  backgroundColor: bg,
+  boxShadow: isScrolled ? "2px 0 4px rgba(0,0,0,0.06)" : undefined,
+});
+
 // ─── Border style helpers ─────────────────────────────────────────────────────
 
 export const headerBorderStyle = (opts?: {
