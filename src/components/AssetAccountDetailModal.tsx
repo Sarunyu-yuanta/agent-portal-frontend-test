@@ -6,7 +6,7 @@ import type { AssetAccountDetail } from "@/data/asset-account-details";
 
 export function AssetAccountDetailModal({
   open,
-  accountName,
+  accountName: _accountName,
   detail,
   onClose,
 }: {

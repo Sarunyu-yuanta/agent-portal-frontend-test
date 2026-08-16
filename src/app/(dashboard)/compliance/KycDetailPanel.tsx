@@ -15,7 +15,7 @@ import { maskName } from "@/lib/mask-name";
 import { getInitialsFromWords } from "@/lib/client-utils";
 import type { KycRow } from "./compliance-data";
 
-export function KycDetailPanel({ row, onClose }: { row: KycRow; onClose: () => void }) {
+export function KycDetailPanel({ row, onClose: _onClose }: { row: KycRow; onClose: () => void }) {
   const { isPrivate } = usePrivacy();
   const urgent = row.daysUntilExpiry <= 7;
   const soon   = row.daysUntilExpiry <= 30;

@@ -271,7 +271,7 @@ export function NumberWidget({ id, value, label, required, disabled, onChange, r
   );
 }
 
-export function SelectWidget({ id, value, label, required, disabled, onChange, options, rawErrors, schema }: WidgetProps) {
+export function SelectWidget({ id: _id, value, label, required, disabled, onChange, options, rawErrors, schema }: WidgetProps) {
   const errorMsg = rawErrors?.[0];
   const desc = String(schema.description ?? "");
   const dropdownOptions = (options.enumOptions ?? [])

@@ -15,7 +15,6 @@ import { getCallLogs, relativeCallDate, type CallLogEntry } from "@/data/call-lo
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
 import { getInitials } from "@/lib/client-utils";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { useSlideOver, SlideOverPanel } from "@/components/ui/slide-over";
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { ClientAssetSidebarContent, type AssetListViewMode } from "@/components/ClientAssetSidebarContent";
@@ -46,7 +45,6 @@ export function ClientDetailPanel({
   const liabilities = useSlideOver<{ amount: string; detail: LiabilitiesDetail }>();
   const [callLogOpen, setCallLogOpen] = useState(false);
   const callLogs = getCallLogs(client.id);
-  const isMobile = useMediaQuery("(max-width: 767px)");
 
   const { reset: resetDetail } = detail;
   const { reset: resetLiabilities } = liabilities;

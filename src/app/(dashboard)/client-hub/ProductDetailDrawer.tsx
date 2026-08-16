@@ -124,7 +124,8 @@ export function ProductDetailDrawer({
                     className="w-full text-left p-3 flex items-center gap-3 hover:bg-[var(--bg-default-secondary)] transition-colors cursor-pointer"
                     onClick={() => setExpandedSubIds((prev) => {
                       const next = new Set(prev);
-                      isExpanded ? next.delete(sub.id) : next.add(sub.id);
+                      if (isExpanded) next.delete(sub.id);
+                      else next.add(sub.id);
                       return next;
                     })}
                   >

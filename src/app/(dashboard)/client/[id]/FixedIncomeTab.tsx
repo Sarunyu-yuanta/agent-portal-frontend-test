@@ -117,7 +117,7 @@ function MarketSwitcher({
   );
 }
 
-function ActionButton({ action: _ }: { action: FixedIncomeAction }) {
+function ActionButton({ action: _action }: { action: FixedIncomeAction }) {
   return (
     <button
       type="button"

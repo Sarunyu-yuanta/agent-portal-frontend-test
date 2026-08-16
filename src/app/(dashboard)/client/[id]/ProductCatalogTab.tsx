@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, SearchInput, TabGroup } from "@sarunyu/system-one";
+import { SearchInput, TabGroup } from "@sarunyu/system-one";
 import {
   ChartPieSliceIcon,
   FlagIcon,
