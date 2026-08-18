@@ -7,7 +7,6 @@
 import { Avatar } from "@sarunyu/system-one";
 import { maskName } from "@/lib/mask-name";
 import { getInitials, parseAumToThb, formatThbAmount, LIABILITIES_MULTIPLIER } from "@/lib/client-utils";
-import { NineBoxCellPill } from "./NineBoxTab";
 import { getClientSliceAmount } from "./client-hub-data";
 import type { ColumnId, SortKey } from "./types";
 import type { Client } from "@/types/domain";
@@ -117,12 +116,14 @@ export const CUSTOMER_COLUMNS: CustomerColumn[] = [
     headerClassName: NOWRAP,
     render: (client) => money(parseAumToThb(client.aum) * LIABILITIES_MULTIPLIER),
   },
-  {
-    id: "nineBox",
-    label: "Nine Box",
-    width: 110,
-    sortKey: "nineBox",
-    headerClassName: NOWRAP,
-    render: (client) => <NineBoxCellPill client={client} />,
-  },
+  // Nine Box column is parked for now. To bring it back, restore this entry and
+  // re-import NineBoxCellPill from "./NineBoxTab":
+  // {
+  //   id: "nineBox",
+  //   label: "Nine Box",
+  //   width: 110,
+  //   sortKey: "nineBox",
+  //   headerClassName: NOWRAP,
+  //   render: (client) => <NineBoxCellPill client={client} />,
+  // },
 ];

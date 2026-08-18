@@ -7,6 +7,7 @@ import { useClients } from "@/hooks/use-api";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { DetailDrawer } from "@/components/ui/detail-drawer";
 import { NineBoxTab, type NineBoxCellInfo } from "./NineBoxTab";
+import { ColumnVisibilityMenu } from "./ColumnVisibilityMenu";
 import { CUSTOMER_COLUMNS } from "./columns";
 import { getSortValue, buildProductRows } from "./client-hub-data";
 import { ClientSummaryCards } from "./ClientSummaryCards";
@@ -20,6 +21,9 @@ import type { Client, ProductRow } from "@/types/domain";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
+/** Columns shown before the user touches the Columns menu. */
+const defaultVisibleColumns = () => new Set(CUSTOMER_COLUMNS.map((c) => c.id));
+
 export default function ClientHubPage() {
   const router = useRouter();
   const clients = useClients();
@@ -32,9 +36,7 @@ export default function ClientHubPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewFilter, setViewFilter] = useState<ViewFilter>("customer");
-  const [visibleColumns] = useState<Set<ColumnId>>(
-    () => new Set(CUSTOMER_COLUMNS.map((c) => c.id)),
-  );
+  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnId>>(defaultVisibleColumns);
 
   // Product view
   const [productSearch, setProductSearch] = useState("");
@@ -47,6 +49,14 @@ export default function ClientHubPage() {
   const [nineBoxCell, setNineBoxCell] = useState<NineBoxCellInfo | null>(null);
   const [nineBoxDrawerOpen, setNineBoxDrawerOpen] = useState(false);
 
+  const toggleColumn = (id: ColumnId) => {
+    if (CUSTOMER_COLUMNS.find((c) => c.id === id)?.required) return;
+    setVisibleColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const tableWidth = useMemo(() => {
     const NO_COL_WIDTH = 60;
@@ -138,6 +148,12 @@ export default function ClientHubPage() {
             />
             {viewFilter === "customer" && (
               <div className="flex items-center gap-2 w-full lg:w-auto lg:ml-auto">
+                <ColumnVisibilityMenu
+                  columns={CUSTOMER_COLUMNS}
+                  visibleColumns={visibleColumns}
+                  onToggle={toggleColumn}
+                  onReset={() => setVisibleColumns(defaultVisibleColumns())}
+                />
                 <div className="flex-1 lg:w-64">
                   <SearchInput
                     size="sm"
