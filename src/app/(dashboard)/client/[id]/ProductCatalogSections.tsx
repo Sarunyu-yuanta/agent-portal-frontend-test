@@ -99,16 +99,23 @@ export function TopIdeaStrip({
 /** Investment Solution section — 3 investment cards over a background image. */
 export function InvestmentSolutionSection({
   onInvestmentSolutionSelect,
+  bgImage,
 }: {
   onInvestmentSolutionSelect: (id: InvestmentSolutionId) => void;
+  bgImage?: string;
 }) {
   return (
-    <div className="relative shrink-0 w-full" style={{ paddingTop: 24, paddingBottom: 24 }}>
-      <img
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-        src={IMG_RECOMMEND_BG}
-      />
+    <div
+      className="relative shrink-0 w-full"
+      style={{
+        paddingTop: 24,
+        paddingBottom: 24,
+        backgroundImage: `url(${bgImage ?? IMG_RECOMMEND_BG})`,
+        backgroundSize: "cover",
+        backgroundPosition: "top",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <div className="flex flex-col gap-4 items-start shrink-0 w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-6">
         <p
           className="font-bold relative shrink-0 overflow-hidden text-ellipsis w-full whitespace-nowrap"

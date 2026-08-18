@@ -10,7 +10,7 @@ import type {
   HoldingSection,
   PositionSummary,
 } from "@/data/asset-account-details";
-import { parseAmount } from "@/lib/client-utils";
+import { displayAssetLabel, parseAmount } from "@/lib/client-utils";
 
 function formatNum(n: number): string {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -190,7 +190,7 @@ function HoldingSectionBlock({
     <div className="flex flex-col w-full">
       <div className={`flex items-center ${sectionX} py-2 w-full`}>
         <p className="type-caption font-semibold text-[var(--text-default-tertiary)] leading-4 flex-1">
-          {title}
+          {displayAssetLabel(title)}
         </p>
         {headerRight}
       </div>

@@ -3,6 +3,14 @@ import type { AssetHeroSummary } from "@/components/AssetSummarySection";
 export const LINE_AVAILABLE_RATIO = 320_000 / 9_400_000;
 export const LIABILITIES_MULTIPLIER = 0.0197;
 
+/**
+ * Display-only rename for asset-class / product labels. The underlying data
+ * label stays "อนุพันธ์" for lookups; only the rendered text becomes "TFEX".
+ */
+export function displayAssetLabel(label: string): string {
+  return label === "อนุพันธ์" ? "TFEX" : label;
+}
+
 export type ClientSummaryInput = {
   aum: string;
   cashIdlePct: number;

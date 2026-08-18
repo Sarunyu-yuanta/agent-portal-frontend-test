@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SearchInput, TabGroup } from "@sarunyu/system-one";
-import {
-  ChartPieSliceIcon,
-  FlagIcon,
-  GlobeHemisphereWestIcon,
-  HandCoinsIcon,
-  HandshakeIcon,
-} from "@phosphor-icons/react";
+import { ChartPieSliceIcon } from "@phosphor-icons/react";
 import { FixedIncomeTab } from "./FixedIncomeTab";
 import { FixedIncomeDetail } from "./FixedIncomeDetail";
 import { FixedIncomeCompanyDetail } from "./FixedIncomeCompanyDetail";
@@ -20,6 +14,8 @@ import type { GlobalBondIssuerId } from "./global-bond-data";
 import { StructuredProductDetail } from "./StructuredProductDetail";
 import { StructuredProductAllPage } from "./StructuredProductAllPage";
 import { ThaiStructuredProductTable } from "./ThaiStructuredProductTable";
+import { ThaiStructuredProductDetail } from "./ThaiStructuredProductDetail";
+import type { ThaiStructuredProduct } from "./thai-structured-data";
 import { TopIdeaAllPage } from "./TopIdeaAllPage";
 import { TopIdeaDetail } from "./TopIdeaDetail";
 import { InvestmentSolutionDetail } from "./InvestmentSolutionDetail";
@@ -39,14 +35,12 @@ import {
 } from "./ProductCatalogSections";
 
 const PRODUCT_TABS = [
-  { id: "structured",      title: "Global Structured Product", icon: <GlobeHemisphereWestIcon size={18} /> },
-  { id: "thai-structured", title: "Thai Structured Product",   icon: <FlagIcon size={18} /> },
-  { id: "fixed-income",    title: "Fixed Income",              icon: <HandCoinsIcon size={18} /> },
-  { id: "global-bond",     title: "Global Bond",               icon: <HandshakeIcon size={18} /> },
-  { id: "mutual-fund",     title: "Mutual Fund",               icon: <ChartPieSliceIcon size={18} /> },
+  { id: "structured",      title: "Global Structured Product" },
+  { id: "thai-structured", title: "Thai Structured Product" },
+  { id: "fixed-income",    title: "Fixed Income" },
+  { id: "global-bond",     title: "Global Bond" },
+  { id: "mutual-fund",     title: "Mutual Fund" },
 ];
-
-const PRODUCT_TABS_MOBILE = PRODUCT_TABS.map(({ id, title }) => ({ id, title }));
 
 export type CatalogNavigation = {
   onProductSelect: (product: StructuredProduct) => void;
@@ -81,6 +75,7 @@ export function ProductCatalogTab({
   const [selectedInvestmentSolution, setSelectedInvestmentSolution] = useState<InvestmentSolutionId | null>(null);
   const [showAllTopIdeas, setShowAllTopIdeas] = useState(false);
   const [showAllStructuredProducts, setShowAllStructuredProducts] = useState(false);
+  const [selectedThaiProduct, setSelectedThaiProduct] = useState<ThaiStructuredProduct | null>(null);
 
   const [searchValueInternal, setSearchValueInternal] = useState("");
   const searchValue = searchValueProp ?? searchValueInternal;
@@ -98,7 +93,8 @@ export function ProductCatalogTab({
     selectedTopIdea ||
     selectedInvestmentSolution ||
     showAllTopIdeas ||
-    showAllStructuredProducts
+    showAllStructuredProducts ||
+    selectedThaiProduct
   );
 
   useEffect(() => {
@@ -136,10 +132,22 @@ export function ProductCatalogTab({
     resetFixedIncomeNav();
     setSelectedGlobalBondIssuer(null);
     setShowAllGlobalBonds(false);
+    setSelectedThaiProduct(null);
   };
 
   // ── State-based detail views ────────────────────────────────────────────────
   // Only used when URL navigation is not provided (e.g. client pages).
+
+  if (selectedThaiProduct) {
+    return (
+      <div className="flex flex-col w-full">
+        <ThaiStructuredProductDetail
+          product={selectedThaiProduct}
+          onBack={() => setSelectedThaiProduct(null)}
+        />
+      </div>
+    );
+  }
 
   if (!navigation && showAllGlobalBonds) {
     return (
@@ -264,7 +272,7 @@ export function ProductCatalogTab({
 
   return (
     // Root: full-bleed — negative margin + matching width expansion
-    <div className="flex flex-col w-full" style={{ backgroundColor: "white" }}>
+    <div className="flex flex-col flex-1 w-full" style={{ backgroundColor: "white" }}>
       {/* ── Mobile/Tablet: sticky search + tab bar — always expanded, never collapses ── */}
       <div
         className="sticky top-0 z-30 flex flex-col lg:hidden"
@@ -286,7 +294,7 @@ export function ProductCatalogTab({
           }}
         >
           <TabGroup
-            items={PRODUCT_TABS_MOBILE}
+            items={PRODUCT_TABS}
             activeId={activeProductTab}
             onChange={handleProductTabChange}
             size="md"
@@ -364,13 +372,11 @@ export function ProductCatalogTab({
             onTopIdeaSelect={nav.onTopIdeaSelect}
             onAllTopIdeasView={nav.onAllTopIdeasView}
           />
-          <InvestmentSolutionSection onInvestmentSolutionSelect={nav.onInvestmentSolutionSelect} />
-          <TopPickSection onProductSelect={nav.onProductSelect} />
-          <StructuredProductGridSection
-            title="Structured Product"
-            onProductSelect={nav.onProductSelect}
-            onAllProductsView={nav.onAllProductsView}
+          <InvestmentSolutionSection
+            onInvestmentSolutionSelect={nav.onInvestmentSolutionSelect}
+            bgImage="/thai-structure-bg.jpg"
           />
+          <TopPickSection onProductSelect={nav.onProductSelect} />
 
           {/* ── Thai FCN Table ─────────────────────────────────────────────────── */}
           <div className="w-full" style={{ backgroundColor: "white", paddingTop: 24, paddingBottom: 24 }}>
@@ -381,7 +387,7 @@ export function ProductCatalogTab({
               >
                 All Thai FCN
               </p>
-              <ThaiStructuredProductTable />
+              <ThaiStructuredProductTable onRowClick={setSelectedThaiProduct} />
             </div>
           </div>
         </div>
@@ -390,7 +396,7 @@ export function ProductCatalogTab({
       {activeProductTab === "mutual-fund" && (
         <div
           className="flex flex-col items-center justify-center gap-3 w-full text-center px-4"
-          style={{ backgroundColor: "#f9fafb", paddingTop: 96, paddingBottom: 96 }}
+          style={{ backgroundColor: "white", paddingTop: 96, paddingBottom: 96 }}
         >
           <ChartPieSliceIcon size={40} className="text-muted-foreground/40" weight="duotone" />
           <p className="type-subtitle-1 font-semibold text-[var(--text-default-secondary)]">Mutual Fund</p>

@@ -17,6 +17,7 @@ import {
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
 import { ALLOCATION_COLORS, type SortDir } from "./client-detail-data";
+import { displayAssetLabel } from "@/lib/client-utils";
 
 function AllocationTooltip({
   active,
@@ -36,7 +37,7 @@ function AllocationTooltip({
 }
 
 export function CurrentAllocationSection({ slices }: { slices: { label: string; percent: number }[] }) {
-  const data = slices.map((s, i) => ({ name: s.label, value: s.percent, color: ALLOCATION_COLORS[i] }));
+  const data = slices.map((s, i) => ({ name: displayAssetLabel(s.label), value: s.percent, color: ALLOCATION_COLORS[i] }));
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-center">
@@ -69,7 +70,7 @@ export function CurrentAllocationSection({ slices }: { slices: { label: string; 
           <div key={s.label} className="flex flex-col gap-1 rounded-xl p-3 bg-[var(--bg-default-secondary)]">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ALLOCATION_COLORS[i] }} />
-              <p className="text-[11px] font-semibold text-muted-foreground truncate">{s.label}</p>
+              <p className="text-[11px] font-semibold text-muted-foreground truncate">{displayAssetLabel(s.label)}</p>
             </div>
             <p className="type-subtitle-1 font-bold leading-none text-foreground">{s.percent}%</p>
           </div>

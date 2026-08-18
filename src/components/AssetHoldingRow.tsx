@@ -7,6 +7,7 @@ import type {
   AssetAccountDetail,
   HoldingItem,
 } from "@/data/asset-account-details";
+import { displayAssetLabel } from "@/lib/client-utils";
 
 function HoldingItemRow({
   item,
@@ -94,7 +95,7 @@ export function AssetHoldingAccordion({ detail }: { detail: AssetAccountDetail }
         <div key={section.title} className="px-3 py-2 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <p className="type-caption font-bold text-[var(--text-default-secondary)] leading-5">
-              {section.title}
+              {displayAssetLabel(section.title)}
             </p>
             {sIdx === 0 && (
               <button

@@ -28,17 +28,6 @@ export const TABLE_CARD_STYLE = {
 export const SCROLLABLE_TABLE_BODY_CLS =
   "overflow-x-scroll [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-black/15 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-black/25";
 
-/** Base style for the sticky first column of a scrollable table. Pass the
- *  row/header background so the sticky cell paints over the columns beneath
- *  it, and `isScrolled` to show the shadow-hint once the body has scrolled. */
-export const stickyFirstColStyle = (bg: string, isScrolled: boolean) => ({
-  position: "sticky" as const,
-  left: 0,
-  zIndex: 1,
-  backgroundColor: bg,
-  boxShadow: isScrolled ? "2px 0 4px rgba(0,0,0,0.06)" : undefined,
-});
-
 // ─── Border style helpers ─────────────────────────────────────────────────────
 
 export const headerBorderStyle = (opts?: {

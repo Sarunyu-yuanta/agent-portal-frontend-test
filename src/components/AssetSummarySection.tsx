@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { CaretRightIcon, InfoIcon } from "@phosphor-icons/react";
 import { NetValueSummaryModal } from "@/components/NetValueSummaryModal";
+import { displayAssetLabel } from "@/lib/client-utils";
 
 export type AssetHeroSummary = {
   netValue: string;
@@ -97,7 +98,7 @@ function AllocationLegendItemDesktop({ slice }: { slice: AssetAllocationSlice })
           <img alt="" className="block size-full max-w-none" src={slice.statusIcon} />
         </span>
         <p className="type-body-2 text-[var(--text-default-tertiary)] whitespace-nowrap leading-5">
-          {slice.label}
+          {displayAssetLabel(slice.label)}
         </p>
       </div>
       <p className="type-body-2 text-[var(--text-default-tertiary)] whitespace-nowrap leading-5 shrink-0 py-1 pl-1 pr-4">
@@ -115,7 +116,7 @@ function AllocationLegendItemCompact({ slice }: { slice: AssetAllocationSlice })
           <img alt="" className="block size-full max-w-none" src={slice.statusIcon} />
         </span>
         <p className="type-body-2 text-[var(--text-default-tertiary)] leading-5 whitespace-nowrap">
-          {slice.label}
+          {displayAssetLabel(slice.label)}
         </p>
       </div>
       <p className="type-body-2 text-[var(--text-default-tertiary)] leading-5 shrink-0">

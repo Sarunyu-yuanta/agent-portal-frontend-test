@@ -10,7 +10,6 @@ import { NineBoxTab, type NineBoxCellInfo } from "./NineBoxTab";
 import { CUSTOMER_COLUMNS } from "./columns";
 import { getSortValue, buildProductRows } from "./client-hub-data";
 import { ClientSummaryCards } from "./ClientSummaryCards";
-import { ColumnVisibilityMenu } from "./ColumnVisibilityMenu";
 import { CustomerTable } from "./CustomerTable";
 import { ProductTable } from "./ProductTable";
 import { ProductDetailDrawer } from "./ProductDetailDrawer";
@@ -33,7 +32,7 @@ export default function ClientHubPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewFilter, setViewFilter] = useState<ViewFilter>("customer");
-  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnId>>(
+  const [visibleColumns] = useState<Set<ColumnId>>(
     () => new Set(CUSTOMER_COLUMNS.map((c) => c.id)),
   );
 
@@ -48,14 +47,6 @@ export default function ClientHubPage() {
   const [nineBoxCell, setNineBoxCell] = useState<NineBoxCellInfo | null>(null);
   const [nineBoxDrawerOpen, setNineBoxDrawerOpen] = useState(false);
 
-  const toggleColumn = (id: ColumnId) => {
-    if (CUSTOMER_COLUMNS.find((c) => c.id === id)?.required) return;
-    setVisibleColumns((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
 
   const tableWidth = useMemo(() => {
     const NO_COL_WIDTH = 60;
@@ -147,12 +138,6 @@ export default function ClientHubPage() {
             />
             {viewFilter === "customer" && (
               <div className="flex items-center gap-2 w-full lg:w-auto lg:ml-auto">
-                <ColumnVisibilityMenu
-                  columns={CUSTOMER_COLUMNS}
-                  visibleColumns={visibleColumns}
-                  onToggle={toggleColumn}
-                  onReset={() => setVisibleColumns(new Set(CUSTOMER_COLUMNS.map((c) => c.id)))}
-                />
                 <div className="flex-1 lg:w-64">
                   <SearchInput
                     size="sm"

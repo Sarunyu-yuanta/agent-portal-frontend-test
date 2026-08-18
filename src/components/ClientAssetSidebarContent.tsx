@@ -11,7 +11,6 @@ import {
   type AssetAllocationSlice,
   type AssetHeroSummary,
 } from "@/components/AssetSummarySection";
-import { DetailDrawer } from "@/components/ui/detail-drawer";
 import { HoldingDetailContent } from "@/components/HoldingDetailContent";
 import {
   DEFAULT_ASSET_ACCOUNTS,
@@ -248,26 +247,19 @@ export function ClientAssetSidebarContent({
               onClick={() => onLiabilitiesOpen?.(liabilitiesAmount, liabilitiesDetail)}
             />
             <LastUpdated summary={summary} />
+            {selectedItem && selectedDetail && (
+              <div
+                key={selectedKey}
+                className="animate-in fade-in slide-in-from-top-2 duration-200 mt-4 bg-white border border-[rgba(0,0,0,0.1)] rounded-lg overflow-hidden"
+              >
+                <AssetDetailDrawerHeader item={selectedItem} onClose={() => setSelectedKey(null)} />
+                <div>
+                  <HoldingDetailContent detail={selectedDetail} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Asset detail drawer — same right-side drawer style used across the
-            dashboard (client / product / nine-box detail drawers). */}
-        <DetailDrawer
-          size="narrow"
-          className="overflow-hidden flex flex-col"
-          open={selectedItem !== null}
-          onOpenChange={(open) => { if (!open) setSelectedKey(null); }}
-        >
-          {selectedItem && selectedDetail && (
-            <>
-              <AssetDetailDrawerHeader item={selectedItem} />
-              <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar">
-                <HoldingDetailContent detail={selectedDetail} />
-              </div>
-            </>
-          )}
-        </DetailDrawer>
       </div>
     );
   }

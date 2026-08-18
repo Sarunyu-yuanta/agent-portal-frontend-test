@@ -8,7 +8,7 @@ import {
   TableHeaderCell,
   TableCell,
 } from "@sarunyu/system-one";
-import { formatThbAmount } from "@/lib/client-utils";
+import { displayAssetLabel, formatThbAmount } from "@/lib/client-utils";
 import type { ProductRow } from "@/types/domain";
 
 export function ProductTable({
@@ -46,7 +46,7 @@ export function ProductTable({
                   <span className="relative shrink-0 size-2">
                     <img alt="" className="block size-full max-w-none" src={row.statusIcon} />
                   </span>
-                  <p className="text-[14px] font-semibold text-foreground truncate">{row.label}</p>
+                  <p className="text-[14px] font-semibold text-foreground truncate">{displayAssetLabel(row.label)}</p>
                 </div>
               </TableCell>
               <TableCell>

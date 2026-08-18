@@ -4,14 +4,13 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   NavHeaderIconButton,
-  NavHeaderNotification,
   Tag,
   Breadcrumb,
 } from "@sarunyu/system-one";
 import { ListIcon } from "@phosphor-icons/react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
-import { notificationGroups, mockHouseViewStrategies } from "@/lib/mock-data";
+import { mockHouseViewStrategies } from "@/lib/mock-data";
 import { useClients } from "@/hooks/use-api";
 import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
 import { PrivacyProvider, usePrivacy } from "@/contexts/privacy-context";
@@ -186,11 +185,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             )}
 
             <div className={`flex items-center gap-4 ${headerSlot ? "xl:justify-self-end" : ""}`}>
-              <NavHeaderNotification
-                groups={notificationGroups}
-                badgeCount={4}
-              />
-
               <div className="xl:hidden">
                 <NavHeaderIconButton
                   aria-label="Open navigation"

@@ -11,6 +11,7 @@ import {
   BondLogo,
   TopPickTag,
   FactsheetButton,
+  InvestButton,
 } from "./fixed-income-shared";
 
 const ROW_CELL_CLS = "cursor-pointer transition-colors";
@@ -45,7 +46,7 @@ export function GlobalBondTopPickTable({
       style={{ border: `1px solid ${BORDER_COLOR}`, boxShadow: TABLE_SHADOW_SM }}
     >
       <div className="overflow-x-auto">
-        <div className="flex items-stretch min-w-[1165px]">
+        <div className="flex items-stretch min-w-[1305px]">
           {/* Bond name */}
           <div className="flex flex-col flex-1 min-w-0">
             <div
@@ -162,12 +163,23 @@ export function GlobalBondTopPickTable({
           </div>
           {/* Factsheet */}
           <div className="flex flex-col shrink-0">
-            <div className="flex h-11 items-center justify-center px-3" style={headerBorderStyle({ right: false })}>
+            <div className="flex h-11 items-center justify-center px-3" style={headerBorderStyle()}>
               <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>เอกสาร</span>
             </div>
             {TOP_PICK_ROWS.map((_row, i) => (
               <div key={i} className={`flex flex-1 items-center justify-center px-3 py-[11px] min-h-[52px] ${ROW_CELL_CLS}`} {...rowCellProps(i, isLastRow(i))}>
                 <FactsheetButton />
+              </div>
+            ))}
+          </div>
+          {/* Invest */}
+          <div className="flex flex-col shrink-0">
+            <div className="flex h-11 items-center justify-center px-3" style={headerBorderStyle({ right: false })}>
+              <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>คำสั่งซื้อ</span>
+            </div>
+            {TOP_PICK_ROWS.map((_row, i) => (
+              <div key={i} className={`flex flex-1 items-center justify-center px-3 py-[11px] min-h-[52px] ${ROW_CELL_CLS}`} {...rowCellProps(i, isLastRow(i))}>
+                <InvestButton />
               </div>
             ))}
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CaretDownIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { CaretDownIcon, CaretRightIcon, XIcon } from "@phosphor-icons/react";
 import { ProfitLossBadge } from "@/components/ui/finance-ui";
 import {
   getAssetAccountDetail,
@@ -9,6 +9,7 @@ import {
   type AssetAccountItem,
 } from "@/data/asset-account-details";
 import { AssetHoldingAccordion } from "@/components/AssetHoldingRow";
+import { displayAssetLabel } from "@/lib/client-utils";
 
 export type AssetListViewMode = "product" | "account";
 
@@ -64,7 +65,7 @@ export function AssetAccountCard({
           </span>
           <div className="flex flex-1 flex-col items-start min-w-0">
             <p className="type-subtitle-2 text-[var(--text-default-primary)] whitespace-nowrap leading-5 truncate w-full">
-              {account.name}
+              {displayAssetLabel(account.name)}
             </p>
             <p className="type-caption text-[var(--text-default-tertiary)] leading-4 truncate w-full">
               {account.accountNo}
@@ -110,9 +111,10 @@ export function AssetAccountCard({
   );
 }
 
-/** Header row shown at the top of the asset detail drawer — icon, name,
- * account number, and value, matching the row that was clicked. */
-export function AssetDetailDrawerHeader({ item }: { item: AssetAccountItem }) {
+/** Header row shown at the top of the asset detail panel — icon, name,
+ * account number, and value, matching the row that was clicked.
+ * Pass `onClose` to show a close button; omit it when a drawer provides its own. */
+export function AssetDetailDrawerHeader({ item, onClose }: { item: AssetAccountItem; onClose?: () => void }) {
   return (
     <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border-default)] shrink-0">
       <span className="relative shrink-0 size-2">
@@ -120,7 +122,7 @@ export function AssetDetailDrawerHeader({ item }: { item: AssetAccountItem }) {
       </span>
       <div className="flex-1 min-w-0">
         <p className="type-subtitle-2 font-bold text-[var(--text-default-primary)] truncate leading-5">
-          {item.name}
+          {displayAssetLabel(item.name)}
         </p>
         <p className="type-caption text-[var(--text-default-tertiary)] truncate leading-4">
           {item.accountNo}
@@ -132,8 +134,18 @@ export function AssetDetailDrawerHeader({ item }: { item: AssetAccountItem }) {
         </p>
         <p className="type-body-2 text-[var(--text-default-tertiary)] leading-5">THB</p>
       </div>
-      {/* Reserves space for the drawer's own absolute close button */}
-      <div className="w-8 shrink-0" />
+      {onClose ? (
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-8 h-8 shrink-0 flex items-center justify-center rounded text-[var(--text-default-tertiary)] hover:text-[var(--text-default-secondary)] hover:bg-[var(--bg-default-secondary)] transition-colors cursor-pointer"
+          aria-label="ปิดรายละเอียด"
+        >
+          <XIcon size={16} />
+        </button>
+      ) : (
+        <div className="w-8 shrink-0" />
+      )}
     </div>
   );
 }

@@ -1,41 +1,123 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Pagination } from "@sarunyu/system-one";
 import {
-  BORDER_COLOR,
   HEADER_TEXT_CLS,
   SCROLLABLE_TABLE_BODY_CLS,
   TABLE_CARD_STYLE,
   cellBorderStyle,
   headerBorderStyle,
-  stickyFirstColStyle,
 } from "./fixed-income-shared";
-import { useSyncedTableScroll } from "./use-synced-table-scroll";
 import { THAI_STRUCTURED_PRODUCTS } from "./thai-structured-data";
+import type { ThaiStructuredProduct } from "./thai-structured-data";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
-const MIN_TABLE_WIDTH = 1290;
+const MIN_WIDTH = "min-w-[1290px]";
 
-const COLS = [
-  { key: "theme", label: "Investment Theme", width: 160 },
-  { key: "product", label: "Product", width: 80 },
-  { key: "ccy", label: "Ccy", width: 70 },
-  { key: "bbg1", label: "BBG Code 1", width: 110 },
-  { key: "bbg2", label: "BBG Code 2", width: 110 },
-  { key: "bbg3", label: "BBG Code 3", width: 110 },
-  { key: "couponPa", label: "Coupon p.a. (%)", width: 130 },
-  { key: "koType", label: "KO Type", width: 110 },
-  { key: "koBarrier", label: "KO Barrier (%)", width: 120 },
-  { key: "strike", label: "Strike (%)", width: 100 },
-  { key: "kiBarrier", label: "KI Barrier", width: 100 },
-  { key: "tenor", label: "Tenor (m)", width: 90 },
-] as const;
+/** Sticky first column — paints over scrolled content and reveals an edge
+ *  shadow once the card body has scrolled horizontally (`data-scrolled`). */
+const STICKY_COL =
+  "sticky left-0 z-[1] bg-white group-data-[scrolled=true]/card:shadow-[4px_0_8px_-2px_rgba(0,0,0,0.1)]";
 
-export function ThaiStructuredProductTable() {
+type ColDef = {
+  key: keyof ThaiStructuredProduct;
+  label: string;
+  width: string;
+  /** Extra flex-alignment class, e.g. "justify-end" / "justify-center". */
+  align: string;
+  /** First column: pinned left. */
+  sticky?: boolean;
+  /** Emphasised value column (bold + accent blue), e.g. coupon. */
+  accent?: boolean;
+};
+
+const COLS: ColDef[] = [
+  { key: "theme",     label: "Investment Theme", width: "w-[160px]", align: "",               sticky: true },
+  { key: "product",   label: "Product",          width: "w-[90px]",  align: "" },
+  { key: "ccy",       label: "Ccy",              width: "w-[70px]",  align: "justify-center" },
+  { key: "bbg1",      label: "BBG Code 1",       width: "w-[110px]", align: "" },
+  { key: "bbg2",      label: "BBG Code 2",       width: "w-[110px]", align: "" },
+  { key: "bbg3",      label: "BBG Code 3",       width: "w-[110px]", align: "" },
+  { key: "couponPa",  label: "Coupon p.a. (%)",  width: "w-[130px]", align: "justify-end", accent: true },
+  { key: "koType",    label: "KO Type",          width: "w-[110px]", align: "" },
+  { key: "koBarrier", label: "KO Barrier (%)",   width: "w-[120px]", align: "justify-end" },
+  { key: "strike",    label: "Strike (%)",       width: "w-[100px]", align: "justify-end" },
+  { key: "kiBarrier", label: "KI Barrier",       width: "w-[100px]", align: "justify-end" },
+  { key: "tenor",     label: "Tenor (m)",        width: "w-[90px]",  align: "justify-end" },
+];
+
+function TableHeader() {
+  return (
+    <div className={`flex h-11 items-stretch shrink-0 ${MIN_WIDTH} bg-white`}>
+      {COLS.map((col, i) => (
+        <div
+          key={col.key}
+          className={`flex ${col.width} shrink-0 items-center ${col.align} px-3 ${col.sticky ? STICKY_COL : ""}`}
+          style={headerBorderStyle(i === COLS.length - 1 ? { right: false } : undefined)}
+        >
+          <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>{col.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TableRow({
+  row,
+  isLast,
+  onRowClick,
+}: {
+  row: ThaiStructuredProduct;
+  isLast: boolean;
+  onRowClick?: (row: ThaiStructuredProduct) => void;
+}) {
+  const border = cellBorderStyle({ bottom: !isLast });
+  return (
+    <div
+      role={onRowClick ? "button" : undefined}
+      tabIndex={onRowClick ? 0 : undefined}
+      onClick={() => onRowClick?.(row)}
+      onKeyDown={onRowClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onRowClick(row); } } : undefined}
+      className={`flex items-stretch shrink-0 ${MIN_WIDTH} bg-white cursor-pointer`}
+      onMouseEnter={(e) => {
+        const el = e.currentTarget;
+        el.style.backgroundColor = "#f9fafb";
+        (el.firstElementChild as HTMLElement).style.backgroundColor = "#f9fafb";
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget;
+        el.style.backgroundColor = "";
+        (el.firstElementChild as HTMLElement).style.backgroundColor = "";
+      }}
+    >
+      {COLS.map((col) => (
+        <div
+          key={col.key}
+          className={`flex ${col.width} shrink-0 items-center ${col.align} px-3 py-3.5 ${col.sticky ? STICKY_COL : ""}`}
+          style={border}
+        >
+          <span
+            className={`text-sm ${col.sticky || col.accent ? "font-bold " : ""}leading-5 ${col.accent ? "text-[#0a6ee7]" : "text-[#101828]"} whitespace-nowrap`}
+          >
+            {row[col.key]}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function ThaiStructuredProductTable({
+  onRowClick,
+}: {
+  onRowClick?: (row: ThaiStructuredProduct) => void;
+} = {}) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const { isScrolled, headerScrollRef, bodyScrollRef, onBodyScroll } = useSyncedTableScroll();
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const bodyScrollRef = useRef<HTMLDivElement>(null);
+  const tableCardRef = useRef<HTMLDivElement>(null);
 
   const total = THAI_STRUCTURED_PRODUCTS.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -44,122 +126,68 @@ export function ThaiStructuredProductTable() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="w-full rounded-xl bg-white" style={TABLE_CARD_STYLE}>
-        {/* Sticky header — pinned below the parent tab bar; its own horizontal
-            scroll is hidden and driven by the body below to stay in sync. */}
+      <div
+        ref={tableCardRef}
+        className="group/card w-full rounded-xl bg-white"
+        style={TABLE_CARD_STYLE}
+      >
+        {/* Sticky header */}
         <div
           ref={headerScrollRef}
           className="sticky top-[60px] z-20 overflow-x-hidden bg-white rounded-t-xl"
           style={{ scrollbarWidth: "none" }}
         >
-          <div className="flex h-11 items-stretch shrink-0" style={{ minWidth: MIN_TABLE_WIDTH }}>
-            {COLS.map((col, i) => {
-              const isFirst = i === 0;
-              const isLast = i === COLS.length - 1;
-              return (
-                <div
-                  key={col.key}
-                  className="flex items-center px-3"
-                  style={{
-                    width: col.width,
-                    flexShrink: 0,
-                    ...(isFirst
-                      ? { ...stickyFirstColStyle("white", isScrolled), ...headerBorderStyle() }
-                      : isLast
-                        ? headerBorderStyle({ right: false })
-                        : headerBorderStyle()),
-                  }}
-                >
-                  <span className={`${HEADER_TEXT_CLS} whitespace-nowrap`}>{col.label}</span>
-                </div>
-              );
-            })}
-          </div>
+          <TableHeader />
         </div>
 
         {/* Scrollable body */}
-        <div ref={bodyScrollRef} className={SCROLLABLE_TABLE_BODY_CLS} onScroll={onBodyScroll}>
-          <div className="flex flex-col" style={{ minWidth: MIN_TABLE_WIDTH }}>
-            {paged.map((row, rowIdx) => {
-              const rowBg = rowIdx % 2 === 0 ? "white" : "#f9fafb";
-              const isLast = rowIdx === paged.length - 1;
-              return (
-                <div
-                  key={row.theme}
-                  className="flex items-stretch shrink-0"
-                  style={{ backgroundColor: rowBg, minWidth: MIN_TABLE_WIDTH }}
-                >
-                  {COLS.map((col, i) => {
-                    const value = col.key === "tenor" ? String(row[col.key]) : row[col.key];
-                    const isCoupon = col.key === "couponPa";
-                    const isFirst = i === 0;
-                    const cellBorders = i === COLS.length - 1
-                      ? cellBorderStyle({ bottom: !isLast })
-                      : { ...cellBorderStyle({ bottom: !isLast }), borderRight: `1px solid ${BORDER_COLOR}` };
-                    return (
-                      <div
-                        key={col.key}
-                        className="flex items-center px-3 py-2.5"
-                        style={{
-                          width: col.width,
-                          flexShrink: 0,
-                          ...(isFirst
-                            ? { ...stickyFirstColStyle(rowBg, isScrolled), ...cellBorders }
-                            : cellBorders),
-                        }}
-                      >
-                        <span
-                          className="text-sm leading-5 whitespace-nowrap"
-                          style={{ color: isCoupon ? "#0a6ee7" : "#101828", fontWeight: isCoupon || isFirst ? 600 : 400 }}
-                        >
-                          {value}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+        <div
+          ref={bodyScrollRef}
+          className={SCROLLABLE_TABLE_BODY_CLS}
+          onScroll={() => {
+            const body = bodyScrollRef.current;
+            const header = headerScrollRef.current;
+            if (header && body) header.scrollLeft = body.scrollLeft;
+            if (tableCardRef.current)
+              tableCardRef.current.dataset.scrolled = String((body?.scrollLeft ?? 0) > 0);
+          }}
+        >
+          <div className={`flex flex-col ${MIN_WIDTH}`}>
+            {paged.map((row, i) => (
+              <TableRow
+                key={row.theme}
+                row={row}
+                isLast={i === paged.length - 1}
+                onRowClick={onRowClick}
+              />
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Pagination bar */}
+      {/* Pagination */}
       <div className="flex flex-wrap-reverse items-center justify-end gap-3">
         <div className="flex items-center gap-2">
           <p className="text-[12px] text-muted-foreground whitespace-nowrap">Show per page</p>
           <select
             value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setCurrentPage(1);
-            }}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
             className="text-[12px] border border-border rounded-md px-2 py-1 bg-background text-foreground cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-action"
           >
-            {PAGE_SIZE_OPTIONS.map((n) => (
-              <option key={n} value={n}>{n}</option>
-            ))}
+            {PAGE_SIZE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
         </div>
         <div className="flex items-center gap-3">
           <p className="text-[12px] text-muted-foreground">
             Showing{" "}
-            <span className="font-medium text-foreground">
-              {(safePage - 1) * pageSize + 1}
-            </span>
+            <span className="font-medium text-foreground">{(safePage - 1) * pageSize + 1}</span>
             {" – "}
-            <span className="font-medium text-foreground">
-              {Math.min(safePage * pageSize, total)}
-            </span>
+            <span className="font-medium text-foreground">{Math.min(safePage * pageSize, total)}</span>
             {" of "}
             <span className="font-medium text-foreground">{total}</span>{" "}
             items
           </p>
-          <Pagination
-            totalPages={totalPages}
-            currentPage={safePage}
-            onPageChange={setCurrentPage}
-          />
+          <Pagination totalPages={totalPages} currentPage={safePage} onPageChange={setCurrentPage} />
         </div>
       </div>
     </div>
