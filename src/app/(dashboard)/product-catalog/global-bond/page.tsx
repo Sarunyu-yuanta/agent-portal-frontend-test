@@ -1,10 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { GlobalBondAllPage } from "../../client/[id]/GlobalBondAllPage";
+import { useSectionBack } from "@/hooks/use-section-back";
 
 export default function GlobalBondAllPageRoute() {
-  const router = useRouter();
+  const goBack = useSectionBack();
 
-  return <GlobalBondAllPage onBack={() => router.back()} />;
+  return <GlobalBondAllPage onBack={goBack} />;
 }

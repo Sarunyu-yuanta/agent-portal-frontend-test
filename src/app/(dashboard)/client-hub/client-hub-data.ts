@@ -20,9 +20,10 @@ import {
   parsePlYtdPct,
   formatThbAmount,
   formatThaiUpdatedAt,
+  displayAssetLabel,
 } from "@/lib/client-utils";
 import { getNineBoxCell } from "./NineBoxTab";
-import type { SortKey } from "./types";
+import type { ProductSortKey, SortKey } from "./types";
 import type {
   Client,
   ProductRow,
@@ -65,6 +66,24 @@ export function getSortValue(client: Client, key: SortKey): number | string {
     case "liabilities": return parseAumToThb(client.aum) * LIABILITIES_MULTIPLIER;
     case "cashIdle": return parseAumToThb(client.aum) * (client.cashIdlePct / 100);
     case "nineBox": return getNineBoxCell(client).heat;
+    default: return 0;
+  }
+}
+
+/**
+ * Sort value for a product row — the Product tab's counterpart to
+ * {@link getSortValue}. `label` sorts on the text actually shown, so the order
+ * matches what the user reads rather than the raw slice key behind it.
+ */
+export function getProductSortValue(
+  row: ProductRow,
+  key: Exclude<ProductSortKey, "rowIndex" | null>,
+): number | string {
+  switch (key) {
+    case "label": return displayAssetLabel(row.label);
+    case "clientCount": return row.clientCount;
+    case "totalAmountThb": return row.totalAmountThb;
+    case "avgAllocationPct": return row.avgAllocationPct;
     default: return 0;
   }
 }

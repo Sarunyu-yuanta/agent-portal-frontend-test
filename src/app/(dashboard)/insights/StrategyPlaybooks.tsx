@@ -10,7 +10,7 @@ import { PlaybookCardCompact } from "./PlaybookCardCompact";
 
 // ─── Types & constants ────────────────────────────────────────────────────────
 
-type AssetClassFilter =
+export type AssetClassFilter =
   | "All"
   | "Hot issue"
   | "Buy list"
@@ -23,6 +23,15 @@ const ASSET_FILTERS: AssetClassFilter[] = [
   "All", "Hot issue", "Buy list", "Asset performance",
   "Market calendar", "Asset class outlook", "Market outlook",
 ];
+
+/** Coerces a URL `?filter=` value to a real chip, falling back to "All". */
+export function normalizeAssetFilter(
+  value: string | null | undefined,
+): AssetClassFilter {
+  return ASSET_FILTERS.includes(value as AssetClassFilter)
+    ? (value as AssetClassFilter)
+    : "All";
+}
 
 const GRID_LIMIT = 4;
 
@@ -59,8 +68,14 @@ function modalTitle(group: PeriodGroup) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function StrategyPlaybooks() {
-  const [filter, setFilter] = useState<AssetClassFilter>("All");
+export function StrategyPlaybooks({
+  filter,
+  onFilterChange,
+}: {
+  /** Owned by the page so it can live in the URL and survive navigation. */
+  filter: AssetClassFilter;
+  onFilterChange: (filter: AssetClassFilter) => void;
+}) {
   const [modalGroup, setModalGroup] = useState<ModalGroup>(null);
   const isMobile = useMediaQuery("(max-width: 767px)");
 
@@ -76,7 +91,7 @@ export function StrategyPlaybooks() {
         <div className="flex items-center gap-2 flex-nowrap md:flex-wrap px-4 xl:px-6">
           {ASSET_FILTERS.map((f) => (
             <span key={f} className="shrink-0">
-              <Chip label={f} type="single" size="small" selected={filter === f} onClick={() => setFilter(f)} />
+              <Chip label={f} type="single" size="small" selected={filter === f} onClick={() => onFilterChange(f)} />
             </span>
           ))}
         </div>

@@ -1,32 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname } from "next/navigation";
-import {
-  NavHeaderIconButton,
-  Tag,
-  Breadcrumb,
-} from "@sarunyu/system-one";
+import { Suspense, useState } from "react";
+import { NavHeaderIconButton, Tag } from "@sarunyu/system-one";
 import { ListIcon } from "@phosphor-icons/react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { NavStateMemory } from "@/components/layout/NavStateMemory";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
-import { mockHouseViewStrategies } from "@/lib/mock-data";
-import { useClients } from "@/hooks/use-api";
 import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
-import { PrivacyProvider, usePrivacy } from "@/contexts/privacy-context";
-import { maskName } from "@/lib/mask-name";
-
-const PAGE_TITLES: Record<string, string> = {
-  "/command-center": "Command Center",
-  "/client-hub": "Client 360",
-  "/pipeline": "Pipeline",
-  "/ai-insights": "AI Insights",
-  "/performance": "Performance & Targets",
-  "/compliance": "Compliance & Risk",
-  "/house-view": "House View & Strategy",
-  "/insights": "Insights",
-  "/product-catalog": "Product Catalog",
-};
+import { PrivacyProvider } from "@/contexts/privacy-context";
+import { ResponsiveBreadcrumb } from "@/components/layout/ResponsiveBreadcrumb";
+import { usePageChrome } from "./page-chrome";
 
 function MarketOpenBadge() {
   return (
@@ -40,83 +23,19 @@ function MarketOpenBadge() {
   );
 }
 
-type PageInfo = {
-  title: string | null;
-  clientBreadcrumb: { label: string; href?: string }[] | null;
-  isCommandCenter: boolean;
-  isHouseView: boolean;
-  isPerformance: boolean;
-  isFullWidth: boolean;
-};
-
-function usePageInfo(): PageInfo {
-  const pathname = usePathname();
-  const clients = useClients();
-  const { isPrivate } = usePrivacy();
-
-  // Client detail page — show breadcrumb instead of title
-  const clientMatch = pathname.match(/^\/client\/([^/]+)/);
-  if (clientMatch) {
-    const client = clients.find((c) => c.id === clientMatch[1]);
-    return {
-      title: null,
-      clientBreadcrumb: [
-        { label: "Client 360", href: "/client-hub" },
-        { label: maskName(client?.name ?? "Client", isPrivate) },
-      ],
-      isCommandCenter: false,
-      isHouseView: false,
-      isPerformance: false,
-      isFullWidth: false,
-    };
-  }
-
-  // Insight detail page (House View) — show breadcrumb instead of title
-  const insightMatch = pathname.match(/^\/insights\/([^/]+)/);
-  if (insightMatch) {
-    const strategy = mockHouseViewStrategies.find(
-      (s) => s.id === insightMatch[1],
-    );
-    const title = strategy?.name ?? "Insight";
-    return {
-      title: null,
-      clientBreadcrumb: [
-        { label: "House View", href: "/insights" },
-        { label: title.length > 22 ? `${title.slice(0, 22)}…` : title },
-      ],
-      isCommandCenter: false,
-      isHouseView: false,
-      isPerformance: false,
-      isFullWidth: false,
-    };
-  }
-
-  const key = Object.keys(PAGE_TITLES)
-    .sort((a, b) => b.length - a.length)
-    .find((k) => pathname.startsWith(k));
-  return {
-    title: key ? PAGE_TITLES[key] : "",
-    clientBreadcrumb: null,
-    isCommandCenter: pathname.startsWith("/command-center"),
-    isHouseView: pathname.startsWith("/house-view"),
-    isPerformance: pathname.startsWith("/performance"),
-    isFullWidth:
-      pathname.startsWith("/product-catalog") ||
-      pathname.startsWith("/client-hub"),
-  };
-}
-
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const {
     title: pageTitle,
-    clientBreadcrumb,
+    breadcrumb,
     isCommandCenter,
     isHouseView,
     isPerformance,
     isFullWidth,
-  } = usePageInfo();
+    ownsMobileBreadcrumb,
+    contentTopIsWhite,
+  } = usePageChrome();
   const headerSlot = useHeaderSlot();
 
   return (
@@ -162,9 +81,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
               </div>
               {/* Title in header — desktop only */}
-              {clientBreadcrumb ? (
-                <div className="hidden xl:block min-w-0 overflow-hidden">
-                  <Breadcrumb items={clientBreadcrumb} />
+              {breadcrumb ? (
+                // `flex-1` gives it a width that doesn't depend on its own
+                // content, which is what makes the measurement inside stable.
+                <div className="hidden xl:block min-w-0 flex-1">
+                  <ResponsiveBreadcrumb items={breadcrumb} />
                 </div>
               ) : (
                 <div className="hidden xl:flex items-center gap-3">
@@ -199,11 +120,23 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           <main
             className={`flex-1 overflow-y-auto overflow-x-clip [scrollbar-gutter:stable] bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"}`}
           >
+            {/* Mobile/tablet breadcrumb — the top bar has no room for it next
+                to the logo, so it leads the content instead. Sits outside the
+                gap-6 stack below to keep its own spacing; the padding lives on
+                this wrapper so the measured width inside is the real one. No
+                surface of its own — it takes the one the content starts on. */}
+            {breadcrumb && !ownsMobileBreadcrumb && (
+              <div
+                className={`xl:hidden ${isFullWidth ? "px-4 pt-4 pb-3" : "pb-4"} ${contentTopIsWhite ? "bg-white" : ""}`}
+              >
+                <ResponsiveBreadcrumb items={breadcrumb} />
+              </div>
+            )}
             <div
               className={`${isFullWidth ? "w-full min-h-full" : "max-w-[1280px] mx-auto"
                 } flex flex-col gap-6`}
             >
-              {!clientBreadcrumb &&
+              {!breadcrumb &&
                 !isFullWidth &&
                 (pageTitle || isCommandCenter || isHouseView) && (
                   <div className="flex items-center justify-between gap-3 xl:hidden">
@@ -230,6 +163,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+
+      {/* Rendered last on purpose — its scroll restore has to win over any
+          `main.scrollTop` reset a page does in its own mount effect. */}
+      <Suspense fallback={null}>
+        <NavStateMemory />
+      </Suspense>
     </>
   );
 }

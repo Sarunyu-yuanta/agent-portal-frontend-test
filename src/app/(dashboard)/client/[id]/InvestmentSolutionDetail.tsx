@@ -5,12 +5,14 @@ import { Button } from "@sarunyu/system-one";
 import { ArrowLeftIcon, FunnelSimpleIcon } from "@phosphor-icons/react";
 import { StructuredProductCard } from "./StructuredProductCard";
 import {
-  INVESTMENT_SOLUTION_DETAIL_PRODUCTS,
   INVESTMENT_SOLUTION_UPDATED_AT,
   INVESTMENT_SOLUTION_UPDATED_AT_MOBILE,
   type InvestmentSolution,
 } from "./investment-solution-data";
-import type { StructuredProduct } from "./structured-product-data";
+import {
+  INVESTMENT_SOLUTION_DETAIL_PRODUCTS,
+  type StructuredProduct,
+} from "./structured-product-data";
 
 function HeroImageContent({
   src,

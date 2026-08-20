@@ -20,6 +20,7 @@ import { TopIdeaAllPage } from "./TopIdeaAllPage";
 import { TopIdeaDetail } from "./TopIdeaDetail";
 import { InvestmentSolutionDetail } from "./InvestmentSolutionDetail";
 import type { TopIdeaSector } from "./top-idea-data";
+import { PRODUCT_CATEGORIES } from "@/lib/product-catalog-routes";
 import { useScrollThreshold } from "./use-scroll-threshold";
 import { useDragScroll } from "./use-drag-scroll";
 import type { StructuredProduct } from "./structured-product-data";
@@ -34,14 +35,6 @@ import {
   TopPickSection,
 } from "./ProductCatalogSections";
 
-const PRODUCT_TABS = [
-  { id: "structured",      title: "Global Structured Product" },
-  { id: "thai-structured", title: "Thai Structured Product" },
-  { id: "fixed-income",    title: "Fixed Income" },
-  { id: "global-bond",     title: "Global Bond" },
-  { id: "mutual-fund",     title: "Mutual Fund" },
-];
-
 export type CatalogNavigation = {
   onProductSelect: (product: StructuredProduct) => void;
   onAllProductsView: () => void;
@@ -51,6 +44,7 @@ export type CatalogNavigation = {
   onFixedIncomeBondSelect: (bond: FixedIncomeBond) => void;
   onGlobalBondIssuerSelect: (issuerId: GlobalBondIssuerId) => void;
   onAllGlobalBondsView: () => void;
+  onThaiProductSelect: (product: ThaiStructuredProduct) => void;
 };
 
 export function ProductCatalogTab({
@@ -58,13 +52,19 @@ export function ProductCatalogTab({
   onSearchChange,
   onDetailViewChange,
   navigation,
+  activeCategory,
+  onCategoryChange,
 }: {
   searchValue?: string;
   onSearchChange?: (v: string) => void;
   onDetailViewChange?: (isDetail: boolean) => void;
   navigation?: CatalogNavigation;
+  /** Category tab id when the host owns it (URL-driven); uncontrolled otherwise. */
+  activeCategory?: string;
+  onCategoryChange?: (id: string) => void;
 } = {}) {
-  const [activeProductTab, setActiveProductTab] = useState("structured");
+  const [activeTabInternal, setActiveTabInternal] = useState("structured");
+  const activeProductTab = activeCategory ?? activeTabInternal;
   const [selectedFixedIncomeBond, setSelectedFixedIncomeBond] = useState<FixedIncomeBond | null>(null);
   const [selectedFixedIncomeCompany, setSelectedFixedIncomeCompany] = useState<string | null>(null);
   const [fixedIncomeView, setFixedIncomeView] = useState<"bond" | "company" | null>(null);
@@ -114,6 +114,7 @@ export function ProductCatalogTab({
     }),
     onGlobalBondIssuerSelect: navigation?.onGlobalBondIssuerSelect ?? setSelectedGlobalBondIssuer,
     onAllGlobalBondsView: navigation?.onAllGlobalBondsView ?? (() => setShowAllGlobalBonds(true)),
+    onThaiProductSelect: navigation?.onThaiProductSelect ?? setSelectedThaiProduct,
   };
 
   const resetFixedIncomeNav = () => {
@@ -123,7 +124,8 @@ export function ProductCatalogTab({
   };
 
   const handleProductTabChange = (id: string) => {
-    setActiveProductTab(id);
+    if (onCategoryChange) onCategoryChange(id);
+    else setActiveTabInternal(id);
     setSelectedProduct(null);
     setShowAllTopIdeas(false);
     setSelectedTopIdea(null);
@@ -138,7 +140,7 @@ export function ProductCatalogTab({
   // ── State-based detail views ────────────────────────────────────────────────
   // Only used when URL navigation is not provided (e.g. client pages).
 
-  if (selectedThaiProduct) {
+  if (!navigation && selectedThaiProduct) {
     return (
       <div className="flex flex-col w-full">
         <ThaiStructuredProductDetail
@@ -294,7 +296,7 @@ export function ProductCatalogTab({
           }}
         >
           <TabGroup
-            items={PRODUCT_TABS}
+            items={PRODUCT_CATEGORIES}
             activeId={activeProductTab}
             onChange={handleProductTabChange}
             size="md"
@@ -327,7 +329,7 @@ export function ProductCatalogTab({
           style={{ scrollbarWidth: "none" }}
         >
           <TabGroup
-            items={PRODUCT_TABS}
+            items={PRODUCT_CATEGORIES}
             activeId={activeProductTab}
             onChange={handleProductTabChange}
             size="md"
@@ -387,7 +389,7 @@ export function ProductCatalogTab({
               >
                 All Thai FCN
               </p>
-              <ThaiStructuredProductTable onRowClick={setSelectedThaiProduct} />
+              <ThaiStructuredProductTable onRowClick={nav.onThaiProductSelect} />
             </div>
           </div>
         </div>

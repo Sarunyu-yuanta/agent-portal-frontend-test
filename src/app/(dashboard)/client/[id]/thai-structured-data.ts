@@ -30,3 +30,10 @@ export const THAI_STRUCTURED_PRODUCTS: ThaiStructuredProduct[] = [
   { theme: "Apparel", product: "FCN", ccy: "USD", bbg1: "NKE US", bbg2: "LULU US", bbg3: "ONON US", couponPa: "22.74%", koType: "Period End", koBarrier: "100.00%", strike: "85.00%", kiBarrier: "65.00%", tenor: 6 },
   { theme: "Food & Beverage", product: "FCN", ccy: "USD", bbg1: "MNST US", bbg2: "SHAK US", bbg3: "KO US", couponPa: "15.72%", koType: "Period End", koBarrier: "100.00%", strike: "85.00%", kiBarrier: "65.00%", tenor: 6 },
 ];
+
+/** `theme` is the row's natural key — it doubles as the detail route segment. */
+export function getThaiStructuredProduct(
+  theme: string,
+): ThaiStructuredProduct | null {
+  return THAI_STRUCTURED_PRODUCTS.find((p) => p.theme === theme) ?? null;
+}

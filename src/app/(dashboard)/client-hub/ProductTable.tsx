@@ -9,13 +9,21 @@ import {
   TableCell,
 } from "@sarunyu/system-one";
 import { displayAssetLabel, formatThbAmount } from "@/lib/client-utils";
+import type { ProductSortKey, SortDir } from "./types";
 import type { ProductRow } from "@/types/domain";
 
 export function ProductTable({
   rows,
+  originalIndexMap,
+  dirFor,
+  onSort,
   onRowClick,
 }: {
   rows: ProductRow[];
+  /** Row numbers from the unsorted list, so "No." stays put like the Customer tab's. */
+  originalIndexMap: Map<string, number>;
+  dirFor: (key: ProductSortKey) => SortDir;
+  onSort: (key: ProductSortKey) => (next: SortDir) => void;
   onRowClick: (row: ProductRow) => void;
 }) {
   return (
@@ -23,15 +31,45 @@ export function ProductTable({
       <Table className="table-fixed min-w-[640px]">
         <TableHead>
           <TableRow>
-            <TableHeaderCell className="w-[5%]">No.</TableHeaderCell>
-            <TableHeaderCell className="w-[30%]">Product</TableHeaderCell>
-            <TableHeaderCell className="w-[18%] whitespace-nowrap"># Clients</TableHeaderCell>
-            <TableHeaderCell className="w-[26%] whitespace-nowrap">Total AUM (THB)</TableHeaderCell>
-            <TableHeaderCell className="w-[21%] whitespace-nowrap">Avg Allocation</TableHeaderCell>
+            <TableHeaderCell
+              className="w-[5%]"
+              sortDirection={dirFor("rowIndex")}
+              onSortChange={onSort("rowIndex")}
+            >
+              No.
+            </TableHeaderCell>
+            <TableHeaderCell
+              className="w-[30%]"
+              sortDirection={dirFor("label")}
+              onSortChange={onSort("label")}
+            >
+              Product
+            </TableHeaderCell>
+            <TableHeaderCell
+              className="w-[18%] whitespace-nowrap"
+              sortDirection={dirFor("clientCount")}
+              onSortChange={onSort("clientCount")}
+            >
+              # Clients
+            </TableHeaderCell>
+            <TableHeaderCell
+              className="w-[26%] whitespace-nowrap"
+              sortDirection={dirFor("totalAmountThb")}
+              onSortChange={onSort("totalAmountThb")}
+            >
+              Total AUM (THB)
+            </TableHeaderCell>
+            <TableHeaderCell
+              className="w-[21%] whitespace-nowrap"
+              sortDirection={dirFor("avgAllocationPct")}
+              onSortChange={onSort("avgAllocationPct")}
+            >
+              Avg Allocation
+            </TableHeaderCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, index) => (
+          {rows.map((row) => (
             <TableRow
               key={row.label}
               className="cursor-pointer"
@@ -39,7 +77,9 @@ export function ProductTable({
               onClick={() => onRowClick(row)}
             >
               <TableCell>
-                <p className="text-[13px] text-muted-foreground">{index + 1}</p>
+                <p className="text-[13px] text-muted-foreground">
+                  {originalIndexMap.get(row.label) ?? 0}
+                </p>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">

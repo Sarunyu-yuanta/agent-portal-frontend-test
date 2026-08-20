@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Breadcrumb } from "@sarunyu/system-one";
 import { Tag, Button } from "@sarunyu/system-one";
 import { SparkleIcon, ArrowLeftIcon, FilePdfIcon } from "@phosphor-icons/react";
 import { mockHouseViewStrategies, mockAnalysts } from "@/lib/mock-data";
@@ -13,9 +11,11 @@ import {
 } from "../house-view-data";
 import { RelatedProductsCard } from "../RelatedProductsCard";
 import { PlaybookCardCompact } from "../PlaybookCardCompact";
+import { useSectionBack } from "@/hooks/use-section-back";
 
 export function InsightDetail({ id }: { id: string }) {
-  const router = useRouter();
+  // Called before the early return below — a missing strategy must not skip a hook.
+  const goBack = useSectionBack();
   const strategy = mockHouseViewStrategies.find((s) => s.id === id);
 
   if (!strategy) {
@@ -139,25 +139,12 @@ export function InsightDetail({ id }: { id: string }) {
       style={{ gridTemplateColumns: "1fr 400px" }}
     >
       <div className="flex flex-col gap-6 pb-12 min-w-0 max-lg:max-w-xl max-lg:mx-auto max-lg:w-full">
-        <div className="xl:hidden">
-          <Breadcrumb
-            items={[
-              { label: "House View", href: "/insights" },
-              {
-                label:
-                  strategy.name.length > 28
-                    ? `${strategy.name.slice(0, 28)}…`
-                    : strategy.name,
-              },
-            ]}
-          />
-        </div>
-
+        {/* Mobile breadcrumb comes from the layout, above this content. */}
         <Button
           variant="plain"
           size="sm"
           leftIcon={<ArrowLeftIcon size={16} />}
-          onClick={() => router.back()}
+          onClick={goBack}
           className="self-start hidden xl:inline-flex"
         >
           กลับ

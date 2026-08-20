@@ -1,7 +1,8 @@
 "use client";
 
-import { use, useState, useEffect, useRef } from "react";
-import { Avatar, Breadcrumb, Card, TabGroup } from "@sarunyu/system-one";
+import { Suspense, use, useState, useEffect, useRef } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Avatar, Card, TabGroup } from "@sarunyu/system-one";
 import { ClientAssetSidebarContent } from "@/components/ClientAssetSidebarContent";
 import {
   PhoneIcon,
@@ -17,7 +18,10 @@ import { useClients, useNBAActions } from "@/hooks/use-api";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
 import { getInitials } from "@/lib/client-utils";
+import { setQueryState } from "@/lib/query-state";
 import { useSetHeaderSlot } from "../../header-slot-context";
+import { usePageBreadcrumb } from "../../page-breadcrumbs";
+import { ResponsiveBreadcrumb } from "@/components/layout/ResponsiveBreadcrumb";
 import { NineBoxCellPill } from "../../client-hub/NineBoxTab";
 import { getCallLogs } from "@/data/call-log-data";
 import { getClientProfile } from "@/data/client-profiles";
@@ -33,6 +37,9 @@ import { CallLogTable, EmptyTabState } from "./ClientSections";
 import { KycTab } from "./KycTab";
 import { OverviewTab } from "./OverviewTab";
 
+/** Sub-tabs that `?tab=` may address; anything else falls back to Overview. */
+const CLIENT_TABS = ["overview", "kyc", "assets", "call-log"];
+
 export default function ClientPage({
   params,
 }: {
@@ -41,21 +48,36 @@ export default function ClientPage({
   const { id } = use(params);
   // Keyed remount on client id — this page reuses the same component instance
   // across in-app navigations between different clients (same route segment),
-  // so header-collapse / active-tab / sort state would otherwise leak between clients.
-  return <ClientPageInner key={id} id={id} />;
+  // so header-collapse / sort state would otherwise leak between clients.
+  return (
+    <Suspense fallback={null}>
+      <ClientPageInner key={id} id={id} />
+    </Suspense>
+  );
 }
 
 function ClientPageInner({ id }: { id: string }) {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { isPrivate } = usePrivacy();
   const clients = useClients();
   const nbaActions = useNBAActions(clients);
+
+  // Same source as the desktop top-bar breadcrumb — this page renders its own
+  // only so it can live inside the sticky identity bar.
+  const breadcrumb = usePageBreadcrumb(pathname, { clients, isPrivate });
 
   const client = clients.find((c) => c.id === id) ?? clients[0] ?? mockClients[0];
   const maskedClientName = maskName(client.name, isPrivate);
   const detail = clientDetailById[client.id] ?? mockClientDetails["1"];
 
-  // Page tab state
-  const [activeTab, setActiveTab] = useState("overview");
+  // Page tab state — URL-owned, so returning to this profile (browser back or
+  // the sidebar's Client 360 entry) comes back to the sub-tab left open.
+  // `replace`: sub-tabs are views of one profile, not stops worth unwinding.
+  const tabParam = searchParams.get("tab");
+  const activeTab = tabParam && CLIENT_TABS.includes(tabParam) ? tabParam : "overview";
+  const setActiveTab = (tab: string) =>
+    setQueryState(`/client/${id}?tab=${tab}`, "replace");
 
   // Holdings sort state
   const [holdingsSortDir, setHoldingsSortDir] = useState<SortDir>("none");
@@ -127,12 +149,11 @@ function ClientPageInner({ id }: { id: string }) {
       {/* Sticky Identity + KPI bar + Tabs */}
       <div className={`sticky -top-6 z-20 -mx-[9999px] px-[9999px] bg-card will-change-transform [overflow-anchor:none] transition-shadow duration-300 ease-out ${scrolled ? "shadow-sm" : ""}`}>
         {/* Mobile/Tablet breadcrumb — inside sticky header */}
-        <div className="xl:hidden pt-5 pb-0">
-          <Breadcrumb items={[
-            { label: "Client 360", href: "/client-hub" },
-            { label: maskedClientName },
-          ]} />
-        </div>
+        {breadcrumb && (
+          <div className="xl:hidden pt-5 pb-0">
+            <ResponsiveBreadcrumb items={breadcrumb} />
+          </div>
+        )}
         <div className={`flex flex-wrap md:flex-nowrap items-center md:items-start xl:items-center justify-between gap-4 lg:gap-8 transition-[padding] duration-300 ease-out ${scrolled ? "py-3" : "py-5"}`}>
 
           {/* Left: identity + actions */}

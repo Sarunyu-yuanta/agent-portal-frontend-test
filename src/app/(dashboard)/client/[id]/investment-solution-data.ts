@@ -1,9 +1,4 @@
 import investmentSolutionsRaw from "@/data/investment-solutions.json";
-import {
-  TOP_PICKS,
-  STRUCTURED_PRODUCTS,
-  type StructuredProduct,
-} from "./structured-product-data";
 
 export type InvestmentSolutionId = "secure-income" | "balanced-growth" | "high-conviction";
 
@@ -157,11 +152,3 @@ export function getInvestmentSolution(id: InvestmentSolutionId): InvestmentSolut
   return INVESTMENT_SOLUTIONS.find((s) => s.id === id) ?? INVESTMENT_SOLUTIONS[2];
 }
 
-export const INVESTMENT_SOLUTION_DETAIL_PRODUCTS: StructuredProduct[] = [
-  ...TOP_PICKS.map((p, i) => ({ ...p, id: `is-top-${i}` })),
-  ...STRUCTURED_PRODUCTS.map((p, i) => ({ ...p, id: `is-sp-${i}` })),
-  ...TOP_PICKS.map((p, i) => ({ ...p, id: `is-top2-${i}` })),
-  ...STRUCTURED_PRODUCTS.slice(0, 4).map((p, i) => ({ ...p, id: `is-sp2-${i}` })),
-  ...TOP_PICKS.map((p, i) => ({ ...p, id: `is-top3-${i}` })),
-  ...STRUCTURED_PRODUCTS.slice(0, 3).map((p, i) => ({ ...p, id: `is-sp3-${i}` })),
-].slice(0, 20);

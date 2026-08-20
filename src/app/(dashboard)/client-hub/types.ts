@@ -22,6 +22,15 @@ export type SortKey =
   | "nineBox"
   | null;
 
+/** Sortable columns of the Product tab's table. */
+export type ProductSortKey =
+  | "rowIndex"
+  | "label"
+  | "clientCount"
+  | "totalAmountThb"
+  | "avgAllocationPct"
+  | null;
+
 export type ColumnId =
   | "clientId"
   | "client"

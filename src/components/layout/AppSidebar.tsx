@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Avatar } from "@sarunyu/system-one";
 import {
   UsersIcon,
@@ -13,11 +13,23 @@ import {
   EyeSlashIcon,
 } from "@phosphor-icons/react";
 import { usePrivacy } from "@/contexts/privacy-context";
+import {
+  lastSectionPath,
+  sectionForPath,
+  type NavSectionKey,
+} from "@/lib/nav-memory";
 
-const workspaceItems = [
-  { href: "/client-hub", label: "Client 360", icon: UsersIcon, badge: null },
+const workspaceItems: NavItem[] = [
+  {
+    href: "/client-hub",
+    section: "client-hub",
+    label: "Client 360",
+    icon: UsersIcon,
+    badge: null,
+  },
   {
     href: "/product-catalog",
+    section: "product-catalog",
     label: "Product Catalog",
     icon: SquaresFourIcon,
     badge: null,
@@ -25,6 +37,7 @@ const workspaceItems = [
   // { href: "/house-view", label: "House View", icon: ChartBarIcon, badge: null },
   {
     href: "/insights",
+    section: "insights",
     label: "Insights",
     icon: ChartBarIcon,
     badge: null,
@@ -33,6 +46,7 @@ const workspaceItems = [
 
 type NavItem = {
   href: string;
+  section: NavSectionKey;
   label: string;
   icon: React.ElementType;
   badge: number | string | null;
@@ -54,6 +68,28 @@ function NavSection({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const activeSection = sectionForPath(pathname);
+
+  /**
+   * Smart link: re-entering a section from elsewhere resumes where the user left
+   * off (Full Profile + sub-tab, catalog category, insight filter) — matching
+   * what browser-back already does. Clicking the section you're already in is
+   * the deliberate "take me back to the list" gesture, so that keeps `href`.
+   *
+   * `href` stays the section root either way, so middle-click / open-in-new-tab
+   * and SSR markup behave normally.
+   */
+  const handleNavigate = (item: NavItem) => (e: React.MouseEvent) => {
+    onNavigate?.();
+    // Cmd/ctrl/shift-click is "open this href elsewhere" — leave it to the browser.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    if (activeSection === item.section) return;
+    const last = lastSectionPath(item.section);
+    if (!last || last === item.href) return;
+    e.preventDefault();
+    router.push(last);
+  };
 
   return (
     <div className="flex flex-col gap-0.5 mt-2">
@@ -69,14 +105,14 @@ function NavSection({
 
       {items.map((item) => {
         const Icon = item.icon;
-        const isActive =
-          pathname === item.href || pathname.startsWith(item.href + "/");
+        // Section-wide, so Client 360 stays lit on a Full Profile (/client/:id).
+        const isActive = activeSection === item.section;
         return (
           <Link
             key={item.href}
             href={item.href}
             className="no-underline block px-2"
-            onClick={onNavigate}
+            onClick={handleNavigate(item)}
             title={item.label}
           >
             <div

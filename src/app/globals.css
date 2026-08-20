@@ -247,3 +247,23 @@
     display: none;
     }
 }
+
+/* Lets a Breadcrumb shrink to the width it has.
+   `@sarunyu/system-one`'s Breadcrumb marks its labels `shrink-0` but not the
+   spans wrapping them, so a nav narrower than its content squeezes the wrappers
+   while the text keeps its width — the rungs overlap. Letting the label (the
+   first child of each item, never the "/" after it) shrink and ellipsize keeps
+   every rung on screen instead.
+
+   Deliberately outside every @layer: `shrink-0` lives in Tailwind's `utilities`
+   layer, which wins over anything in `base` no matter how specific it is.
+   Unlayered rules outrank all layered ones, which is the only way this sticks. */
+.breadcrumb-fit > span {
+  min-width: 0;
+}
+.breadcrumb-fit > span > :first-child {
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
