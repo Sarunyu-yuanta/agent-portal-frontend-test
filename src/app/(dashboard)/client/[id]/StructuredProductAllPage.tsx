@@ -11,6 +11,8 @@ import {
   ALL_STRUCTURED_PRODUCTS_UPDATED_AT_TABLET,
   type StructuredProduct,
 } from "./structured-product-data";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { StructuredProductAllPageSkeleton } from "./ProductDetailSkeletons";
 
 const COUPON_FILTERS = [
   { key: "all", label: "ALL" },
@@ -29,8 +31,9 @@ export function StructuredProductAllPage({
   onBack: () => void;
   onProductSelect: (product: StructuredProduct) => void;
 }) {
+  const isLoading = useSimulatedLoading();
   const [couponFilter, setCouponFilter] = useState<CouponFilter>("all");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(true);
 
   useEffect(() => {
     const main = document.querySelector("main");
@@ -42,9 +45,11 @@ export function StructuredProductAllPage({
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => setIsLoading(false), 800);
+    const t = setTimeout(() => setIsLoadingMore(false), 800);
     return () => clearTimeout(t);
   }, []);
+
+  if (isLoading) return <StructuredProductAllPageSkeleton />;
 
   const filteredProducts = ALL_STRUCTURED_PRODUCTS.filter((p) => {
     if (couponFilter === "all") return true;
@@ -122,7 +127,7 @@ export function StructuredProductAllPage({
             ))}
           </div>
 
-          {isLoading && (
+          {isLoadingMore && (
             <div className="flex gap-1 items-center justify-center w-full py-2 pl-2.5 pr-3.5 lg:hidden">
               <CircleNotchIcon size={22} className="animate-spin text-black/40" />
               <span className="text-sm font-semibold leading-[22px] text-black/40">กำลังโหลดข้อมูล</span>

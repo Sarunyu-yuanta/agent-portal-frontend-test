@@ -21,6 +21,8 @@ import {
   StatusTag,
   BondLogo,
 } from "./fixed-income-shared";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { FixedIncomeCompanyDetailSkeleton } from "./ProductDetailSkeletons";
 
 const GRADIENT_TITLE =
   "bg-gradient-to-r from-[#00a1e9] to-[#004eba] bg-clip-text text-transparent";
@@ -340,6 +342,7 @@ export function FixedIncomeCompanyDetail({
   onBack: () => void;
   onBondSelect: (bond: FixedIncomeBond) => void;
 }) {
+  const isLoading = useSimulatedLoading();
   const company = resolveFixedIncomeCompany(companyId);
   const primaryBonds = getCompanyPrimaryBonds(companyId);
   const secondaryBonds = getCompanySecondaryBonds(companyId);
@@ -352,6 +355,8 @@ export function FixedIncomeCompanyDetail({
       window.scrollTo(0, 0);
     }
   }, [companyId]);
+
+  if (isLoading) return <FixedIncomeCompanyDetailSkeleton hasSecondary={secondaryBonds.length > 0} />;
 
   if (!company) {
     return (

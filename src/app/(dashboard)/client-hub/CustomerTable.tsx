@@ -9,6 +9,9 @@ import {
   TableCell,
   Tooltip,
 } from "@sarunyu/system-one";
+import { TableRowsSkeleton } from "@/components/ui/skeleton";
+import { TABLE_EMPTY_MIN_HEIGHT, TableEmptyOverlay } from "@/components/ui/empty-state";
+import { useFlipRows } from "@/hooks/use-flip-rows";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { CUSTOMER_COLUMNS } from "./columns";
 import type { ColumnId, SortDir, SortKey } from "./types";
@@ -22,20 +25,25 @@ export function CustomerTable({
   originalIndexMap,
   tableWidth,
   isPrivate,
+  isLoading,
   dirFor,
   onSort,
   onRowClick,
+  onClearFilters,
 }: {
   rows: Client[];
   visibleColumns: Set<ColumnId>;
   originalIndexMap: Map<string, number>;
   tableWidth: number;
   isPrivate: boolean;
+  isLoading?: boolean;
   dirFor: (key: SortKey) => SortDir;
   onSort: (key: SortKey) => (next: SortDir) => void;
   onRowClick: (client: Client) => void;
+  onClearFilters?: () => void;
 }) {
   const shown = CUSTOMER_COLUMNS.filter((col) => visibleColumns.has(col.id));
+  const flipRef = useFlipRows<string>();
 
   // Proportional column widths: each column gets its natural share of the total.
   // With table-fixed + w-full, percentages scale all columns proportionally as
@@ -72,8 +80,10 @@ export function CustomerTable({
     return {};
   };
 
+  const isEmpty = !isLoading && rows.length === 0;
+
   return (
-    <div className="overflow-x-auto overflow-y-hidden table-scroll rounded-lg border border-[var(--border-default)]">
+    <div className={`relative overflow-x-auto overflow-y-hidden table-scroll rounded-lg border border-[var(--border-default)] ${isEmpty ? TABLE_EMPTY_MIN_HEIGHT : ""}`}>
       <Table className="table-fixed w-full" style={{ minWidth: tableWidth }}>
         <TableHead>
           <TableRow>
@@ -100,7 +110,9 @@ export function CustomerTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((client) => {
+          {isLoading ? (
+            <TableRowsSkeleton columns={shown.length + 1} />
+          ) : rows.map((client) => {
             const rowNo = originalIndexMap.get(client.id) ?? 0;
             return (
               <Tooltip
@@ -109,7 +121,7 @@ export function CustomerTable({
                 side="top"
                 delayDuration={400}
               >
-                <TableRow className="cursor-pointer" hoverable onClick={() => onRowClick(client)}>
+                <TableRow ref={flipRef(client.id)} className="cursor-pointer transition-colors active:bg-[var(--bg-default-pressed)]" hoverable onClick={() => onRowClick(client)}>
                   <TableCell {...noCellPin}>
                     <p className="text-[13px] text-muted-foreground">{rowNo}</p>
                   </TableCell>
@@ -124,6 +136,12 @@ export function CustomerTable({
           })}
         </TableBody>
       </Table>
+      {isEmpty && (
+        <TableEmptyOverlay
+          body="ลองค้นหาด้วยคำอื่น หรือล้างตัวกรองเพื่อดูรายชื่อลูกค้าทั้งหมด"
+          onClearFilters={onClearFilters}
+        />
+      )}
     </div>
   );
 }

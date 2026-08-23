@@ -16,6 +16,8 @@ import {
   GlobalBondDetailTable,
 } from "./GlobalBondDetailBondList";
 import { GlobalBondDetailRecommended } from "./GlobalBondDetailRecommended";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { GlobalBondDetailSkeleton } from "./ProductDetailSkeletons";
 
 export function GlobalBondDetail({
   issuerId,
@@ -26,6 +28,7 @@ export function GlobalBondDetail({
   onBack: () => void;
   onIssuerSelect?: (issuerId: GlobalBondIssuerId) => void;
 }) {
+  const isLoading = useSimulatedLoading();
   const issuer = getGlobalBondIssuer(issuerId);
   const [yieldFilter, setYieldFilter] = useState<YieldFilter>("all");
   const [maturityFilter, setMaturityFilter] = useState<MaturityFilter>("all");
@@ -53,6 +56,8 @@ export function GlobalBondDetail({
     setYieldFilter("all");
     setMaturityFilter("all");
   }
+
+  if (isLoading) return <GlobalBondDetailSkeleton />;
 
   if (!issuer) {
     return (

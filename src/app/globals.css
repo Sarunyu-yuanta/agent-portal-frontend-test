@@ -267,3 +267,16 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* `@sarunyu/system-one`'s <Table> draws header/row dividers at 10% black
+   opacity (`border-border`) — on a white row that's ~2-3% perceived contrast,
+   easy to read as "no border at all". `table.border-collapse` is that
+   component's own signature class (its one custom admin table counterpart
+   uses `border-separate` instead), so this only touches the design-system
+   table, not ResourceTable.tsx's hand-rolled one.
+
+   Deliberately outside every @layer — see .breadcrumb-fit above for why. */
+table.border-collapse th,
+table.border-collapse td {
+  border-color: rgba(0, 0, 0, 0.16);
+}

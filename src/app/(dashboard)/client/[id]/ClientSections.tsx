@@ -1,6 +1,5 @@
 "use client";
 
-import { type ReactNode } from "react";
 import {
   Table,
   TableHead,
@@ -18,6 +17,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
 import { ALLOCATION_COLORS, type SortDir } from "./client-detail-data";
 import { displayAssetLabel } from "@/lib/client-utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 function AllocationTooltip({
   active,
@@ -38,11 +38,14 @@ function AllocationTooltip({
 
 export function CurrentAllocationSection({ slices }: { slices: { label: string; percent: number }[] }) {
   const data = slices.map((s, i) => ({ name: displayAssetLabel(s.label), value: s.percent, color: ALLOCATION_COLORS[i] }));
+  // Keyed on the actual values so the chart remounts — and replays its entry
+  // animation — whenever the allocation itself changes, not just on first mount.
+  const chartKey = slices.map((s) => `${s.label}:${s.percent}`).join("|");
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-center">
       {/* Pie chart */}
-      <div className="h-[180px] shrink-0 mx-auto sm:mx-0" style={{ width: 180 }}>
+      <div key={chartKey} className="h-[180px] shrink-0 mx-auto sm:mx-0" style={{ width: 180 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -55,6 +58,8 @@ export function CurrentAllocationSection({ slices }: { slices: { label: string; 
               outerRadius={80}
               paddingAngle={1}
               stroke="none"
+              animationDuration={350}
+              animationEasing="ease-out"
             >
               {data.map((d) => (
                 <Cell key={d.name} fill={d.color} />
@@ -145,28 +150,10 @@ export function TopHoldingsSection({
   );
 }
 
-export function EmptyTabState({
-  icon,
-  title,
-  body,
-}: {
-  icon: ReactNode;
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 pt-24 pb-16 text-center">
-      {icon}
-      <p className="type-subtitle-1 font-semibold text-[var(--text-default-secondary)]">{title}</p>
-      <p className="type-body-2 text-[var(--text-default-tertiary)] max-w-xs">{body}</p>
-    </div>
-  );
-}
-
 export function CallLogTable({ callLogs }: { callLogs: CallLogEntry[] }) {
   if (callLogs.length === 0) {
     return (
-      <EmptyTabState
+      <EmptyState
         icon={<PhoneIcon size={40} className="text-[var(--text-default-placeholder)]" />}
         title="No call history yet"
         body="Call logs for this client will appear here."

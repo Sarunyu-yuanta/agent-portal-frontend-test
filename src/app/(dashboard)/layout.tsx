@@ -1,9 +1,11 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { usePathname } from "next/navigation";
 import { NavHeaderIconButton, Tag } from "@sarunyu/system-one";
 import { ListIcon } from "@phosphor-icons/react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { FadeIn } from "@/components/ui/fade-in";
 import { NavStateMemory } from "@/components/layout/NavStateMemory";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
@@ -24,6 +26,7 @@ function MarketOpenBadge() {
 }
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const {
@@ -132,7 +135,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 <ResponsiveBreadcrumb items={breadcrumb} />
               </div>
             )}
-            <div
+            <FadeIn
+              key={pathname}
               className={`${isFullWidth ? "w-full min-h-full" : "max-w-[1280px] mx-auto"
                 } flex flex-col gap-6`}
             >
@@ -159,7 +163,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   </div>
                 )}
               {children}
-            </div>
+            </FadeIn>
           </main>
         </div>
       </div>

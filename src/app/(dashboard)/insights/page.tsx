@@ -5,6 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { TabGroup } from "@sarunyu/system-one";
 import { setQueryState, withQuery } from "@/lib/query-state";
 import { navRead, navWrite } from "@/lib/nav-session";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { FadeIn } from "@/components/ui/fade-in";
+import { StrategyPlaybooksSkeleton, AIRecommendCardSkeleton } from "./InsightsSkeletons";
 import {
   StrategyPlaybooks,
   normalizeAssetFilter,
@@ -13,10 +16,23 @@ import {
 import { AIRecommendCard } from "./AIRecommendCard";
 import { Research4U } from "./Research4U";
 
-function RightSidebar() {
+/** The Insights tab's "playbooks + sidebar" two-column split. */
+function InsightsLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="flex flex-col gap-8 lg:grid lg:gap-6"
+      style={{ gridTemplateColumns: "1fr 300px", alignItems: "start" }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Sticky wrapper the sidebar and its skeleton share. */
+function SidebarColumn({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-5 sticky top-6 w-full max-w-sm mx-auto lg:max-w-none lg:mx-0">
-      <AIRecommendCard />
+      {children}
     </div>
   );
 }
@@ -42,6 +58,7 @@ const FILTER_KEY = "nav:insights-filter";
 
 function InsightsPageInner() {
   const searchParams = useSearchParams();
+  const isLoading = useSimulatedLoading();
 
   // The tab stays in the URL — it's a destination, not a refinement.
   const activeTab =
@@ -82,14 +99,25 @@ function InsightsPageInner() {
         />
       </div>
 
-      {activeTab === "insights" ? (
-        <div className="flex flex-col gap-8 lg:grid lg:gap-6" style={{ gridTemplateColumns: "1fr 300px", alignItems: "start" }}>
-          <StrategyPlaybooks filter={filter} onFilterChange={setFilter} />
-          <RightSidebar />
-        </div>
-      ) : (
-        <Research4U />
-      )}
+      <FadeIn key={activeTab}>
+        {isLoading ? (
+          <InsightsLayout>
+            <StrategyPlaybooksSkeleton />
+            <SidebarColumn>
+              <AIRecommendCardSkeleton />
+            </SidebarColumn>
+          </InsightsLayout>
+        ) : activeTab === "insights" ? (
+          <InsightsLayout>
+            <StrategyPlaybooks filter={filter} onFilterChange={setFilter} />
+            <SidebarColumn>
+              <AIRecommendCard />
+            </SidebarColumn>
+          </InsightsLayout>
+        ) : (
+          <Research4U />
+        )}
+      </FadeIn>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Chip, Button, BottomSheet, Modal } from "@sarunyu/system-one";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { mockHouseViewStrategies } from "@/lib/mock-data";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { FadeIn } from "@/components/ui/fade-in";
 import { PlaybookCard } from "./PlaybookCard";
 import { PlaybookCardCompact } from "./PlaybookCardCompact";
 
@@ -98,75 +99,77 @@ export function StrategyPlaybooks({
       </div>
 
       {/* Period groups */}
-      {groups.map((group, idx) => {
-        const isFirstMonthly = !isFiltered && idx === 0 && group.period === "monthly";
-        const [featured, ...rest] = group.items;
-        const gridItems = isFirstMonthly ? rest : group.items;
-        const hasMore = gridItems.length > GRID_LIMIT;
+      <FadeIn key={filter} className="flex flex-col gap-8">
+        {groups.map((group, idx) => {
+          const isFirstMonthly = !isFiltered && idx === 0 && group.period === "monthly";
+          const [featured, ...rest] = group.items;
+          const gridItems = isFirstMonthly ? rest : group.items;
+          const hasMore = gridItems.length > GRID_LIMIT;
 
-        return (
-          <Fragment key={`${group.period}-${group.periodLabel}`}>
-            {idx > 0 && <div className="border-t border-border my-4" />}
-            <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="px-2.5 py-1 rounded bg-primary-action-light text-primary-action text-[11px] font-bold">
-                  {periodBadgeLabel(group.period)}
-                </span>
-                <p className="type-subtitle-1 font-bold text-foreground">{group.periodLabel}</p>
-              </div>
-              {(hasMore && !isFirstMonthly) || isFirstMonthly ? (
-                <Button
-                  size="sm"
-                  variant="plain"
-                  rightIcon={<ArrowRightIcon size={12} />}
-                  onClick={() => setModalGroup(group)}
-                  className={isFirstMonthly ? "lg:hidden" : ""}
-                >
-                  ดูทั้งหมด
-                </Button>
-              ) : null}
-            </div>
-
-            {isFirstMonthly ? (
-              <>
-                {/* Desktop: combined card */}
-                <div className="hidden lg:flex rounded-2xl border border-border bg-card overflow-hidden flex-col lg:flex-row">
-                  <div className="flex-1 min-w-0">
-                    <PlaybookCard strategy={featured} noBorder />
+          return (
+            <Fragment key={`${group.period}-${group.periodLabel}`}>
+              {idx > 0 && <div className="border-t border-border my-4" />}
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="px-2.5 py-1 rounded bg-primary-action-light text-primary-action text-[11px] font-bold">
+                      {periodBadgeLabel(group.period)}
+                    </span>
+                    <p className="type-subtitle-1 font-bold text-foreground">{group.periodLabel}</p>
                   </div>
-                  {rest.length > 0 && (
-                    <div className="flex flex-col border-t lg:border-t-0 lg:border-l border-border lg:w-[45%] shrink-0 overflow-y-auto max-h-[306px] visible-scrollbar">
-                      <div className="flex flex-col divide-y divide-border">
-                        {rest.map((s) => (
-                          <PlaybookCardCompact key={s.id} strategy={s} noBorder />
+                  {(hasMore && !isFirstMonthly) || isFirstMonthly ? (
+                    <Button
+                      size="sm"
+                      variant="plain"
+                      rightIcon={<ArrowRightIcon size={12} />}
+                      onClick={() => setModalGroup(group)}
+                      className={isFirstMonthly ? "lg:hidden" : ""}
+                    >
+                      ดูทั้งหมด
+                    </Button>
+                  ) : null}
+                </div>
+
+                {isFirstMonthly ? (
+                  <>
+                    {/* Desktop: combined card */}
+                    <div className="hidden lg:flex rounded-2xl border border-border bg-card overflow-hidden flex-col lg:flex-row">
+                      <div className="flex-1 min-w-0">
+                        <PlaybookCard strategy={featured} noBorder />
+                      </div>
+                      {rest.length > 0 && (
+                        <div className="flex flex-col border-t lg:border-t-0 lg:border-l border-border lg:w-[45%] shrink-0 overflow-y-auto max-h-[306px] visible-scrollbar">
+                          <div className="flex flex-col divide-y divide-border">
+                            {rest.map((s) => (
+                              <PlaybookCardCompact key={s.id} strategy={s} noBorder />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Mobile: separate cards + view all */}
+                    <div className="flex flex-col gap-3 lg:hidden">
+                      <PlaybookCard strategy={featured} />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {rest.slice(0, 3).map((s) => (
+                          <PlaybookCardCompact key={s.id} strategy={s} />
                         ))}
                       </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Mobile: separate cards + view all */}
-                <div className="flex flex-col gap-3 lg:hidden">
-                  <PlaybookCard strategy={featured} />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {rest.slice(0, 3).map((s) => (
+                  </>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {gridItems.slice(0, GRID_LIMIT).map((s) => (
                       <PlaybookCardCompact key={s.id} strategy={s} />
                     ))}
                   </div>
-                </div>
-              </>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {gridItems.slice(0, GRID_LIMIT).map((s) => (
-                  <PlaybookCardCompact key={s.id} strategy={s} />
-                ))}
+                )}
               </div>
-            )}
-            </div>
-          </Fragment>
-        );
-      })}
+            </Fragment>
+          );
+        })}
+      </FadeIn>
 
       {/* Mobile: BottomSheet */}
       <BottomSheet

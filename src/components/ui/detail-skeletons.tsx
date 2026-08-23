@@ -1,0 +1,146 @@
+import type { ReactNode } from "react";
+import { Skeleton } from "./skeleton";
+
+/** Matches the "back button + title" header row shared by every catalog/insight
+ *  detail page: `flex items-center h-[46px] py-2`, icon-sm back button, h1 title. */
+export function DetailHeaderSkeleton({
+  maxWidth = "max-w-[1280px]",
+  center = true,
+}: {
+  maxWidth?: string;
+  center?: boolean;
+}) {
+  return (
+    <div className={`flex gap-2 items-center h-[46px] py-2 w-full ${maxWidth} ${center ? "mx-auto" : ""}`}>
+      <Skeleton className="size-8 rounded-lg shrink-0" />
+      <Skeleton className="h-5 w-48" />
+    </div>
+  );
+}
+
+/**
+ * Page shell shared by the single-product detail skeletons (fixed income,
+ * global/Thai structured product): gray page background, back+title header,
+ * then one centered white card that all the content sits inside.
+ *
+ * `stretchContent` drops the card's `items-center`, for the layouts whose rows
+ * are expected to fill the card's width rather than shrink to their content.
+ */
+export function ProductDetailPageSkeleton({
+  stretchContent = false,
+  children,
+}: {
+  stretchContent?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className="flex flex-col items-center w-full pt-6 pb-20 px-4 md:px-8 lg:px-[221px]"
+      style={{ backgroundColor: "#f9fafb" }}
+    >
+      <DetailHeaderSkeleton maxWidth="max-w-[998px]" center={false} />
+
+      <div
+        className={`flex flex-col gap-14 w-full max-w-[998px] px-6 py-8 md:px-10 lg:px-14 rounded-xl bg-white ${stretchContent ? "" : "items-center"}`}
+        style={{ boxShadow: "0px 0px 4px rgba(0,0,0,0.02)" }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** Matches `DetailTable`: bordered rounded-md box, zebra-striped label/value rows. */
+export function KeyValueTableSkeleton({ rows = 8 }: { rows?: number }) {
+  return (
+    <div className="flex flex-col w-full rounded-md overflow-hidden border border-black/10">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div
+          key={i}
+          className={`flex gap-3 items-center px-4 py-2.5 w-full ${i % 2 === 0 ? "bg-[#f9fafb]" : "bg-white"}`}
+        >
+          <Skeleton className="h-3 w-28" />
+          <Skeleton className="h-3 flex-1" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Matches a rounded hero/banner section with a logo chip, title and description. */
+export function HeroBannerSkeleton({ heightClass = "h-36" }: { heightClass?: string }) {
+  return (
+    <div className={`relative rounded-xl overflow-hidden w-full ${heightClass} bg-[var(--fill-gray-100)] p-6 flex flex-col gap-3 justify-center`}>
+      <div className="flex items-center gap-3">
+        <Skeleton className="size-10 rounded-lg shrink-0 bg-[var(--fill-gray-300)]" />
+        <Skeleton className="h-6 w-48 bg-[var(--fill-gray-300)]" />
+      </div>
+      <Skeleton className="h-4 w-full max-w-md bg-[var(--fill-gray-300)]" />
+    </div>
+  );
+}
+
+/** Matches an accordion-row list: logo + name/subtitle + trailing value + caret. */
+export function AccordionListSkeleton({ rows = 5 }: { rows?: number }) {
+  return (
+    <div className="flex flex-col w-full rounded-xl overflow-hidden border border-black/10 divide-y divide-black/10 bg-white">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 p-3">
+          <Skeleton className="size-8 rounded shrink-0" />
+          <div className="flex-1 min-w-0 flex flex-col gap-1">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+          <Skeleton className="h-4 w-14 shrink-0" />
+          <Skeleton className="size-5 rounded shrink-0" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Matches a multi-column data table: header row + N body rows of equal-ish cells. */
+export function ColumnTableSkeleton({
+  columns = 6,
+  rows = 6,
+  rowHeightClass = "h-[52px]",
+  firstColWide = false,
+  minWidthClass = "",
+}: {
+  columns?: number;
+  rows?: number;
+  rowHeightClass?: string;
+  firstColWide?: boolean;
+  minWidthClass?: string;
+}) {
+  const colClass = (i: number) => (firstColWide && i === 0 ? "w-[180px] shrink-0" : "flex-1");
+  return (
+    <div className="w-full rounded-xl overflow-hidden border border-black/10 bg-white overflow-x-auto">
+      <div className={`flex flex-col ${minWidthClass}`}>
+        <div className="flex h-11 items-center gap-4 px-4 bg-[var(--bg-default-secondary)]">
+          {Array.from({ length: columns }).map((_, i) => (
+            <Skeleton key={i} className={`h-3 w-16 ${colClass(i)}`} />
+          ))}
+        </div>
+        {Array.from({ length: rows }).map((_, r) => (
+          <div key={r} className={`flex items-center gap-4 px-4 ${rowHeightClass} border-t border-black/10`}>
+            {Array.from({ length: columns }).map((_, i) => (
+              <Skeleton key={i} className={`h-4 ${colClass(i)}`} />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Matches a horizontal-scroll or grid row of small stat/summary cards. */
+export function StatCardRowSkeleton({ cards = 3, className = "grid grid-cols-1 lg:grid-cols-3 gap-4" }: { cards?: number; className?: string }) {
+  return (
+    <div className={className}>
+      {Array.from({ length: cards }).map((_, i) => (
+        <Skeleton key={i} className="h-[132px] rounded-xl w-full" />
+      ))}
+    </div>
+  );
+}

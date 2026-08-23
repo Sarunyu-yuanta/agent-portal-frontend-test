@@ -12,8 +12,11 @@ import {
 import { RelatedProductsCard } from "../RelatedProductsCard";
 import { PlaybookCardCompact } from "../PlaybookCardCompact";
 import { useSectionBack } from "@/hooks/use-section-back";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { InsightDetailSkeleton } from "./InsightDetailSkeleton";
 
 export function InsightDetail({ id }: { id: string }) {
+  const isLoading = useSimulatedLoading();
   // Called before the early return below — a missing strategy must not skip a hook.
   const goBack = useSectionBack();
   const strategy = mockHouseViewStrategies.find((s) => s.id === id);
@@ -132,6 +135,10 @@ export function InsightDetail({ id }: { id: string }) {
       </div>
     </div>
   );
+
+  if (isLoading) {
+    return <InsightDetailSkeleton />;
+  }
 
   return (
     <div

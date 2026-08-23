@@ -5,6 +5,8 @@ import { Button } from "@sarunyu/system-one";
 import { ArrowLeftIcon } from "@phosphor-icons/react";
 import { TopIdeaCard } from "./TopIdeaCard";
 import { ALL_TOP_IDEAS, type TopIdeaSector } from "./top-idea-data";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { TopIdeaAllPageSkeleton } from "./ProductDetailSkeletons";
 
 export function TopIdeaAllPage({
   onBack,
@@ -13,6 +15,8 @@ export function TopIdeaAllPage({
   onBack: () => void;
   onSelect: (sector: TopIdeaSector) => void;
 }) {
+  const isLoading = useSimulatedLoading();
+
   useEffect(() => {
     const main = document.querySelector("main");
     if (main) {
@@ -21,6 +25,8 @@ export function TopIdeaAllPage({
       window.scrollTo(0, 0);
     }
   }, []);
+
+  if (isLoading) return <TopIdeaAllPageSkeleton />;
 
   return (
     <div className="flex flex-col items-center gap-8 w-full pt-6 pb-20 bg-gradient-to-b from-white from-[43.451%] to-transparent">

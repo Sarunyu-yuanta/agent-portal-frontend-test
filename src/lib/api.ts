@@ -7,11 +7,28 @@ import type {
   PriorityVariant,
 } from "@/types/api";
 
-const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/mock").replace(/\/$/, "");
+/**
+ * Relative by default, so requests go to whatever origin the app is actually
+ * served from.
+ *
+ * An absolute `http://localhost:3000/...` silently targets a *different* server
+ * whenever Next picks another port (it does that on its own when 3000 is taken),
+ * and if something unrelated is listening there the request can hang instead of
+ * failing — which used to pin the dashboard's loading skeletons forever.
+ *
+ * Safe to be relative: every call below runs from `useResource`'s effect, i.e.
+ * in the browser only, never during SSR.
+ */
+const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "/api/mock").replace(/\/$/, "");
+
+/** A stalled request must not outlive the UI's patience — callers all fall back
+ *  to mock data, so giving up beats hanging. */
+const REQUEST_TIMEOUT_MS = 8_000;
 
 async function apiGet<T>(path: string): Promise<T[]> {
   const res = await fetch(`${BASE}/${path}?pagination[pageSize]=100`, {
     cache: "no-store",
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`API /${path}: ${res.status}`);
   const { data } = (await res.json()) as { data: T[] };
@@ -26,19 +43,21 @@ function formatBaht(millions: number): string {
 }
 
 function formatLastContact(isoDate: string): string {
-  try {
-    const date = new Date(isoDate);
-    const now = new Date();
-    const days = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    if (days <= 0) return "Today";
-    if (days === 1) return "Yesterday";
-    if (days < 7) return `${days} days ago`;
-    if (days < 14) return "1 week ago";
-    if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-    return `${Math.floor(days / 30)} months ago`;
-  } catch {
-    return isoDate;
-  }
+  const date = new Date(isoDate);
+  // `src/data/clients.json` already stores display strings ("2 days ago",
+  // "Today"), and it doubles as both the API seed and the mock fallback. An
+  // unparseable value has to pass straight through: `new Date("2 days ago")`
+  // yields an Invalid Date rather than throwing, so the arithmetic below would
+  // otherwise render every row as "NaN months ago".
+  if (Number.isNaN(date.getTime())) return isoDate;
+
+  const days = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  if (days < 14) return "1 week ago";
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+  return `${Math.floor(days / 30)} months ago`;
 }
 
 /** "Somchai Rattanakul" → "Somchai R." */

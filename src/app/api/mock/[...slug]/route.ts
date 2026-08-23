@@ -14,12 +14,28 @@ const SEEDS: Record<string, unknown[]> = {
 
 type DB = Record<string, Record<string, unknown>[]>;
 
+/**
+ * Vercel KV is only wired up on deployed environments. With no credentials
+ * `kv.get`/`kv.set` throw ("Missing required environment variables
+ * KV_REST_API_URL and KV_REST_API_TOKEN"), which made every request here 500 —
+ * so locally we keep the store in process memory instead, seeded from the JSON
+ * in `src/data` by the GET handler below. A fresh clone then works with no
+ * setup; writes just don't outlive the dev server.
+ */
+const hasKv = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+let memoryDB: DB = {};
+
 async function readDB(): Promise<DB> {
+  if (!hasKv) return memoryDB;
   const db = await kv.get<DB>(KV_KEY);
   return db ?? {};
 }
 
 async function writeDB(db: DB): Promise<void> {
+  if (!hasKv) {
+    memoryDB = db;
+    return;
+  }
   await kv.set(KV_KEY, db);
 }
 

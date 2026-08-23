@@ -23,6 +23,9 @@ import type { TopIdeaSector } from "./top-idea-data";
 import { PRODUCT_CATEGORIES } from "@/lib/product-catalog-routes";
 import { useScrollThreshold } from "./use-scroll-threshold";
 import { useDragScroll } from "./use-drag-scroll";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { FadeIn } from "@/components/ui/fade-in";
+import { ProductCatalogTabSkeleton } from "./ProductCatalogSkeletons";
 import type { StructuredProduct } from "./structured-product-data";
 import {
   getInvestmentSolution,
@@ -83,6 +86,7 @@ export function ProductCatalogTab({
 
   const mobileScrolled = useScrollThreshold();
   const drag = useDragScroll();
+  const isLoading = useSimulatedLoading();
 
   const isDetailView = !!(
     showAllGlobalBonds ||
@@ -339,72 +343,80 @@ export function ProductCatalogTab({
       </div>
 
       {/* ── Tab content ─────────────────────────────────────────────────────── */}
-      {activeProductTab === "fixed-income" && (
-        <FixedIncomeTab onBondSelect={nav.onFixedIncomeBondSelect} />
-      )}
+      <FadeIn key={activeProductTab} className="flex flex-col w-full">
+        {isLoading ? (
+          <ProductCatalogTabSkeleton tab={activeProductTab} />
+        ) : (
+          <>
+            {activeProductTab === "fixed-income" && (
+              <FixedIncomeTab onBondSelect={nav.onFixedIncomeBondSelect} />
+            )}
 
-      {activeProductTab === "global-bond" && (
-        <GlobalBondTab
-          onIssuerSelect={nav.onGlobalBondIssuerSelect}
-          onViewAll={nav.onAllGlobalBondsView}
-        />
-      )}
+            {activeProductTab === "global-bond" && (
+              <GlobalBondTab
+                onIssuerSelect={nav.onGlobalBondIssuerSelect}
+                onViewAll={nav.onAllGlobalBondsView}
+              />
+            )}
 
-      {activeProductTab === "structured" && (
-        <div className="flex flex-col gap-6 items-center w-full" style={{ paddingTop: 24 }}>
-          <TopIdeaStrip
-            drag={drag}
-            onTopIdeaSelect={nav.onTopIdeaSelect}
-            onAllTopIdeasView={nav.onAllTopIdeasView}
-          />
-          <InvestmentSolutionSection onInvestmentSolutionSelect={nav.onInvestmentSolutionSelect} />
-          <TopPickSection onProductSelect={nav.onProductSelect} />
-          <StructuredProductGridSection
-            title="All Global Structured Product"
-            onProductSelect={nav.onProductSelect}
-            onAllProductsView={nav.onAllProductsView}
-          />
-        </div>
-      )}
+            {activeProductTab === "structured" && (
+              <div className="flex flex-col gap-6 items-center w-full" style={{ paddingTop: 24 }}>
+                <TopIdeaStrip
+                  drag={drag}
+                  onTopIdeaSelect={nav.onTopIdeaSelect}
+                  onAllTopIdeasView={nav.onAllTopIdeasView}
+                />
+                <InvestmentSolutionSection onInvestmentSolutionSelect={nav.onInvestmentSolutionSelect} />
+                <TopPickSection onProductSelect={nav.onProductSelect} />
+                <StructuredProductGridSection
+                  title="All Global Structured Product"
+                  onProductSelect={nav.onProductSelect}
+                  onAllProductsView={nav.onAllProductsView}
+                />
+              </div>
+            )}
 
-      {activeProductTab === "thai-structured" && (
-        <div className="flex flex-col gap-6 items-center w-full" style={{ paddingTop: 24 }}>
-          <TopIdeaStrip
-            drag={drag}
-            onTopIdeaSelect={nav.onTopIdeaSelect}
-            onAllTopIdeasView={nav.onAllTopIdeasView}
-          />
-          <InvestmentSolutionSection
-            onInvestmentSolutionSelect={nav.onInvestmentSolutionSelect}
-            bgImage="/thai-structure-bg.jpg"
-          />
-          <TopPickSection onProductSelect={nav.onProductSelect} />
+            {activeProductTab === "thai-structured" && (
+              <div className="flex flex-col gap-6 items-center w-full" style={{ paddingTop: 24 }}>
+                <TopIdeaStrip
+                  drag={drag}
+                  onTopIdeaSelect={nav.onTopIdeaSelect}
+                  onAllTopIdeasView={nav.onAllTopIdeasView}
+                />
+                <InvestmentSolutionSection
+                  onInvestmentSolutionSelect={nav.onInvestmentSolutionSelect}
+                  bgImage="/thai-structure-bg.jpg"
+                />
+                <TopPickSection onProductSelect={nav.onProductSelect} />
 
-          {/* ── Thai FCN Table ─────────────────────────────────────────────────── */}
-          <div className="w-full" style={{ backgroundColor: "white", paddingTop: 24, paddingBottom: 24 }}>
-            <div className="flex flex-col gap-4 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
-              <p
-                className="font-bold"
-                style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}
+                {/* ── Thai FCN Table ─────────────────────────────────────────────────── */}
+                <div className="w-full" style={{ backgroundColor: "white", paddingTop: 24, paddingBottom: 24 }}>
+                  <div className="flex flex-col gap-4 w-full max-w-[1280px] mx-auto px-4 lg:px-6">
+                    <p
+                      className="font-bold"
+                      style={{ color: "#101828", fontSize: 20, lineHeight: "30px" }}
+                    >
+                      All Thai FCN
+                    </p>
+                    <ThaiStructuredProductTable onRowClick={nav.onThaiProductSelect} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeProductTab === "mutual-fund" && (
+              <div
+                className="flex flex-col items-center justify-center gap-3 w-full text-center px-4"
+                style={{ backgroundColor: "white", paddingTop: 96, paddingBottom: 96 }}
               >
-                All Thai FCN
-              </p>
-              <ThaiStructuredProductTable onRowClick={nav.onThaiProductSelect} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeProductTab === "mutual-fund" && (
-        <div
-          className="flex flex-col items-center justify-center gap-3 w-full text-center px-4"
-          style={{ backgroundColor: "white", paddingTop: 96, paddingBottom: 96 }}
-        >
-          <ChartPieSliceIcon size={40} className="text-muted-foreground/40" weight="duotone" />
-          <p className="type-subtitle-1 font-semibold text-[var(--text-default-secondary)]">Mutual Fund</p>
-          <p className="type-body-2 text-[var(--text-default-tertiary)] max-w-xs">กองทุนรวมจะแสดงที่นี่เร็วๆ นี้</p>
-        </div>
-      )}
+                <ChartPieSliceIcon size={40} className="text-muted-foreground/40" weight="duotone" />
+                <p className="type-subtitle-1 font-semibold text-[var(--text-default-secondary)]">Mutual Fund</p>
+                <p className="type-body-2 text-[var(--text-default-tertiary)] max-w-xs">กองทุนรวมจะแสดงที่นี่เร็วๆ นี้</p>
+              </div>
+            )}
+          </>
+        )}
+      </FadeIn>
     </div>
   );
 }

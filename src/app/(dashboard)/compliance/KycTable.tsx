@@ -17,6 +17,7 @@ import {
 import { DownloadSimpleIcon, ClockIcon } from "@phosphor-icons/react";
 import { mockKYCData } from "@/lib/mock-data";
 import { DetailDrawer } from "@/components/ui/detail-drawer";
+import { TABLE_EMPTY_MIN_HEIGHT, TableEmptyOverlay } from "@/components/ui/empty-state";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
 import { getInitialsFromWords } from "@/lib/client-utils";
@@ -52,6 +53,8 @@ export function KycTable() {
     return 0;
   });
 
+  const isEmpty = rows.length === 0;
+
   return (
     <>
     <div className="flex flex-col gap-3">
@@ -86,7 +89,7 @@ export function KycTable() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-[var(--border-default)] overflow-hidden overflow-x-auto">
+      <div className={`relative rounded-xl border border-[var(--border-default)] overflow-hidden overflow-x-auto ${isEmpty ? TABLE_EMPTY_MIN_HEIGHT : ""}`}>
         <Table className="table-fixed min-w-[560px]">
           <TableHead>
             <TableRow>
@@ -105,7 +108,7 @@ export function KycTable() {
               const initials = getInitialsFromWords(maskedClient);
 
               return (
-                <TableRow key={row.id} hoverable className="cursor-pointer" onClick={() => { setSelectedRow(row); setDrawerOpen(true); }}>
+                <TableRow key={row.id} hoverable className="cursor-pointer transition-colors active:bg-[var(--bg-default-pressed)]" onClick={() => { setSelectedRow(row); setDrawerOpen(true); }}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar type="text" initials={initials} size="s" />
@@ -143,6 +146,12 @@ export function KycTable() {
             })}
           </TableBody>
         </Table>
+        {isEmpty && (
+          <TableEmptyOverlay
+            body="ลองเลือกตัวกรองอื่น หรือล้างตัวกรองเพื่อดูรายการทั้งหมด"
+            onClearFilters={filter ? () => setFilter("") : undefined}
+          />
+        )}
       </div>
     </div>
 

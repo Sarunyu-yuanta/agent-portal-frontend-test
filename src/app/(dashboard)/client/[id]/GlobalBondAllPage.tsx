@@ -23,6 +23,8 @@ import {
   TICKER_OPTIONS,
   YIELD_OPTIONS,
 } from "./GlobalBondAllFilterPanel";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { GlobalBondAllPageSkeleton } from "./ProductDetailSkeletons";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
@@ -54,6 +56,7 @@ function formatUpdatedAtTablet(dateStr: string): string {
 }
 
 export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
+  const isLoading = useSimulatedLoading();
   const [tickerFilter, setTickerFilter] = useState<TickerFilter>("all");
   const [couponFilter, setCouponFilter] = useState<CouponFilter>("all");
   const [yieldFilter, setYieldFilter] = useState<YieldFilter>("all");
@@ -125,6 +128,8 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
       window.scrollTo(0, 0);
     }
   }, []);
+
+  if (isLoading) return <GlobalBondAllPageSkeleton />;
 
   return (
     <div className="flex flex-col items-stretch w-full pt-4 pb-10 px-4 md:pt-6 md:pb-20 md:px-8 lg:px-20 bg-gradient-to-b from-white from-[43.451%] to-transparent">

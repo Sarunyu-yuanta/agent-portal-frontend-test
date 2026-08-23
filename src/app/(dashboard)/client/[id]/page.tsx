@@ -14,7 +14,8 @@ import {
   AlarmIcon,
 } from "@phosphor-icons/react";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
-import { useClients, useNBAActions } from "@/hooks/use-api";
+import { useClientsResource, useNBAActions } from "@/hooks/use-api";
+import { ClientProfileSkeleton } from "./ClientProfileSkeleton";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
 import { getInitials } from "@/lib/client-utils";
@@ -33,7 +34,9 @@ import {
   type SortDir,
   type HoldingsSortKey,
 } from "./client-detail-data";
-import { CallLogTable, EmptyTabState } from "./ClientSections";
+import { CallLogTable } from "./ClientSections";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FadeIn } from "@/components/ui/fade-in";
 import { KycTab } from "./KycTab";
 import { OverviewTab } from "./OverviewTab";
 
@@ -60,7 +63,7 @@ function ClientPageInner({ id }: { id: string }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { isPrivate } = usePrivacy();
-  const clients = useClients();
+  const { data: clients, isLoading } = useClientsResource();
   const nbaActions = useNBAActions(clients);
 
   // Same source as the desktop top-bar breadcrumb — this page renders its own
@@ -142,6 +145,14 @@ function ClientPageInner({ id }: { id: string }) {
     setHeaderSlot(null);
     return () => setHeaderSlot(null);
   }, [scrolled, activeTab, setHeaderSlot]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col -mt-6 pt-6">
+        <ClientProfileSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col -mt-6">
@@ -279,54 +290,56 @@ function ClientPageInner({ id }: { id: string }) {
       </div>
 
       {/* ── Body content ── */}
-      {activeTab === "kyc" ? (
-        <KycTab client={client} profile={profile} />
-      ) : activeTab === "assets" ? (
-        <div className="pt-8">
-          <ClientAssetSidebarContent
-            clientId={client.id}
-            client={client}
-            accordionCards
-            onLiabilitiesOpen={(amount, detail) => {
-              setLiabilitiesData({ amount, detail });
-              setLiabilitiesOpen(true);
-            }}
+      <FadeIn key={activeTab}>
+        {activeTab === "kyc" ? (
+          <KycTab client={client} profile={profile} />
+        ) : activeTab === "assets" ? (
+          <div className="pt-8">
+            <ClientAssetSidebarContent
+              clientId={client.id}
+              client={client}
+              accordionCards
+              onLiabilitiesOpen={(amount, detail) => {
+                setLiabilitiesData({ amount, detail });
+                setLiabilitiesOpen(true);
+              }}
+            />
+          </div>
+        ) : activeTab === "call-log" ? (
+          <div className="pt-8 w-full">
+            <Card variant="default">
+              <div className="flex flex-col gap-4">
+                <h6 className="type-h6 text-foreground">Call Log</h6>
+                <CallLogTable callLogs={callLogs} />
+              </div>
+            </Card>
+          </div>
+        ) : activeTab === "notes" ? (
+          <EmptyState
+            icon={<FileTextIcon size={40} className="text-[var(--text-default-placeholder)]" />}
+            title="No notes yet"
+            body="Notes for this client will appear here."
           />
-        </div>
-      ) : activeTab === "call-log" ? (
-        <div className="pt-8 w-full">
-          <Card variant="default">
-            <div className="flex flex-col gap-4">
-              <h6 className="type-h6 text-foreground">Call Log</h6>
-              <CallLogTable callLogs={callLogs} />
-            </div>
-          </Card>
-        </div>
-      ) : activeTab === "notes" ? (
-        <EmptyTabState
-          icon={<FileTextIcon size={40} className="text-[var(--text-default-placeholder)]" />}
-          title="No notes yet"
-          body="Notes for this client will appear here."
-        />
-      ) : activeTab === "reminder" ? (
-        <EmptyTabState
-          icon={<AlarmIcon size={40} className="text-[var(--text-default-placeholder)]" />}
-          title="No reminders yet"
-          body="Reminders for this client will appear here."
-        />
-      ) : (
-        <OverviewTab
-          detail={detail}
-          nbaAction={nbaAction}
-          holdingsSortKey={holdingsSortKey}
-          holdingsSortDir={holdingsSortDir}
-          onSort={(key, dir) => {
-            setHoldingsSortKey(dir === "none" ? null : key);
-            setHoldingsSortDir(dir);
-          }}
-          onViewAllHoldings={() => setActiveTab("assets")}
-        />
-      )}
+        ) : activeTab === "reminder" ? (
+          <EmptyState
+            icon={<AlarmIcon size={40} className="text-[var(--text-default-placeholder)]" />}
+            title="No reminders yet"
+            body="Reminders for this client will appear here."
+          />
+        ) : (
+          <OverviewTab
+            detail={detail}
+            nbaAction={nbaAction}
+            holdingsSortKey={holdingsSortKey}
+            holdingsSortDir={holdingsSortDir}
+            onSort={(key, dir) => {
+              setHoldingsSortKey(dir === "none" ? null : key);
+              setHoldingsSortDir(dir);
+            }}
+            onViewAllHoldings={() => setActiveTab("assets")}
+          />
+        )}
+      </FadeIn>
 
       {liabilitiesData && (
         <LiabilitiesDetailModal

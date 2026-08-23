@@ -169,18 +169,18 @@ export function ClientDetailPanel({
                   key={label}
                   onClick={comingSoon ? undefined : onClick}
                   disabled={comingSoon}
-                  className={`relative flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-xl border transition-colors overflow-hidden ${
+                  className={`relative flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-xl border bg-[var(--bg-default-secondary)] border-primary-action/20 transition-colors overflow-hidden ${
                     comingSoon
-                      ? "bg-[var(--bg-default-secondary)] border-[var(--border-default)]/40 cursor-not-allowed"
-                      : "bg-[var(--bg-default-secondary)] border-primary-action/20 hover:bg-[var(--bg-brand-light)] hover:border-[var(--bg-brand-primary)] cursor-pointer"
+                      ? "cursor-not-allowed"
+                      : "hover:bg-[var(--bg-brand-light)] hover:border-[var(--bg-brand-primary)] cursor-pointer"
                   }`}
                 >
-                  <span className={`text-primary-action ${comingSoon ? "opacity-15" : ""}`}>{icon}</span>
-                  <span className={`text-[11px] font-medium text-primary-action leading-none ${comingSoon ? "opacity-15" : ""}`}>
+                  <span className={`text-primary-action ${comingSoon ? "opacity-40" : ""}`}>{icon}</span>
+                  <span className={`text-[11px] font-medium text-primary-action leading-none ${comingSoon ? "opacity-40" : ""}`}>
                     {label}
                   </span>
                   {comingSoon && (
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center bg-[var(--bg-default-secondary)]/70">
                       <span className="text-[10px] font-semibold text-primary-action bg-[var(--bg-brand-light)] border border-primary-action/30 px-1.5 py-0.5 rounded-full">Coming soon</span>
                     </div>
                   )}

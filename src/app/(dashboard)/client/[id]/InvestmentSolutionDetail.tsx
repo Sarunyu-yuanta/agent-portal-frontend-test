@@ -13,6 +13,8 @@ import {
   INVESTMENT_SOLUTION_DETAIL_PRODUCTS,
   type StructuredProduct,
 } from "./structured-product-data";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { InvestmentSolutionDetailSkeleton } from "./ProductDetailSkeletons";
 
 function HeroImageContent({
   src,
@@ -338,6 +340,7 @@ export function InvestmentSolutionDetail({
   onBack: () => void;
   onProductSelect: (product: StructuredProduct) => void;
 }) {
+  const isLoading = useSimulatedLoading();
   const products = INVESTMENT_SOLUTION_DETAIL_PRODUCTS;
 
   useEffect(() => {
@@ -348,6 +351,8 @@ export function InvestmentSolutionDetail({
       window.scrollTo(0, 0);
     }
   }, [solution.id]);
+
+  if (isLoading) return <InvestmentSolutionDetailSkeleton />;
 
   return (
     <div className="flex flex-col gap-2 w-full bg-white pt-4 md:pt-6">

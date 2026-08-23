@@ -3,7 +3,9 @@
 import { useMemo } from "react";
 import { Avatar, BottomSheet } from "@sarunyu/system-one";
 import { InfoIcon } from "@phosphor-icons/react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePrivacy } from "@/contexts/privacy-context";
+import { useCountUp } from "@/hooks/use-count-up";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { usePopover } from "@/hooks/use-popover";
 import { maskName } from "@/lib/mask-name";
@@ -42,12 +44,38 @@ function CardShell({ open, onClick, children }: { open: boolean; onClick: () => 
   );
 }
 
+/* Every card in the row — interactive or not, real or skeleton — is the same
+   three stacked lines: a small-caps label, one big number, one caption. */
+
+function CardLabel({ children }: { children: React.ReactNode }) {
+  return <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{children}</p>;
+}
+
+function CardValue({ colorClass = "text-foreground", children }: { colorClass?: string; children: React.ReactNode }) {
+  return <p className={`text-[24px] font-bold leading-none tabular-nums ${colorClass}`}>{children}</p>;
+}
+
+function CardSub({ children }: { children: React.ReactNode }) {
+  return <p className="text-[11px] text-muted-foreground">{children}</p>;
+}
+
 function StaticCard({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div className="flex flex-col gap-2 p-4 rounded-2xl bg-white border border-border">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="text-[24px] font-bold text-foreground leading-none">{value}</p>
-      <p className="text-[11px] text-muted-foreground">{sub}</p>
+      <CardLabel>{label}</CardLabel>
+      <CardValue>{value}</CardValue>
+      <CardSub>{sub}</CardSub>
+    </div>
+  );
+}
+
+/** Matches StaticCard's shape — label, value, sub line. */
+function SummaryCardSkeleton() {
+  return (
+    <div className="flex flex-col gap-2 p-4 rounded-2xl bg-white border border-border">
+      <Skeleton className="h-3 w-24" />
+      <Skeleton className="h-6 w-16" />
+      <Skeleton className="h-3 w-20" />
     </div>
   );
 }
@@ -75,7 +103,7 @@ function ClientListRow({ rank, name, sub, right }: { rank?: number; name: string
   );
 }
 
-export function ClientSummaryCards({ clients }: { clients: Client[] }) {
+export function ClientSummaryCards({ clients, isLoading }: { clients: Client[]; isLoading?: boolean }) {
   const { isPrivate } = usePrivacy();
   const isMobile = useMediaQuery("(max-width: 767px)");
   const {
@@ -101,6 +129,12 @@ export function ClientSummaryCards({ clients }: { clients: Client[] }) {
   const segmentBreakdown = useMemo(() => getSegmentBreakdown(clients), [clients]);
   const kycDueClients = useMemo(() => getKycDueClients(clients), [clients]);
   const topClients = useMemo(() => getTopClientsByAum(clients), [clients]);
+
+  const animatedClientCount = useCountUp(clients.length);
+  const animatedKycCount = useCountUp(kycDueClients.length);
+  const animatedTotalAum = useCountUp(totalAum);
+  const animatedTotalCash = useCountUp(totalCash);
+  const animatedAssetValue = useCountUp(totalAum - totalCash);
 
   const segmentBreakdownContent = (
     <>
@@ -164,17 +198,27 @@ export function ClientSummaryCards({ clients }: { clients: Client[] }) {
     </>
   );
 
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SummaryCardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {/* 1. Total Clients */}
       <div ref={segmentRef} className="relative min-w-0" {...segmentHoverProps}>
         <CardShell open={segmentOpen} onClick={() => setSegmentOpen((p) => !p)}>
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total Clients</p>
+            <CardLabel>Total Clients</CardLabel>
             <PopoverChevron open={segmentOpen} />
           </div>
-          <p className="text-[24px] font-bold text-foreground leading-none">{clients.length}</p>
-          <p className="text-[11px] text-muted-foreground">ราย</p>
+          <CardValue>{Math.round(animatedClientCount)}</CardValue>
+          <CardSub>ราย</CardSub>
         </CardShell>
         {!isMobile && segmentOpen && clients.length > 0 && (
           <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-border rounded-xl shadow-xl p-4 min-w-[200px]">
@@ -198,17 +242,17 @@ export function ClientSummaryCards({ clients }: { clients: Client[] }) {
       </div>
 
       {/* 2. Wealth Under Advice */}
-      <StaticCard label="Wealth Under Advice" value={formatMillionThb(totalAum)} sub="AUM รวมทั้งหมด" />
+      <StaticCard label="Wealth Under Advice" value={formatMillionThb(animatedTotalAum)} sub="AUM รวมทั้งหมด" />
 
       {/* 3. มูลค่าทรัพย์สิน */}
       <div ref={assetRef} className="relative min-w-0" {...assetHoverProps}>
         <CardShell open={assetOpen} onClick={() => setAssetOpen((p) => !p)}>
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">มูลค่าทรัพย์สิน</p>
+            <CardLabel>มูลค่าทรัพย์สิน</CardLabel>
             <PopoverChevron open={assetOpen} />
           </div>
-          <p className="text-[24px] font-bold text-foreground leading-none">{formatMillionThb(totalAum - totalCash)}</p>
-          <p className="text-[11px] text-muted-foreground">ไม่รวม cash</p>
+          <CardValue>{formatMillionThb(animatedAssetValue)}</CardValue>
+          <CardSub>ไม่รวม cash</CardSub>
         </CardShell>
         {!isMobile && assetOpen && (
           <PopoverList title="ลูกค้าเรียงตามมูลค่าทรัพย์สิน">
@@ -234,13 +278,13 @@ export function ClientSummaryCards({ clients }: { clients: Client[] }) {
       <div ref={kycRef} className="relative min-w-0" {...kycHoverProps}>
         <CardShell open={kycOpen} onClick={() => setKycOpen((p) => !p)}>
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">KYC ครบกำหนด</p>
+            <CardLabel>KYC ครบกำหนด</CardLabel>
             <PopoverChevron open={kycOpen} />
           </div>
-          <p className={`text-[24px] font-bold leading-none ${kycDueClients.length > 0 ? "text-[var(--text-warning-primary)]" : "text-foreground"}`}>
-            {kycDueClients.length}
-          </p>
-          <p className="text-[11px] text-muted-foreground">ภายใน 30 วัน</p>
+          <CardValue colorClass={kycDueClients.length > 0 ? "text-[var(--text-warning-primary)]" : "text-foreground"}>
+            {Math.round(animatedKycCount)}
+          </CardValue>
+          <CardSub>ภายใน 30 วัน</CardSub>
         </CardShell>
         {!isMobile && kycOpen && (
           <PopoverList title="ลูกค้าที่ KYC ใกล้หมดอายุ">
@@ -263,7 +307,7 @@ export function ClientSummaryCards({ clients }: { clients: Client[] }) {
       </div>
 
       {/* 5. Cash Under Advice */}
-      <StaticCard label="Cash Under Advice" value={formatMillionThb(totalCash)} sub="เงินรอลงทุน" />
+      <StaticCard label="Cash Under Advice" value={formatMillionThb(animatedTotalCash)} sub="เงินรอลงทุน" />
     </div>
   );
 }

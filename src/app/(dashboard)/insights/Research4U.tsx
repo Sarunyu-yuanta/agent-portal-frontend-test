@@ -19,6 +19,7 @@ import {
   type Icon as PhosphorIcon,
 } from "@phosphor-icons/react";
 import { BentoCard, BentoGrid } from "@/components/ui/bento-grid";
+import { FadeIn } from "@/components/ui/fade-in";
 import { mockAnalysts, type AnalystItem } from "@/lib/mock-data";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -242,7 +243,10 @@ export function Research4U() {
         )}
 
         {/* Content area */}
-        <div className="flex-1 min-w-0 flex flex-col min-h-0">
+        <FadeIn
+          key={`${subTab}-${activeCategory}-${showList}`}
+          className="flex-1 min-w-0 flex flex-col min-h-0"
+        >
           {subTab === "analyst" ? (
             <div className="flex-1 overflow-y-auto hide-scrollbar p-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -325,7 +329,7 @@ export function Research4U() {
               )}
             </>
           )}
-        </div>
+        </FadeIn>
       </div>
     </div>
   );

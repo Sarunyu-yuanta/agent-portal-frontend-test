@@ -5,6 +5,8 @@ import { Button } from "@sarunyu/system-one";
 import { ArrowLeftIcon, CaretDoubleRightIcon, FileTextIcon } from "@phosphor-icons/react";
 import { BOND_LOGOS, type FixedIncomeBond } from "./fixed-income-data";
 import { BORDER_COLOR, ACTION_LABELS, StatusTag, BondLogo } from "./fixed-income-shared";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { FixedIncomeDetailSkeleton } from "./ProductDetailSkeletons";
 
 function DetailTable({ bond }: { bond: FixedIncomeBond }) {
   const rows: {
@@ -78,6 +80,7 @@ export function FixedIncomeDetail({
   onBack: () => void;
   onCompanySelect?: (companyId: string) => void;
 }) {
+  const isLoading = useSimulatedLoading();
   const isFollowed = bond.action === "followed";
 
   useEffect(() => {
@@ -88,6 +91,8 @@ export function FixedIncomeDetail({
       window.scrollTo(0, 0);
     }
   }, [bond.id]);
+
+  if (isLoading) return <FixedIncomeDetailSkeleton />;
 
   return (
     <div

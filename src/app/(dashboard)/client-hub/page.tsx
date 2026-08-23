@@ -2,12 +2,15 @@
 
 import { Suspense, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { CircleNotchIcon } from "@phosphor-icons/react";
 import { TabGroup, SearchInput, Pagination } from "@sarunyu/system-one";
-import { useClients } from "@/hooks/use-api";
+import { useClientsResource } from "@/hooks/use-api";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { DetailDrawer } from "@/components/ui/detail-drawer";
 import { setQueryState } from "@/lib/query-state";
 import { useStoredIds } from "@/hooks/use-stored-ids";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { FadeIn } from "@/components/ui/fade-in";
 import { NineBoxTab, type NineBoxCellInfo } from "./NineBoxTab";
 import { ColumnVisibilityMenu } from "./ColumnVisibilityMenu";
 import { CUSTOMER_COLUMNS } from "./columns";
@@ -33,6 +36,47 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const HIDDEN_COLUMNS_PREF = "client-hub:hidden-columns";
 const isColumnId = (id: string) => CUSTOMER_COLUMNS.some((c) => c.id === id);
 
+/**
+ * A `SearchInput` paired with the spinner that marks "typed, not yet applied" —
+ * i.e. `value` has moved on but the debounced value the list actually filters
+ * on hasn't caught up yet.
+ */
+function DebouncedSearchField({
+  className,
+  inputClassName,
+  placeholder,
+  value,
+  debouncedValue,
+  onChange,
+  onClear,
+}: {
+  className: string;
+  inputClassName?: string;
+  placeholder: string;
+  value: string;
+  debouncedValue: string;
+  onChange: (value: string) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className={`flex items-center gap-2 ${className}`}>
+      <div className="flex-1 min-w-0">
+        <SearchInput
+          size="sm"
+          className={inputClassName}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          onClear={onClear}
+        />
+      </div>
+      {value !== debouncedValue && (
+        <CircleNotchIcon size={16} className="shrink-0 animate-spin text-muted-foreground" />
+      )}
+    </div>
+  );
+}
+
 export default function ClientHubPage() {
   return (
     <Suspense fallback={null}>
@@ -44,11 +88,12 @@ export default function ClientHubPage() {
 function ClientHubPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const clients = useClients();
+  const { data: clients, isLoading } = useClientsResource();
   const { isPrivate } = usePrivacy();
 
   // Customer view
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewFilter, setViewFilter] = useState<ViewFilter>("customer");
@@ -66,6 +111,7 @@ function ClientHubPageInner() {
 
   // Product view
   const [productSearch, setProductSearch] = useState("");
+  const debouncedProductSearch = useDebouncedValue(productSearch, 300);
 
 
   // Client quick view — URL-owned (`?client=110001`) so refresh, browser back
@@ -110,8 +156,8 @@ function ClientHubPageInner() {
   const sorted = useMemo(() => {
     let list = clients;
 
-    if (search.trim()) {
-      const q = search.toLowerCase();
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
       list = list.filter(
         (c) =>
           c.name.toLowerCase().includes(q) ||
@@ -135,7 +181,7 @@ function ClientHubPageInner() {
     }
 
     return list;
-  }, [search, customerSort, clients]);
+  }, [debouncedSearch, customerSort, clients]);
 
   const originalIndexMap = useMemo(
     () => new Map(clients.map((c, i) => [c.id, i + 1])),
@@ -155,7 +201,7 @@ function ClientHubPageInner() {
   );
 
   const filteredProductRows = useMemo(() => {
-    const q = productSearch.trim().toLowerCase();
+    const q = debouncedProductSearch.trim().toLowerCase();
     let list = q
       ? productRows.filter((r) => r.label.toLowerCase().includes(q))
       : productRows;
@@ -170,7 +216,7 @@ function ClientHubPageInner() {
     }
 
     return list;
-  }, [productRows, productSearch, productSort, productIndexMap]);
+  }, [productRows, debouncedProductSearch, productSort, productIndexMap]);
 
   function openClient(client: Client) {
     const href = `/client-hub?client=${encodeURIComponent(client.id)}`;
@@ -202,7 +248,7 @@ function ClientHubPageInner() {
       {/* Hero — own padding + max-width */}
       <div className="pt-4 pb-2 xl:pt-6 xl:pb-2">
         <div className="max-w-[1280px] mx-auto px-4 xl:px-6 flex flex-col gap-4">
-          <ClientSummaryCards clients={clients} />
+          <ClientSummaryCards clients={clients} isLoading={isLoading} />
         </div>
       </div>
 
@@ -228,110 +274,117 @@ function ClientHubPageInner() {
                   onToggle={toggleColumn}
                   onReset={() => setHiddenColumns(new Set())}
                 />
-                <div className="flex-1 lg:w-64">
-                  <SearchInput
-                    size="sm"
-                    className="!h-10"
-                    placeholder="Search clients…"
-                    value={search}
-                    onChange={(val) => {
-                      setSearch(val);
-                      setCurrentPage(1);
-                    }}
-                    onClear={() => {
-                      setSearch("");
-                      setCurrentPage(1);
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-            {viewFilter === "product" && (
-              <div className="w-full lg:w-56 lg:ml-auto">
-                <SearchInput
-                  placeholder="Search products…"
-                  value={productSearch}
-                  onChange={setProductSearch}
-                  onClear={() => setProductSearch("")}
-                  size="sm"
+                <DebouncedSearchField
+                  className="flex-1 lg:w-64"
+                  inputClassName="!h-10"
+                  placeholder="Search clients…"
+                  value={search}
+                  debouncedValue={debouncedSearch}
+                  onChange={(val) => {
+                    setSearch(val);
+                    setCurrentPage(1);
+                  }}
+                  onClear={() => {
+                    setSearch("");
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
             )}
+            {viewFilter === "product" && (
+              <DebouncedSearchField
+                className="w-full lg:w-56 lg:ml-auto"
+                placeholder="Search products…"
+                value={productSearch}
+                debouncedValue={debouncedProductSearch}
+                onChange={setProductSearch}
+                onClear={() => setProductSearch("")}
+              />
+            )}
           </div>
 
-          {viewFilter === "nine-box" ? (
-            <NineBoxTab
-              clients={sorted}
-              onCellOpen={(info) => {
-                setNineBoxCell(info);
-                setNineBoxDrawerOpen(true);
-              }}
-            />
-          ) : viewFilter === "customer" ? (
-            <>
-              <CustomerTable
-                rows={paged}
-                visibleColumns={visibleColumns}
-                originalIndexMap={originalIndexMap}
-                tableWidth={tableWidth}
-                isPrivate={isPrivate}
-                dirFor={customerSort.dirFor}
-                onSort={customerSort.onSortChange}
-                onRowClick={openClient}
+          <FadeIn key={viewFilter} className="flex flex-col gap-3">
+            {viewFilter === "nine-box" ? (
+              <NineBoxTab
+                clients={sorted}
+                onCellOpen={(info) => {
+                  setNineBoxCell(info);
+                  setNineBoxDrawerOpen(true);
+                }}
               />
+            ) : viewFilter === "customer" ? (
+              <>
+                <CustomerTable
+                  rows={paged}
+                  visibleColumns={visibleColumns}
+                  originalIndexMap={originalIndexMap}
+                  tableWidth={tableWidth}
+                  isPrivate={isPrivate}
+                  isLoading={isLoading}
+                  dirFor={customerSort.dirFor}
+                  onSort={customerSort.onSortChange}
+                  onRowClick={openClient}
+                  onClearFilters={() => {
+                    setSearch("");
+                    setCurrentPage(1);
+                  }}
+                />
 
-              <div className="flex flex-wrap-reverse items-center justify-end gap-3">
-                <div className="flex items-center gap-2">
-                  <p className="text-[12px] text-muted-foreground whitespace-nowrap">Show per page</p>
-                  <select
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    className="text-[12px] border border-border rounded-md px-2 py-1 bg-background text-foreground cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-action"
-                  >
-                    {PAGE_SIZE_OPTIONS.map((n) => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
+                <div className="flex flex-wrap-reverse items-center justify-end gap-3">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[12px] text-muted-foreground whitespace-nowrap">Show per page</p>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="text-[12px] border border-border rounded-md px-2 py-1 bg-background text-foreground cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-action"
+                    >
+                      {PAGE_SIZE_OPTIONS.map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <p className="text-[12px] text-muted-foreground">
+                      Showing{" "}
+                      <span className="font-medium text-foreground">
+                        {(safePage - 1) * pageSize + 1}
+                      </span>
+                      {" – "}
+                      <span className="font-medium text-foreground">
+                        {Math.min(safePage * pageSize, sorted.length)}
+                      </span>
+                      {" of "}
+                      <span className="font-medium text-foreground">
+                        {sorted.length}
+                      </span>{" "}
+                      clients
+                    </p>
+                    <Pagination
+                      totalPages={totalPages}
+                      currentPage={safePage}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <p className="text-[12px] text-muted-foreground">
-                    Showing{" "}
-                    <span className="font-medium text-foreground">
-                      {(safePage - 1) * pageSize + 1}
-                    </span>
-                    {" – "}
-                    <span className="font-medium text-foreground">
-                      {Math.min(safePage * pageSize, sorted.length)}
-                    </span>
-                    {" of "}
-                    <span className="font-medium text-foreground">
-                      {sorted.length}
-                    </span>{" "}
-                    clients
-                  </p>
-                  <Pagination
-                    totalPages={totalPages}
-                    currentPage={safePage}
-                    onPageChange={setCurrentPage}
-                  />
-                </div>
-              </div>
-            </>
-          ) : (
-            <ProductTable
-              rows={filteredProductRows}
-              originalIndexMap={productIndexMap}
-              dirFor={productSort.dirFor}
-              onSort={productSort.onSortChange}
-              onRowClick={(row) => {
-                setSelectedProduct(row);
-                setProductDrawerOpen(true);
-              }}
-            />
-          )}
+              </>
+            ) : (
+              <ProductTable
+                rows={filteredProductRows}
+                originalIndexMap={productIndexMap}
+                isLoading={isLoading}
+                dirFor={productSort.dirFor}
+                onSort={productSort.onSortChange}
+                onRowClick={(row) => {
+                  setSelectedProduct(row);
+                  setProductDrawerOpen(true);
+                }}
+                onClearFilters={() => setProductSearch("")}
+              />
+            )}
+          </FadeIn>
         </div>
       </section>
 

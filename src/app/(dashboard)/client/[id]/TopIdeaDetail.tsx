@@ -21,6 +21,8 @@ import {
   TOP_IDEA_UPDATED_AT_MOBILE,
   type TopIdeaSector,
 } from "./top-idea-data";
+import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { TopIdeaDetailSkeleton } from "./ProductDetailSkeletons";
 
 const ASSETS = {
   detailWave: "/top-idea-detail-wave.svg",
@@ -239,6 +241,7 @@ export function TopIdeaDetail({
   onBack: () => void;
   onProductSelect: (product: StructuredProduct) => void;
 }) {
+  const isLoading = useSimulatedLoading();
   const theme = TOP_IDEA_THEMES[sector];
   const products = TOP_IDEA_DETAIL_PRODUCTS;
 
@@ -250,6 +253,8 @@ export function TopIdeaDetail({
       window.scrollTo(0, 0);
     }
   }, [sector]);
+
+  if (isLoading) return <TopIdeaDetailSkeleton />;
 
   return (
     <div className="flex flex-col gap-2 w-full bg-white pt-4 md:pt-6">

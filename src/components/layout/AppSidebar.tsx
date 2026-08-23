@@ -128,9 +128,10 @@ function NavSection({
                 />
               </div>
 
-              {/* Text fades + collapses */}
+              {/* Text fades + collapses. max-width (not width:auto) so the collapse
+                  itself can be transitioned — CSS can't interpolate to/from "auto". */}
               <span
-                className={`text-[13.5px] leading-none pb-[3px] whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                className={`text-[13.5px] leading-[18px] whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden ${collapsed ? "max-w-0 opacity-0" : "max-w-[160px] opacity-100"
                   } ${isActive ? "text-white" : "text-slate-300"} font-medium`}
               >
                 {item.label}
@@ -138,9 +139,9 @@ function NavSection({
 
               {item.badge != null && (
                 <span
-                  className={`bg-slate-700 text-slate-300 text-[11px] font-semibold px-2 py-0.5 rounded-full tabular-nums whitespace-nowrap transition-all duration-300 ease-in-out ${collapsed
-                    ? "w-0 opacity-0 overflow-hidden p-0"
-                    : "opacity-100"
+                  className={`bg-slate-700 text-slate-300 text-[11px] font-semibold py-0.5 rounded-full tabular-nums whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out ${collapsed
+                    ? "max-w-0 opacity-0 p-0"
+                    : "max-w-[48px] opacity-100 px-2"
                     }`}
                 >
                   {item.badge}
@@ -189,7 +190,7 @@ export function AppSidebar({
           <img src="/yuanta-icon-logo.svg" alt="Yuanta" className="w-auto h-7.5" />
         </div>
         <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out pb-0.5 ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+          className={`overflow-hidden transition-all duration-300 ease-in-out pb-0.5 ${collapsed ? "max-w-0 opacity-0" : "max-w-[180px] opacity-100"
             }`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- small fixed-size wordmark, no responsive sizes needed */}
@@ -228,11 +229,11 @@ export function AppSidebar({
               : <EyeIcon size={16} className="text-slate-400 shrink-0" />
             }
           </div>
-          <span className={`text-[13px] leading-normal whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"} ${isPrivate ? "text-primary-action font-medium" : "text-slate-300"}`}>
+          <span className={`text-[13px] leading-normal whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out ${collapsed ? "max-w-0 opacity-0" : "max-w-[140px] opacity-100"} ${isPrivate ? "text-primary-action font-medium" : "text-slate-300"}`}>
             ซ่อนชื่อลูกค้า
           </span>
           {/* Switch indicator */}
-          <div className={`ml-auto shrink-0 transition-all duration-300 ease-in-out ${collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"}`}>
+          <div className={`ml-auto shrink-0 overflow-hidden transition-all duration-300 ease-in-out ${collapsed ? "max-w-0 opacity-0" : "max-w-[40px] opacity-100"}`}>
             <div className={`relative w-8 h-4.5 rounded-full transition-colors duration-200 ${isPrivate ? "bg-primary-action" : "bg-slate-600"}`}>
               <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${isPrivate ? "translate-x-[14px]" : "translate-x-0.5"}`} />
             </div>
@@ -247,7 +248,7 @@ export function AppSidebar({
             <Avatar type="text" initials="RM" size="m" />
           </div>
           <div
-            className={`flex items-center gap-2 overflow-hidden transition-all duration-300 ease-in-out ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100 flex-1"
+            className={`flex items-center gap-2 overflow-hidden transition-all duration-300 ease-in-out ${collapsed ? "max-w-0 opacity-0" : "max-w-[180px] opacity-100 flex-1"
               }`}
           >
             <div className="flex-1 min-w-0">
