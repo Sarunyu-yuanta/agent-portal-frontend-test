@@ -2,7 +2,7 @@
 
 import { Suspense, use, useState, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Avatar, Card, TabGroup } from "@sarunyu/system-one";
+import { Avatar, Button, Card, TabGroup } from "@sarunyu/system-one";
 import { ClientAssetSidebarContent } from "@/components/ClientAssetSidebarContent";
 import {
   PhoneIcon,
@@ -10,8 +10,7 @@ import {
   ArrowDownIcon,
   EnvelopeSimpleIcon,
   ChatCircleIcon,
-  FileTextIcon,
-  AlarmIcon,
+  NotePencilIcon,
 } from "@phosphor-icons/react";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { useClientsResource, useNBAActions } from "@/hooks/use-api";
@@ -35,13 +34,13 @@ import {
   type HoldingsSortKey,
 } from "./client-detail-data";
 import { CallLogTable } from "./ClientSections";
-import { EmptyState } from "@/components/ui/empty-state";
+import { ClientNotesTab } from "./ClientNotesTab";
 import { FadeIn } from "@/components/ui/fade-in";
 import { KycTab } from "./KycTab";
 import { OverviewTab } from "./OverviewTab";
 
 /** Sub-tabs that `?tab=` may address; anything else falls back to Overview. */
-const CLIENT_TABS = ["overview", "kyc", "assets", "call-log"];
+const CLIENT_TABS = ["overview", "kyc", "assets", "call-log", "notes"];
 
 export default function ClientPage({
   params,
@@ -199,14 +198,17 @@ function ClientPageInner({ id }: { id: string }) {
                 </div>
               </div>
 
-              {/* Action buttons — hidden for now, alongside the Notes/Reminder tabs.
-                  Whole wrapper removed (not just its contents) so it doesn't leave
-                  an empty flex-gap slot in the column above.
+              {/* Action buttons */}
               <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="outline" size="sm" leftIcon={<PencilSimpleIcon size={16} />}>Notes</Button>
-                <Button variant="outline" size="sm" leftIcon={<CalendarCheckIcon size={16} />}>Reminder</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<NotePencilIcon size={16} />}
+                  onClick={() => setActiveTab("notes")}
+                >
+                  Notes
+                </Button>
               </div>
-              */}
 
             </div>
 
@@ -278,9 +280,7 @@ function ClientPageInner({ id }: { id: string }) {
               { id: "kyc", title: "KYC" },
               { id: "assets", title: "Assets" },
               { id: "call-log", title: "Call Log" },
-              // Hidden for now — keep content branches below, just not shown as tabs.
-              // { id: "notes", title: "Notes" },
-              // { id: "reminder", title: "Reminder" },
+              { id: "notes", title: "Notes" },
             ]}
             activeId={activeTab}
             onChange={setActiveTab}
@@ -315,19 +315,12 @@ function ClientPageInner({ id }: { id: string }) {
             </Card>
           </div>
         ) : activeTab === "notes" ? (
-          <EmptyState
-            icon={<FileTextIcon size={40} className="text-[var(--text-default-placeholder)]" />}
-            title="No notes yet"
-            body="Notes for this client will appear here."
-          />
-        ) : activeTab === "reminder" ? (
-          <EmptyState
-            icon={<AlarmIcon size={40} className="text-[var(--text-default-placeholder)]" />}
-            title="No reminders yet"
-            body="Reminders for this client will appear here."
-          />
+          <div className="pt-8 w-full">
+            <ClientNotesTab clientId={client.id} />
+          </div>
         ) : (
           <OverviewTab
+            clientId={client.id}
             detail={detail}
             nbaAction={nbaAction}
             holdingsSortKey={holdingsSortKey}
@@ -337,6 +330,7 @@ function ClientPageInner({ id }: { id: string }) {
               setHoldingsSortDir(dir);
             }}
             onViewAllHoldings={() => setActiveTab("assets")}
+            onViewReminders={() => setActiveTab("notes")}
           />
         )}
       </FadeIn>

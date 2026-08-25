@@ -44,3 +44,16 @@ export type ProductRow = {
   avgAllocationPct: number;
   holders: ProductHolder[];
 };
+
+/** A note an IC/RM writes — either about a specific client or a general note. */
+export type Note = {
+  id: string;
+  clientId: string | null;
+  title: string | null;
+  body: string;
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+  reminderAt: string | null;
+  reminderDone: boolean;
+};

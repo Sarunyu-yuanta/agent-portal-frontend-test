@@ -19,7 +19,7 @@ import type {
  * Safe to be relative: every call below runs from `useResource`'s effect, i.e.
  * in the browser only, never during SSR.
  */
-const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "/api/mock").replace(/\/$/, "");
+export const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "/api/mock").replace(/\/$/, "");
 
 /** A stalled request must not outlive the UI's patience — callers all fall back
  *  to mock data, so giving up beats hanging. */

@@ -11,6 +11,8 @@ import {
   CalendarCheckIcon,
 } from "@phosphor-icons/react";
 import { mockNBAActions } from "@/lib/mock-data";
+import { useNotes } from "@/contexts/notes-context";
+import { reminderTag } from "../../notes/note-format";
 import { CurrentAllocationSection, TopHoldingsSection } from "./ClientSections";
 import type { SortDir, HoldingsSortKey } from "./client-detail-data";
 import type { ClientDetail } from "@/types/domain";
@@ -18,20 +20,30 @@ import type { ClientDetail } from "@/types/domain";
 type NbaAction = (typeof mockNBAActions)[number];
 
 export function OverviewTab({
+  clientId,
   detail,
   nbaAction,
   holdingsSortKey,
   holdingsSortDir,
   onSort,
   onViewAllHoldings,
+  onViewReminders,
 }: {
+  clientId: string;
   detail: ClientDetail;
   nbaAction: NbaAction | undefined;
   holdingsSortKey: HoldingsSortKey;
   holdingsSortDir: SortDir;
   onSort: (key: "value" | "pnlPct" | "pct", dir: SortDir) => void;
   onViewAllHoldings?: () => void;
+  onViewReminders?: () => void;
 }) {
+  const { notes } = useNotes();
+  const upcomingReminders = notes
+    .filter((n) => n.clientId === clientId && n.reminderAt && !n.reminderDone)
+    .sort((a, b) => new Date(a.reminderAt!).getTime() - new Date(b.reminderAt!).getTime())
+    .slice(0, 3);
+
   return (
     <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start pt-8">
 
@@ -200,12 +212,40 @@ export function OverviewTab({
         {/* Reminders */}
         <Card variant="default">
           <div className="flex flex-col gap-4">
-            <h6 className="type-h6 text-foreground">Reminders</h6>
-            <div className="flex flex-col items-center gap-2 py-4 text-center">
-              <CalendarCheckIcon size={32} className="text-muted-foreground/40" weight="duotone" />
-              <p className="type-body-2 text-muted-foreground">ยังไม่มี reminder</p>
-              <p className="type-caption text-muted-foreground/60">ฟีเจอร์นี้กำลังจะมาเร็วๆ นี้</p>
+            <div className="flex items-center justify-between gap-2">
+              <h6 className="type-h6 text-foreground">Reminders</h6>
+              {upcomingReminders.length > 0 && (
+                <Button variant="plain" size="sm" onClick={onViewReminders}>View all</Button>
+              )}
             </div>
+            {upcomingReminders.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-4 text-center">
+                <CalendarCheckIcon size={32} className="text-muted-foreground/40" weight="duotone" />
+                <p className="type-body-2 text-muted-foreground">No reminders yet</p>
+                <p className="type-caption text-muted-foreground/60">Set one from a note on the Notes tab.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {upcomingReminders.map((note) => {
+                  const tag = reminderTag(note);
+                  return (
+                    <button
+                      key={note.id}
+                      type="button"
+                      onClick={onViewReminders}
+                      className="flex flex-col gap-1 items-start rounded-lg p-2 -m-2 hover:bg-[var(--bg-default-secondary)] transition-colors text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        {tag && <Tag text={tag.label} variant={tag.variant} size="small" />}
+                      </div>
+                      <p className="type-body-2 text-foreground truncate w-full">
+                        {note.title || note.body}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </Card>
 

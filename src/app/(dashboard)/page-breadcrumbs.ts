@@ -43,6 +43,7 @@ const SECTION_ROOT: Record<NavSectionKey, { path: string; label: string }> = {
   // Insight articles all come from the House View tab, which is what this
   // breadcrumb has always called the level above them.
   insights: { path: "/insights", label: "House View" },
+  notes: { path: "/notes", label: "Notes" },
 };
 
 /**

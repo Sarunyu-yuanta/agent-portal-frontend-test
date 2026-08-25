@@ -8,10 +8,10 @@ import {
   PhoneOutgoingIcon,
   UserIcon,
   NotePencilIcon,
-  BellSimpleIcon,
   ArrowLeftIcon,
 } from "@phosphor-icons/react";
 import { getCallLogs, relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
+import { ClientNotesTab } from "../client/[id]/ClientNotesTab";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
 import { getInitials } from "@/lib/client-utils";
@@ -44,6 +44,7 @@ export function ClientDetailPanel({
   const detail = useSlideOver<{ item: AssetAccountItem; viewMode: AssetListViewMode }>();
   const liabilities = useSlideOver<{ amount: string; detail: LiabilitiesDetail }>();
   const [callLogOpen, setCallLogOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
   const callLogs = getCallLogs(client.id);
 
   const { reset: resetDetail } = detail;
@@ -159,11 +160,10 @@ export function ClientDetailPanel({
           }`}
         >
           <div className="overflow-hidden min-h-0">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {[
-                { icon: <PhoneListIcon size={20} />,   label: "Call log", onClick: () => setCallLogOpen(true), comingSoon: false },
-                { icon: <NotePencilIcon size={20} />,  label: "Notes",    onClick: () => {},                  comingSoon: true  },
-                { icon: <BellSimpleIcon size={20} />,  label: "Reminder", onClick: () => {},                  comingSoon: true  },
+                { icon: <PhoneListIcon size={20} />,  label: "Call log", onClick: () => setCallLogOpen(true), comingSoon: false },
+                { icon: <NotePencilIcon size={20} />, label: "Notes",    onClick: () => setNotesOpen(true),   comingSoon: false },
               ].map(({ icon, label, onClick, comingSoon }) => (
                 <button
                   key={label}
@@ -281,6 +281,19 @@ export function ClientDetailPanel({
       desktopContentClassName="flex flex-col gap-3 min-w-[420px] max-w-[520px]"
     >
       {callLogCards}
+    </ResponsiveDialog>
+
+    {/* Notes — same responsive pattern, same note history as the Notes tab/hub.
+        Wider than the Call Log dialog: this hosts the sidebar+detail split view,
+        which needs real estate the Call Log's simple card list doesn't. */}
+    <ResponsiveDialog
+      open={notesOpen}
+      onOpenChange={setNotesOpen}
+      title={`Notes — ${client.name}`}
+      mobileContentClassName="flex flex-col gap-3 p-4"
+      desktopContentClassName="flex flex-col gap-3 min-w-[720px] max-w-[900px]"
+    >
+      <ClientNotesTab clientId={client.id} />
     </ResponsiveDialog>
     </>
   );

@@ -11,6 +11,7 @@ import {
   ChartBarIcon,
   EyeIcon,
   EyeSlashIcon,
+  NotePencilIcon,
 } from "@phosphor-icons/react";
 import { usePrivacy } from "@/contexts/privacy-context";
 import {
@@ -40,6 +41,13 @@ const workspaceItems: NavItem[] = [
     section: "insights",
     label: "Insights",
     icon: ChartBarIcon,
+    badge: null,
+  },
+  {
+    href: "/notes",
+    section: "notes",
+    label: "Notes",
+    icon: NotePencilIcon,
     badge: null,
   },
 ];

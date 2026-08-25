@@ -37,6 +37,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/house-view": "House View & Strategy",
   "/insights": "Insights",
   "/product-catalog": "Product Catalog",
+  "/notes": "Notes",
 };
 
 /**

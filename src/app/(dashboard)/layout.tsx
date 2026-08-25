@@ -10,7 +10,9 @@ import { NavStateMemory } from "@/components/layout/NavStateMemory";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
 import { PrivacyProvider } from "@/contexts/privacy-context";
+import { NotesProvider } from "@/contexts/notes-context";
 import { ResponsiveBreadcrumb } from "@/components/layout/ResponsiveBreadcrumb";
+import { FloatingNoteButton } from "./notes/FloatingNoteButton";
 import { usePageChrome } from "./page-chrome";
 
 function MarketOpenBadge() {
@@ -168,6 +170,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
+      <FloatingNoteButton />
+
       {/* Rendered last on purpose — its scroll restore has to win over any
           `main.scrollTop` reset a page does in its own mount effect. */}
       <Suspense fallback={null}>
@@ -184,9 +188,11 @@ export default function DashboardLayout({
 }) {
   return (
     <PrivacyProvider>
-      <HeaderSlotProvider>
-        <DashboardLayoutInner>{children}</DashboardLayoutInner>
-      </HeaderSlotProvider>
+      <NotesProvider>
+        <HeaderSlotProvider>
+          <DashboardLayoutInner>{children}</DashboardLayoutInner>
+        </HeaderSlotProvider>
+      </NotesProvider>
     </PrivacyProvider>
   );
 }

@@ -55,6 +55,18 @@ export interface ApiMiniKanban {
   stage: string;
 }
 
+export interface ApiNote {
+  id: number;
+  clientId: string | null;
+  title: string | null;
+  body: string;
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+  reminderAt: string | null;
+  reminderDone: boolean;
+}
+
 export interface ApiCollectionResponse<T> {
   data: T[];
   meta?: {
