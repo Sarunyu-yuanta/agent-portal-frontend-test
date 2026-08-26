@@ -34,8 +34,8 @@ tags:
       aggregation to move the computation off the browser.
   - name: Notes
     description: >
-      IC/RM notes — either linked to a client (clientId set) or a general note
-      (clientId null) — with an optional reminder date/time.
+      IC/RM notes — linked to any number of clients (clientIds) or general
+      (clientIds empty) — with an optional reminder date.
 
 paths:
   /clients:
@@ -706,16 +706,19 @@ components:
 
     Note:
       type: object
-      required: [id, clientId, title, body, author, createdAt, updatedAt, reminderAt, reminderDone]
+      required: [id, clientIds, title, body, author, createdAt, updatedAt, reminderAt, reminderDone]
       properties:
         id:
           type: integer
           example: 1
-        clientId:
-          type: string
-          nullable: true
-          description: References the id field of the Client resource; null = general note
-          example: "110001"
+        clientIds:
+          type: array
+          items:
+            type: string
+          description: >
+            References the id field of the Client resource. A note can cover
+            several clients; an empty array means a general note.
+          example: ["110001", "110002"]
         title:
           type: string
           nullable: true
@@ -1064,13 +1067,14 @@ components:
 
     NoteInput:
       type: object
-      required: [clientId, title, body, author, createdAt, updatedAt, reminderAt, reminderDone]
+      required: [clientIds, title, body, author, createdAt, updatedAt, reminderAt, reminderDone]
       properties:
-        clientId:
-          type: string
-          nullable: true
-          example: "110001"
-          description: "ID ของ Client ที่เชื่อมโยง หรือ null สำหรับบันทึกทั่วไป"
+        clientIds:
+          type: array
+          items:
+            type: string
+          example: ["110001", "110002"]
+          description: "รายการ ID ของ Client ที่เชื่อมโยง — array ว่างหมายถึงบันทึกทั่วไป"
         title:
           type: string
           nullable: true

@@ -30,7 +30,18 @@ export function DetailDrawer({
   children,
 }: {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  /**
+   * Base UI's own signature, so callers can reach the second argument — it
+   * carries the `reason` for the change, the native event, and a `cancel()` that
+   * refuses it. A drawer whose contents open a popover needs that: `Sheet` is
+   * Base UI and decides "outside" by DOM containment, while a popover from
+   * `@sarunyu/system-one` is Radix and portals to `document.body`, so clicking
+   * inside one reads as clicking the page. (Radix inside Radix is fine — that
+   * stack checks the React tree. It's the cross-library pairing that breaks.)
+   *
+   * Handlers that only take `open` still satisfy this.
+   */
+  onOpenChange: NonNullable<React.ComponentProps<typeof Sheet>["onOpenChange"]>;
   size?: keyof typeof SIZE_CLASSES;
   showCloseButton?: boolean;
   className?: string;

@@ -17,5 +17,8 @@ export default function NotesPage() {
     return <p className="type-body-2 text-muted-foreground text-center py-10">Loading notes…</p>;
   }
 
-  return <NotesSplitView notes={notes} clients={clients} heightClassName="h-[75vh]" />;
+  // The dashboard shell hands `/notes` a flex-column content area sized to the
+  // viewport below the top bar (`isFullHeight` in `page-chrome`), so the split
+  // view claims what's left rather than guessing a vh fraction.
+  return <NotesSplitView notes={notes} clients={clients} heightClassName="flex-1 min-h-0" />;
 }

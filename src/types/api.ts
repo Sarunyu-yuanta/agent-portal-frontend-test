@@ -57,7 +57,10 @@ export interface ApiMiniKanban {
 
 export interface ApiNote {
   id: number;
-  clientId: string | null;
+  clientIds: string[];
+  /** Pre-multi-client shape. Still read on the way in so records written before
+   *  `clientIds` existed keep their client — see `toNote` in `lib/notes-api`. */
+  clientId?: string | null;
   title: string | null;
   body: string;
   author: string;

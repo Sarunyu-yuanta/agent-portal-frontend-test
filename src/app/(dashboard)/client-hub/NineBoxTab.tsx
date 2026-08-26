@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AvatarStack } from "@sarunyu/system-one";
-import { parseAumToThb } from "@/lib/client-utils";
+import { getInitial, parseAumToThb } from "@/lib/client-utils";
 import { mockClients } from "@/lib/mock-data";
 
 type Client = (typeof mockClients)[number];
@@ -13,10 +13,6 @@ function formatTotalAum(clients: Client[]): string | null {
   if (total >= 1_000_000_000) return `฿${(total / 1_000_000_000).toFixed(1).replace(/\.0$/, "")}B`;
   if (total >= 1_000_000) return `฿${Math.round(total / 1_000_000)}M`;
   return `฿${Math.round(total / 1000)}K`;
-}
-
-function getInitial(name: string) {
-  return name.trim()[0]?.toUpperCase() ?? "?";
 }
 
 function getAumTier(aumStr: string): 0 | 1 | 2 {

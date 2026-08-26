@@ -7,7 +7,9 @@ const REQUEST_TIMEOUT_MS = 8_000;
 function toNote(item: ApiNote): Note {
   return {
     id: String(item.id),
-    clientId: item.clientId,
+    // Tolerates the old single-`clientId` shape so notes stored before this
+    // became a list don't come back looking like general notes.
+    clientIds: item.clientIds ?? (item.clientId ? [item.clientId] : []),
     title: item.title,
     body: item.body,
     author: item.author,

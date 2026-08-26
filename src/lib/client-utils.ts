@@ -104,6 +104,18 @@ export function getInitialsFromWords(name: string): string {
   return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
+/**
+ * A single leading character — what the design system's `Avatar` actually shows:
+ * its `initials` prop is documented as one character and ignores the rest, so
+ * feeding it either two-character helper above just wastes the second one.
+ *
+ * A third variant rather than a unification of the two above on purpose — see
+ * their notes on how they diverge on masked and multi-word names.
+ */
+export function getInitial(name: string): string {
+  return name.trim()[0]?.toUpperCase() ?? "?";
+}
+
 /** Compact THB in millions, e.g. 12_300_000 → "฿ 12M". */
 export function formatMillionThb(thb: number): string {
   const m = thb / 1_000_000;

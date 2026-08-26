@@ -40,7 +40,7 @@ export function OverviewTab({
 }) {
   const { notes } = useNotes();
   const upcomingReminders = notes
-    .filter((n) => n.clientId === clientId && n.reminderAt && !n.reminderDone)
+    .filter((n) => n.clientIds.includes(clientId) && n.reminderAt && !n.reminderDone)
     .sort((a, b) => new Date(a.reminderAt!).getTime() - new Date(b.reminderAt!).getTime())
     .slice(0, 3);
 

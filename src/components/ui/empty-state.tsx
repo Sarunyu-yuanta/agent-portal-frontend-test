@@ -7,25 +7,38 @@ export function EmptyState({
   title,
   body,
   action,
+  actionSlot,
 }: {
   icon: ReactNode;
   title: string;
   body: string;
+  /** Quiet text-link action. Ignored when `actionSlot` is given. */
   action?: { label: string; onClick: () => void };
+  /**
+   * A rendered action, for surfaces where the empty state *is* the call to
+   * action and a link reads too quietly — pass a real `Button`. Kept separate
+   * from `action` rather than changing what `action` renders, so the existing
+   * link-style call sites are untouched.
+   */
+  actionSlot?: ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 min-h-[400px] text-center">
       {icon}
       <p className="type-subtitle-1 font-semibold text-[var(--text-default-secondary)]">{title}</p>
       <p className="type-body-2 text-[var(--text-default-tertiary)] max-w-xs">{body}</p>
-      {action && (
-        <button
-          type="button"
-          onClick={action.onClick}
-          className="mt-1 text-[13px] font-medium text-primary-action hover:underline cursor-pointer"
-        >
-          {action.label}
-        </button>
+      {actionSlot ? (
+        <div className="mt-1">{actionSlot}</div>
+      ) : (
+        action && (
+          <button
+            type="button"
+            onClick={action.onClick}
+            className="mt-1 text-[13px] font-medium text-primary-action hover:underline cursor-pointer"
+          >
+            {action.label}
+          </button>
+        )
       )}
     </div>
   );

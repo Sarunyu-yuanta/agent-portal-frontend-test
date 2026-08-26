@@ -45,10 +45,17 @@ export type ProductRow = {
   holders: ProductHolder[];
 };
 
-/** A note an IC/RM writes — either about a specific client or a general note. */
+/** A note an IC/RM writes — about any number of clients, or none (a general note). */
 export type Note = {
   id: string;
-  clientId: string | null;
+  /**
+   * Client ids this note is filed under. Empty means a general note.
+   *
+   * A list rather than a single nullable id: one conversation often covers
+   * several clients, and duplicating the note per client would mean editing it
+   * in several places.
+   */
+  clientIds: string[];
   title: string | null;
   body: string;
   author: string;

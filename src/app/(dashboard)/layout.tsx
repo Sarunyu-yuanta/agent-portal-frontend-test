@@ -38,6 +38,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     isHouseView,
     isPerformance,
     isFullWidth,
+    isFullHeight,
     ownsMobileBreadcrumb,
     contentTopIsWhite,
   } = usePageChrome();
@@ -123,7 +124,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </header>
 
           <main
-            className={`flex-1 overflow-y-auto overflow-x-clip [scrollbar-gutter:stable] bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"}`}
+            className={`flex-1 overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"} ${
+              isFullHeight
+                ? "flex flex-col min-h-0 overflow-y-hidden"
+                : "overflow-y-auto [scrollbar-gutter:stable]"
+            }`}
           >
             {/* Mobile/tablet breadcrumb — the top bar has no room for it next
                 to the logo, so it leads the content instead. Sits outside the
@@ -140,7 +145,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             <FadeIn
               key={pathname}
               className={`${isFullWidth ? "w-full min-h-full" : "max-w-[1280px] mx-auto"
-                } flex flex-col gap-6`}
+                } flex flex-col gap-6 ${isFullHeight ? "w-full flex-1 min-h-0" : ""}`}
             >
               {!breadcrumb &&
                 !isFullWidth &&

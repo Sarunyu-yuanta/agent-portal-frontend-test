@@ -21,6 +21,8 @@ export type PageChrome = {
   isPerformance: boolean;
   /** Page paints its own padding and bleeds to the edges. */
   isFullWidth: boolean;
+  /** Page fills the viewport below the top bar and scrolls inside itself. */
+  isFullHeight: boolean;
   /** Page renders its own mobile breadcrumb; the layout must not add another. */
   ownsMobileBreadcrumb: boolean;
   /** Page content starts on white rather than `main`'s gray-50. */
@@ -80,6 +82,9 @@ export function usePageChrome(): PageChrome {
     isFullWidth:
       pathname.startsWith("/product-catalog") ||
       pathname.startsWith("/client-hub"),
+    // Notes is a master/detail surface, not a document — it owns the whole
+    // area below the top bar and each pane scrolls on its own.
+    isFullHeight: pathname === "/notes",
     // Full Profile puts the breadcrumb inside its own sticky identity bar (and
     // pulls itself up over the layout's padding to do it), so a second one
     // above would overlap.
