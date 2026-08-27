@@ -44,6 +44,7 @@ const SECTION_ROOT: Record<NavSectionKey, { path: string; label: string }> = {
   // breadcrumb has always called the level above them.
   insights: { path: "/insights", label: "House View" },
   notes: { path: "/notes", label: "Notes" },
+  calendar: { path: "/calendar", label: "Calendar" },
 };
 
 /**

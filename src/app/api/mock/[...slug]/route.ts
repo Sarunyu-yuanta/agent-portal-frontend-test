@@ -99,9 +99,19 @@ export async function PUT(
   const body = (await req.json()) as Record<string, unknown>;
   const db = await readDB();
 
-  const items = db[resource] ?? [];
+  if (!db[resource]) db[resource] = [];
+  const items = db[resource];
   const idx = items.findIndex((i) => String(i.id) === id);
-  if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Upsert: if the record is gone (e.g. memoryDB reset on hot-reload) re-insert
+  // it so edits don't 404 just because the dev server restarted mid-session.
+  if (idx === -1) {
+    const newItem = { id: Number(id) || id, ...body };
+    items.push(newItem);
+    db[resource] = items;
+    await writeDB(db);
+    return NextResponse.json({ data: newItem });
+  }
 
   items[idx] = { id: items[idx].id, ...body };
   db[resource] = items;

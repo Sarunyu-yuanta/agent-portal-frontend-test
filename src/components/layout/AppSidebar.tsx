@@ -12,6 +12,7 @@ import {
   EyeIcon,
   EyeSlashIcon,
   NotePencilIcon,
+  CalendarBlankIcon,
 } from "@phosphor-icons/react";
 import { usePrivacy } from "@/contexts/privacy-context";
 import {
@@ -48,6 +49,13 @@ const workspaceItems: NavItem[] = [
     section: "notes",
     label: "Notes",
     icon: NotePencilIcon,
+    badge: null,
+  },
+  {
+    href: "/calendar",
+    section: "calendar",
+    label: "Calendar",
+    icon: CalendarBlankIcon,
     badge: null,
   },
 ];

@@ -2,10 +2,10 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Modal } from "@sarunyu/system-one";
+import { Button, Modal, Toaster } from "@sarunyu/system-one";
+import type { ToastProps } from "@sarunyu/system-one";
 import { useClients } from "@/hooks/use-api";
 import { useNotes } from "@/contexts/notes-context";
-import { DetailDrawer } from "@/components/ui/detail-drawer";
 import { setQueryState, withQuery } from "@/lib/query-state";
 import type { Note } from "@/types/domain";
 import { NotesGallery } from "../../notes/NotesGallery";
@@ -27,42 +27,61 @@ export function ClientNotesTab({ clientId }: { clientId: string }) {
   const { notes, isLoading, addNote, editNote, removeNote } = useNotes();
 
   const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
-  const [adding, setAdding] = useState(false);
-  // Reported by `NoteDetailPane` on every keystroke, not on its save debounce —
-  // so a note is never thrown away over text the user has already typed but
-  // that hasn't been written back yet.
-  const [draftBlank, setDraftBlank] = useState(false);
+  const attributesOpenRef = useRef(false);
+  // Latest title/body from NoteDetailPane — read on "Add note" click.
+  const modalValuesRef = useRef<{ title: string; body: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [toasts, setToasts] = useState<Array<ToastProps & { id: string }>>([]);
+  const addToast = (props: Omit<ToastProps, "onClose">) =>
+    setToasts((prev) => [...prev, { ...props, id: crypto.randomUUID() }]);
+  // True when the editor is blank — disables "Add note" so empty notes can't be saved.
+  const [draftBlank, setDraftBlank] = useState(true);
 
-  // `includes`, not equality: a note can cover several clients, and it belongs
-  // on every one of their pages.
+  // --- Create flow: modal opens with a local draft, note is only created in DB on "Add note" ---
+  const [createOpen, setCreateOpen] = useState(false);
+  const [draftAttrs, setDraftAttrs] = useState<{
+    clientIds: string[];
+    reminderAt: string | null;
+    reminderDone: boolean;
+  }>({ clientIds: [clientId], reminderAt: null, reminderDone: false });
+  // Stable timestamp so the displayed date doesn't jump when attributes change.
+  const draftCreatedAt = useRef(new Date().toISOString());
+
+  const draftNoteForPane = useMemo<Note>(
+    () => ({
+      id: "__draft__",
+      title: null,
+      body: "",
+      author: "Relation Manager",
+      createdAt: draftCreatedAt.current,
+      updatedAt: draftCreatedAt.current,
+      ...draftAttrs,
+    }),
+    [draftAttrs],
+  );
+
+  // --- Edit flow: existing note opened via URL param ---
   const clientNotes = useMemo(
     () => notes.filter((n) => n.clientIds.includes(clientId)),
     [notes, clientId],
   );
 
-  /**
-   * The open note is URL-owned (`?note=4`), following the same pattern as the
-   * Client Hub's quick-view drawer: refresh, a shared link and the browser back
-   * button all land on the same open panel, and closing doesn't need its own
-   * piece of state to remember.
-   */
   const noteParam = searchParams.get("note");
   const openNote = (noteParam && clientNotes.find((n) => n.id === noteParam)) || null;
-  const drawerOpen = openNote !== null;
+  const editOpen = openNote !== null;
 
-  // The drawer animates out after the param is gone, so the last note is kept
-  // around to slide away with content rather than collapsing to blank.
+  // Kept in state so the modal still has content while it fades out after closing.
   const [panelNote, setPanelNote] = useState<Note | null>(openNote);
-  if (openNote && openNote !== panelNote) setPanelNote(openNote);
+  if (openNote && openNote !== panelNote) {
+    setPanelNote(openNote);
+    if (openNote.id !== panelNote?.id) attributesOpenRef.current = false;
+  }
 
-  // Only rewind history if we're the ones who pushed the panel onto it —
-  // arriving straight on `?note=…` must not bounce out of the app.
   const pushedPanelRef = useRef(false);
 
   const hrefFor = (noteId: string | null) =>
     withQuery(`/client/${clientId}`, searchParams, { tab: "notes", note: noteId });
 
-  /** URL work only — no pruning. Used where the note is already gone. */
   const navigateClosed = () => {
     if (pushedPanelRef.current) {
       pushedPanelRef.current = false;
@@ -72,22 +91,13 @@ export function ClientNotesTab({ clientId }: { clientId: string }) {
     }
   };
 
-  /**
-   * A note nobody typed into isn't worth a card on the wall, so leaving one
-   * throws it away — the same rule the Notes hub applies when you move off an
-   * untouched note. Text is the whole test: flipping the reminder switch fills a
-   * date in for you, so "blank note with a reminder" is what changing your mind
-   * about that switch leaves behind.
-   */
   const pruneIfBlank = (note: Note | null) => {
     if (note && draftBlank) void removeNote(note.id);
   };
 
   const openNoteId = (noteId: string) => {
     const leaving = openNote;
-    // Card-to-card while the panel is already open swaps what it shows rather
-    // than stacking history entries to unwind one at a time.
-    if (drawerOpen) {
+    if (editOpen) {
       setQueryState(hrefFor(noteId), "replace");
     } else {
       pushedPanelRef.current = true;
@@ -96,29 +106,49 @@ export function ClientNotesTab({ clientId }: { clientId: string }) {
     if (leaving && leaving.id !== noteId) pruneIfBlank(leaving);
   };
 
-  const closePanel = () => {
-    const leaving = openNote;
-    navigateClosed();
-    pruneIfBlank(leaving);
+  // --- Shared modal close ---
+  const closeModal = () => {
+    if (createOpen) {
+      setCreateOpen(false);
+    } else {
+      pruneIfBlank(openNote);
+      navigateClosed();
+    }
   };
 
-  const handleAdd = async () => {
-    if (adding) return;
-    setAdding(true);
-    try {
-      const created = await addNote({
-        clientIds: [clientId],
-        title: null,
-        body: "",
-        author: "Relation Manager",
-        reminderAt: null,
-        reminderDone: false,
-      });
-      // Straight into the editor — the tile is a way to start writing, not a way
-      // to add a blank card to the wall.
-      openNoteId(created.id);
-    } finally {
-      setAdding(false);
+  // --- "New note" tile: open create modal without touching the DB ---
+  const handleAdd = () => {
+    draftCreatedAt.current = new Date().toISOString();
+    setDraftAttrs({ clientIds: [clientId], reminderAt: null, reminderDone: false });
+    modalValuesRef.current = { title: "", body: "" };
+    setCreateOpen(true);
+  };
+
+  // --- "Add note" button in modal ---
+  const handleModalSave = async () => {
+    const values = modalValuesRef.current ?? { title: "", body: "" };
+
+    if (createOpen) {
+      if (saving) return;
+      setSaving(true);
+      try {
+        await addNote({
+          clientIds: draftAttrs.clientIds,
+          title: values.title.trim() || null,
+          body: values.body,
+          author: "Relation Manager",
+          reminderAt: draftAttrs.reminderAt,
+          reminderDone: draftAttrs.reminderDone,
+        });
+        addToast({ status: "success", message: "Note added" });
+      } finally {
+        setSaving(false);
+      }
+      setCreateOpen(false);
+    } else if (panelNote) {
+      editNote({ ...panelNote, title: values.title.trim() || null, body: values.body });
+      addToast({ status: "success", message: "Note saved" });
+      navigateClosed();
     }
   };
 
@@ -126,11 +156,12 @@ export function ClientNotesTab({ clientId }: { clientId: string }) {
     if (!deleteTarget) return;
     const wasOpen = deleteTarget.id === openNote?.id;
     await removeNote(deleteTarget.id);
+    addToast({ status: "success", message: "Note deleted" });
     setDeleteTarget(null);
-    // `navigateClosed`, not `closePanel`: the note is already deleted, and
-    // pruning would fire a second delete for the same id.
     if (wasOpen) navigateClosed();
   };
+
+  const modalOpen = createOpen || editOpen;
 
   if (isLoading) {
     return <p className="type-body-2 text-muted-foreground text-center py-10">Loading notes…</p>;
@@ -138,67 +169,76 @@ export function ClientNotesTab({ clientId }: { clientId: string }) {
 
   return (
     <>
+      <Toaster
+        items={toasts}
+        onRemove={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))}
+      />
       <NotesGallery
         notes={clientNotes}
         selectedId={openNote?.id ?? null}
         onOpen={(note) => openNoteId(note.id)}
         onAdd={handleAdd}
-        addDisabled={adding}
+        addDisabled={createOpen}
       />
 
-      {/* `DetailDrawer` is non-modal, which is the point: the wall stays visible
-          and clickable, so moving to another note is one click instead of close-
-          then-open. `wide` because a note is prose, not a field list. */}
-      <DetailDrawer
-        open={drawerOpen}
-        onOpenChange={(next, details) => {
-          if (next) return;
-          if (details.reason === "outside-press") {
-            const target = details.event.target as Element | null;
-            /*
-             * Clicking outside closes the drawer — except when "outside" is a
-             * Radix popover, which Base UI has no way to recognise as ours.
-             *
-             * The footer's client/reminder popover portals to `document.body`, so
-             * it lands outside this drawer's DOM subtree and Base UI reads a
-             * click in it as a click on the page. One selector covers all of it:
-             * `DateInput`'s calendar and `DropdownMultiple`'s list are absolutely
-             * positioned *inside* that popover rather than portalled again, so
-             * they sit under the same wrapper.
-             */
-            if (target?.closest("[data-radix-popper-content-wrapper]")) {
-              details.cancel();
-              return;
-            }
-            // A confirmation is up; nothing behind it should act on the click.
-            if (deleteTarget) {
-              details.cancel();
-              return;
-            }
-          }
-          closePanel();
-        }}
-        size="wide"
-        className="flex flex-col overflow-hidden p-0"
-      >
-        {panelNote && (
-          <NoteDetailPane
-            key={panelNote.id}
-            note={panelNote}
-            clients={clients}
-            // Pinned, not locked: this client can't be taken off the note (it
-            // would vanish off the wall you're looking at), but other clients
-            // stay editable — it's the same note the hub lets you re-file.
-            pinnedClientId={clientId}
-            onSave={(patch) => editNote({ ...panelNote, ...patch })}
-            onEmptyChange={setDraftBlank}
-            // Narrow drawer: a side card would eat a third of the writing area.
-            layout="footer"
-            autoFocusTitle={panelNote.title === null && panelNote.body === ""}
-            onDelete={() => setDeleteTarget(panelNote)}
-          />
-        )}
-      </DetailDrawer>
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onMouseDown={(e) => {
+            if (e.target !== e.currentTarget) return;
+            if (attributesOpenRef.current || deleteTarget) return;
+            closeModal();
+          }}
+        >
+          <div className="relative w-full max-w-4xl h-[75vh] rounded-xl border border-border bg-card flex flex-col overflow-hidden shadow-xl">
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {createOpen ? (
+                <NoteDetailPane
+                  key="__draft__"
+                  note={draftNoteForPane}
+                  clients={clients}
+                  pinnedClientId={clientId}
+                  onSave={(patch) => setDraftAttrs((prev) => ({ ...prev, ...patch }))}
+                  onEmptyChange={setDraftBlank}
+                  onValuesChange={(values) => { modalValuesRef.current = values; }}
+                  manualSave
+                  layout="side"
+                  autoFocusTitle
+                  onAttributesOpenChange={(open) => { attributesOpenRef.current = open; }}
+                />
+              ) : panelNote ? (
+                <NoteDetailPane
+                  key={panelNote.id}
+                  note={panelNote}
+                  clients={clients}
+                  pinnedClientId={clientId}
+                  onSave={(patch) => editNote({ ...panelNote, ...patch })}
+                  onEmptyChange={setDraftBlank}
+                  onValuesChange={(values) => { modalValuesRef.current = values; }}
+                  manualSave
+                  layout="side"
+                  autoFocusTitle={panelNote.title === null && panelNote.body === ""}
+                  onAttributesOpenChange={(open) => { attributesOpenRef.current = open; }}
+                  onDelete={() => setDeleteTarget(panelNote)}
+                />
+              ) : null}
+            </div>
+            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-4 py-3">
+              <Button variant="outline" size="sm" onClick={closeModal}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleModalSave}
+                disabled={draftBlank || saving}
+              >
+                {createOpen ? "Add note" : "Save"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {deleteTarget && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">

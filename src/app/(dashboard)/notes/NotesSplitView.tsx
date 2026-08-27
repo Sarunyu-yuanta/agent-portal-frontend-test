@@ -21,6 +21,7 @@ export function NotesSplitView({
   clients,
   lockedClientId,
   defaultClientId,
+  initialSelectedId,
   heightClassName = "h-[70vh]",
 }: {
   notes: Note[];
@@ -29,11 +30,13 @@ export function NotesSplitView({
   lockedClientId?: string | null;
   /** Client a freshly-created note starts with when `lockedClientId` isn't set. */
   defaultClientId?: string | null;
+  /** Note to open on mount — how a link from outside (e.g. a Calendar reminder) lands on one. */
+  initialSelectedId?: string | null;
   heightClassName?: string;
 }) {
   const { addNote, editNote, removeNote } = useNotes();
   const isMobile = useMediaQuery("(max-width: 767px)");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId ?? null);
   const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
   const [adding, setAdding] = useState(false);
   // Reported by NoteDetailPane on every keystroke, not on its save debounce.

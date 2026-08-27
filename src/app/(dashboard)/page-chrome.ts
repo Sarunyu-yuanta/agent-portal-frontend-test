@@ -40,6 +40,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/insights": "Insights",
   "/product-catalog": "Product Catalog",
   "/notes": "Notes",
+  "/calendar": "Calendar",
 };
 
 /**
@@ -82,9 +83,9 @@ export function usePageChrome(): PageChrome {
     isFullWidth:
       pathname.startsWith("/product-catalog") ||
       pathname.startsWith("/client-hub"),
-    // Notes is a master/detail surface, not a document — it owns the whole
-    // area below the top bar and each pane scrolls on its own.
-    isFullHeight: pathname === "/notes",
+    // Notes and Calendar are both master/detail-style surfaces, not documents —
+    // they own the whole area below the top bar and scroll internally.
+    isFullHeight: pathname === "/notes" || pathname === "/calendar",
     // Full Profile puts the breadcrumb inside its own sticky identity bar (and
     // pulls itself up over the layout's padding to do it), so a second one
     // above would overlap.

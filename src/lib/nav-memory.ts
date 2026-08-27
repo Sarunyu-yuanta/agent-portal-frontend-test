@@ -15,7 +15,7 @@
 
 import { navRead, navWrite } from "./nav-session";
 
-export type NavSectionKey = "client-hub" | "product-catalog" | "insights" | "notes";
+export type NavSectionKey = "client-hub" | "product-catalog" | "insights" | "notes" | "calendar";
 
 type NavSection = {
   key: NavSectionKey;
@@ -31,6 +31,7 @@ const SECTIONS: NavSection[] = [
   { key: "product-catalog", root: "/product-catalog", prefixes: ["/product-catalog"] },
   { key: "insights", root: "/insights", prefixes: ["/insights"] },
   { key: "notes", root: "/notes", prefixes: ["/notes"] },
+  { key: "calendar", root: "/calendar", prefixes: ["/calendar"] },
 ];
 
 const isUnder = (pathname: string, prefix: string) =>

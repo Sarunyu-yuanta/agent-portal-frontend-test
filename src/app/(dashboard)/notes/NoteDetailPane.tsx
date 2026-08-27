@@ -9,23 +9,7 @@ import type { Note } from "@/types/domain";
 import { ClientField, ReminderField } from "./NoteAttributeFields";
 import { NoteAttributesControl } from "./NoteAttributesControl";
 import { NoteEditorFields } from "./NoteEditorFields";
-import { formatDateTime, reminderTag } from "./note-format";
-
-/**
- * Mirrors the design system's `Tag` variant tokens.
- *
- * Not hand-picked colours: these are the exact `--fill-*` variables `Tag` maps
- * each variant to, so a chip built here stays in step with every other tag in
- * the app and follows dark mode for free.
- */
-const CHIP_TONE: Record<TagVariant, string> = {
-  blue: "bg-[var(--fill-blue-50)] text-[var(--fill-blue-700)]",
-  green: "bg-[var(--fill-green-100)] text-[var(--fill-green-600)]",
-  yellow: "bg-[var(--fill-yellow-100)] text-[var(--fill-yellow-600)]",
-  red: "bg-[var(--fill-red-100)] text-[var(--fill-red-600)]",
-  gray: "bg-[var(--fill-gray-100)] text-subtle-text",
-  lime: "bg-[var(--fill-lime-100)] text-[var(--fill-lime-600)]",
-};
+import { formatDateTime, reminderTag, TAG_CHIP_TONE } from "./note-format";
 
 /**
  * A tag that can carry a real icon.
@@ -46,7 +30,7 @@ function SummaryChip({
 }) {
   return (
     <span
-      className={`inline-flex w-fit items-center gap-1 rounded-[4px] px-2 py-1 text-xs leading-4 whitespace-nowrap ${CHIP_TONE[variant]}`}
+      className={`inline-flex w-fit items-center gap-1 rounded-[4px] px-2 py-1 text-xs leading-4 whitespace-nowrap ${TAG_CHIP_TONE[variant]}`}
     >
       <span className="shrink-0 flex items-center">{icon}</span>
       {children}
@@ -81,6 +65,9 @@ export function NoteDetailPane({
   autoFocusTitle = false,
   layout = "side",
   onDelete,
+  onAttributesOpenChange,
+  manualSave = false,
+  onValuesChange,
 }: {
   note: Note;
   /** Selectable clients. The dropdown resolves the current one's name from this. */
@@ -118,7 +105,19 @@ export function NoteDetailPane({
    *   take a third of the writing area.
    */
   layout?: "side" | "footer";
-  onDelete: () => void;
+  onDelete?: () => void;
+  /**
+   * Fired synchronously whenever the attributes popover opens or closes. The
+   * parent drawer uses this to know that "outside" clicks might actually be
+   * inside a portal spawned by the popover (e.g. the client `DropdownMultiple`
+   * list, which portals to `document.body` rather than staying inside the Radix
+   * wrapper the drawer already guards against).
+   */
+  onAttributesOpenChange?: (open: boolean) => void;
+  /** Disable the debounced auto-save. The parent is responsible for saving explicitly. */
+  manualSave?: boolean;
+  /** Called on every keystroke with the current title and body — lets the parent read values for a manual save. */
+  onValuesChange?: (values: { title: string; body: string }) => void;
 }) {
   const [title, setTitle] = useState(note.title ?? "");
   const [body, setBody] = useState(note.body);
@@ -180,6 +179,7 @@ export function NoteDetailPane({
   // straight into the body) can resolve out of order, and whichever lands
   // second — still holding the *other* field's old value — clobbers it.
   useEffect(() => {
+    if (manualSave) return;
     const timer = setTimeout(() => {
       const { note: current, onSave: save } = latestRef.current;
       const nextTitle = title.trim() || null;
@@ -192,7 +192,11 @@ export function NoteDetailPane({
       }
     }, SAVE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [title, body]);
+  }, [title, body, manualSave]);
+
+  useEffect(() => {
+    onValuesChange?.({ title, body });
+  }, [title, body, onValuesChange]);
 
   // Resolved from `clients` rather than taken as a prop — the pane already has
   // Resolved from `clients` rather than taken as a prop — the pane already has
@@ -257,7 +261,7 @@ export function NoteDetailPane({
             // Green at rest, plain grey while in flight: the colour is there to
             // confirm, and there's nothing to confirm until the write lands.
             className={`type-caption truncate ${
-              blank
+              blank || manualSave
                 ? "invisible"
                 : saving
                   ? "text-muted-foreground"
@@ -270,7 +274,7 @@ export function NoteDetailPane({
             {saving ? "Saving…" : "Auto saved"}
           </p>
         </div>
-        {layout === "side" && (
+        {layout === "side" && onDelete && (
           <button
             type="button"
             onClick={onDelete}
@@ -341,7 +345,7 @@ export function NoteDetailPane({
             sticky would just pin them over the text. Editor first in the DOM
             either way, so tabbing starts where you type. */}
         {layout === "side" && (
-          <div className="shrink-0 md:w-64 md:sticky md:top-0 md:self-start">
+          <div className="shrink-0 md:w-80 md:sticky md:top-0 md:self-start">
             <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3 shadow-md">
               <ClientField
                 clientIds={note.clientIds}
@@ -372,7 +376,10 @@ export function NoteDetailPane({
           pinnedClientId={pinnedClientId}
           reminderAt={note.reminderAt}
           open={attributesOpen}
-          onOpenChange={setAttributesOpen}
+          onOpenChange={(open) => {
+            setAttributesOpen(open);
+            onAttributesOpenChange?.(open);
+          }}
           onClientIdsChange={(clientIds) => onSave({ clientIds })}
           onReminderChange={(reminderAt) => onSave({ reminderAt, reminderDone: false })}
         />

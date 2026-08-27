@@ -1,0 +1,309 @@
+"use client";
+
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Button, Modal, Toaster } from "@sarunyu/system-one";
+import type { ToastProps } from "@sarunyu/system-one";
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { useNotes } from "@/contexts/notes-context";
+import type { Note } from "@/types/domain";
+import { DayCell } from "./DayCell";
+import {
+  addMonths,
+  dayKey,
+  groupRemindersByDay,
+  monthGrid,
+  monthLabel,
+  weeksOf,
+  WEEKDAY_LABELS,
+} from "./calendar-grid";
+import { NoteDetailPane } from "../notes/NoteDetailPane";
+import { reminderAtFromDate } from "../notes/note-format";
+
+export function CalendarView({
+  notes,
+  clients,
+}: {
+  notes: Note[];
+  clients: { id: string; name: string }[];
+}) {
+  const { addNote, editNote, removeNote } = useNotes();
+  const isHydrated = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  const [viewDate, setViewDate] = useState<Date | null>(null);
+  if (isHydrated && viewDate === null) {
+    const now = new Date();
+    setViewDate(new Date(now.getFullYear(), now.getMonth(), 1));
+  }
+
+  // Shared across both modals (only one can be open at a time).
+  const attributesOpenRef = useRef(false);
+  const modalValuesRef = useRef<{ title: string; body: string } | null>(null);
+  const [blank, setBlank] = useState(true);
+
+  const [toasts, setToasts] = useState<Array<ToastProps & { id: string }>>([]);
+  const addToast = (props: Omit<ToastProps, "onClose">) =>
+    setToasts((prev) => [...prev, { ...props, id: crypto.randomUUID() }]);
+
+  // --- Create modal (new reminder, draft — saved only on "Add note") ---
+  const [createOpen, setCreateOpen] = useState(false);
+  const [draftAttrs, setDraftAttrs] = useState<{
+    clientIds: string[];
+    reminderAt: string | null;
+    reminderDone: boolean;
+  }>({ clientIds: [], reminderAt: null, reminderDone: false });
+  const [saving, setSaving] = useState(false);
+  const draftCreatedAt = useRef(new Date().toISOString());
+
+  const draftNoteForPane = useMemo<Note>(
+    () => ({
+      id: "__draft__",
+      title: null,
+      body: "",
+      author: "Relation Manager",
+      createdAt: draftCreatedAt.current,
+      updatedAt: draftCreatedAt.current,
+      ...draftAttrs,
+    }),
+    [draftAttrs],
+  );
+
+  const handleNewReminder = (day: Date) => {
+    draftCreatedAt.current = new Date().toISOString();
+    setDraftAttrs({ clientIds: [], reminderAt: reminderAtFromDate(day), reminderDone: false });
+    modalValuesRef.current = { title: "", body: "" };
+    setCreateOpen(true);
+  };
+
+  const handleCreateSave = async () => {
+    const values = modalValuesRef.current ?? { title: "", body: "" };
+    if (saving) return;
+    setSaving(true);
+    try {
+      await addNote({
+        clientIds: draftAttrs.clientIds,
+        title: values.title.trim() || null,
+        body: values.body,
+        author: "Relation Manager",
+        reminderAt: draftAttrs.reminderAt,
+        reminderDone: draftAttrs.reminderDone,
+      });
+      addToast({ status: "success", message: "Reminder added" });
+    } finally {
+      setSaving(false);
+    }
+    setCreateOpen(false);
+  };
+
+  // --- Edit modal (existing note) ---
+  const [editNoteId, setEditNoteId] = useState<string | null>(null);
+  const editOpen = editNoteId !== null;
+  const [panelNote, setPanelNote] = useState<Note | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
+
+  const liveEditNote = notes.find((n) => n.id === editNoteId) ?? null;
+  if (liveEditNote && liveEditNote !== panelNote) setPanelNote(liveEditNote);
+
+  const openNoteModal = (noteId: string) => {
+    setEditNoteId(noteId);
+  };
+
+  const handleEditSave = () => {
+    const values = modalValuesRef.current;
+    if (panelNote) {
+      editNote({ ...panelNote, title: values?.title.trim() || null, body: values?.body ?? panelNote.body });
+    }
+    addToast({ status: "success", message: "Note saved" });
+    setEditNoteId(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    await removeNote(deleteTarget.id);
+    addToast({ status: "success", message: "Note deleted" });
+    setDeleteTarget(null);
+    if (deleteTarget.id === editNoteId) setEditNoteId(null);
+  };
+
+  const remindersByDay = useMemo(() => groupRemindersByDay(notes), [notes]);
+
+  if (!viewDate) {
+    return <p className="type-body-2 text-muted-foreground text-center py-10">Loading calendar…</p>;
+  }
+
+  const today = new Date();
+  const days = monthGrid(viewDate);
+
+  return (
+    <>
+      <Toaster
+        items={toasts}
+        onRemove={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))}
+      />
+
+      <div className="flex h-full min-h-0 flex-col rounded-xl border border-border bg-card overflow-hidden">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-3 border-b border-border">
+          <h2 className="type-h5 text-foreground">{monthLabel(viewDate)}</h2>
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))}
+            >
+              Today
+            </Button>
+            <button
+              type="button"
+              onClick={() => setViewDate((d) => addMonths(d ?? today, -1))}
+              aria-label="Previous month"
+              className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors cursor-pointer hover:bg-[var(--bg-default-secondary)] hover:text-foreground"
+            >
+              <CaretLeftIcon size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewDate((d) => addMonths(d ?? today, 1))}
+              aria-label="Next month"
+              className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors cursor-pointer hover:bg-[var(--bg-default-secondary)] hover:text-foreground"
+            >
+              <CaretRightIcon size={16} />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid shrink-0 grid-cols-7 border-b border-[rgba(0,0,0,0.12)]">
+          {WEEKDAY_LABELS.map((label) => (
+            <div key={label} className="px-2 py-2 type-caption text-center text-muted-foreground">
+              {label}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-1 min-h-0 flex-col border-l border-[rgba(0,0,0,0.12)] overflow-y-auto">
+          {weeksOf(days).map((week, i) => (
+            <div key={i} className="grid flex-1 grid-cols-7 border-b border-[rgba(0,0,0,0.12)]">
+              {week.map((day) => (
+                <DayCell
+                  key={day.toISOString()}
+                  day={day}
+                  viewMonth={viewDate}
+                  today={today}
+                  notes={remindersByDay.get(dayKey(day)) ?? []}
+                  clients={clients}
+                  onOpenNote={openNoteModal}
+                  onNewReminder={handleNewReminder}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Create modal — new reminder */}
+      {createOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onMouseDown={(e) => {
+            if (e.target !== e.currentTarget) return;
+            if (attributesOpenRef.current) return;
+            setCreateOpen(false);
+          }}
+        >
+          <div className="relative w-full max-w-4xl h-[75vh] rounded-xl border border-border bg-card flex flex-col overflow-hidden shadow-xl">
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <NoteDetailPane
+                key="__draft__"
+                note={draftNoteForPane}
+                clients={clients}
+                onSave={(patch) => setDraftAttrs((prev) => ({ ...prev, ...patch }))}
+                onEmptyChange={setBlank}
+                onValuesChange={(values) => { modalValuesRef.current = values; }}
+                manualSave
+                layout="side"
+                autoFocusTitle
+                onAttributesOpenChange={(open) => { attributesOpenRef.current = open; }}
+              />
+            </div>
+            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-4 py-3">
+              <Button variant="outline" size="sm" onClick={() => setCreateOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleCreateSave}
+                disabled={blank || saving}
+              >
+                Add note
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit modal — existing note */}
+      {editOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onMouseDown={(e) => {
+            if (e.target !== e.currentTarget) return;
+            if (attributesOpenRef.current || deleteTarget) return;
+            setEditNoteId(null);
+          }}
+        >
+          <div className="relative w-full max-w-4xl h-[75vh] rounded-xl border border-border bg-card flex flex-col overflow-hidden shadow-xl">
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {panelNote && (
+                <NoteDetailPane
+                  key={panelNote.id}
+                  note={panelNote}
+                  clients={clients}
+                  onSave={(patch) => editNote({ ...panelNote, ...patch })}
+                  onEmptyChange={setBlank}
+                  onValuesChange={(values) => { modalValuesRef.current = values; }}
+                  manualSave
+                  layout="side"
+                  autoFocusTitle={panelNote.title === null && panelNote.body === ""}
+                  onAttributesOpenChange={(open) => { attributesOpenRef.current = open; }}
+                  onDelete={() => setDeleteTarget(panelNote)}
+                />
+              )}
+            </div>
+            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-4 py-3">
+              <Button variant="outline" size="sm" onClick={() => setEditNoteId(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleEditSave}
+                disabled={blank}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
+          <Modal
+            variant="alert"
+            alertStatus="danger"
+            title="Delete reminder?"
+            description="This note will be permanently removed."
+            actionLayout="double"
+            primaryLabel="Delete"
+            secondaryLabel="Cancel"
+            onPrimaryClick={confirmDelete}
+            onSecondaryClick={() => setDeleteTarget(null)}
+            onClose={() => setDeleteTarget(null)}
+          />
+        </div>
+      )}
+    </>
+  );
+}

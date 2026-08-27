@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { BellIcon, UserIcon } from "@phosphor-icons/react";
-import { DateInput, DropdownMultiple, Toggle } from "@sarunyu/system-one";
+import { Alert, DateInput, DropdownMultiple, Toggle } from "@sarunyu/system-one";
 import { defaultReminderDate, reminderAtFromDate } from "./note-format";
 
 /**
@@ -65,13 +65,11 @@ export function ClientField({
           placeholder="Select clients"
           value={clientIds}
           options={options}
-          helperText={`${pinnedName} stays on this note`}
-          // Put the pin back if the dropdown drops it. `DropdownMultiple` has no
-          // per-option lock, so this is enforced on the way out instead.
           onChange={(next) =>
             onChange(next.includes(pinnedClientId) ? next : [...next, pinnedClientId])
           }
         />
+        <Alert status="information" message={`${pinnedName} stays on this note`} />
       </div>
     );
   }

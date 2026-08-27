@@ -1,4 +1,4 @@
-import type { TagProps } from "@sarunyu/system-one";
+import type { TagProps, TagVariant } from "@sarunyu/system-one";
 import type { Note } from "@/types/domain";
 
 export function formatDateTime(iso: string): string {
@@ -73,6 +73,24 @@ export function formatDayOnly(iso: string): string {
     year: "numeric",
   });
 }
+
+/**
+ * Mirrors the design system's `Tag` variant tokens.
+ *
+ * Not hand-picked colours: these are the exact `--fill-*` variables `Tag` maps
+ * each variant to, so a chip built here stays in step with every other tag in
+ * the app and follows dark mode for free. Shared by the note detail pane's
+ * summary chips and the Calendar's reminder pills, so a note's urgency colour
+ * reads the same in both places.
+ */
+export const TAG_CHIP_TONE: Record<TagVariant, string> = {
+  blue: "bg-[var(--fill-blue-50)] text-[var(--fill-blue-700)]",
+  green: "bg-[var(--fill-green-100)] text-[var(--fill-green-600)]",
+  yellow: "bg-[var(--fill-yellow-100)] text-[var(--fill-yellow-600)]",
+  red: "bg-[var(--fill-red-100)] text-[var(--fill-red-600)]",
+  gray: "bg-[var(--fill-gray-100)] text-subtle-text",
+  lime: "bg-[var(--fill-lime-100)] text-[var(--fill-lime-600)]",
+};
 
 export type ReminderTag = { label: string; variant: NonNullable<TagProps["variant"]> };
 
