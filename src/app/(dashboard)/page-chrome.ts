@@ -21,6 +21,17 @@ export type PageChrome = {
   isPerformance: boolean;
   /** Page paints its own padding and bleeds to the edges. */
   isFullWidth: boolean;
+  /**
+   * Below `xl`: no page title above the content, and no padding around it —
+   * the page runs edge to edge.
+   *
+   * Separate from `isFullWidth`, which does the same thing at every size. This
+   * is for a page that *is* a single full-height surface rather than a document
+   * on a background: on a phone the frame around it costs real estate and the
+   * heading repeats what the surface already makes obvious, while on a desktop
+   * both still earn their place.
+   */
+  isMobileFullBleed: boolean;
   /** Page fills the viewport below the top bar and scrolls inside itself. */
   isFullHeight: boolean;
   /** Page renders its own mobile breadcrumb; the layout must not add another. */
@@ -83,6 +94,10 @@ export function usePageChrome(): PageChrome {
     isFullWidth:
       pathname.startsWith("/product-catalog") ||
       pathname.startsWith("/client-hub"),
+    // The same two pages `isFullHeight` covers: each is one full-height surface
+    // rather than a document on a background, which is exactly the shape that
+    // gains nothing from a frame and a heading on a phone.
+    isMobileFullBleed: pathname === "/notes" || pathname === "/calendar",
     // Notes and Calendar are both master/detail-style surfaces, not documents —
     // they own the whole area below the top bar and scroll internally.
     isFullHeight: pathname === "/notes" || pathname === "/calendar",

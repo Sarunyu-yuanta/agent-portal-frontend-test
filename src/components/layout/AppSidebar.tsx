@@ -21,6 +21,10 @@ import {
   type NavSectionKey,
 } from "@/lib/nav-memory";
 
+/**
+ * What the firm puts in front of you: clients, products, research. Shared,
+ * read-mostly, and none of it authored here.
+ */
 const workspaceItems: NavItem[] = [
   {
     href: "/client-hub",
@@ -44,6 +48,18 @@ const workspaceItems: NavItem[] = [
     icon: ChartBarIcon,
     badge: null,
   },
+];
+
+/**
+ * What you write down and what you owe. Split from Workspace because it is the
+ * other kind of thing in this app — authored here, yours, and about what happens
+ * next rather than what is.
+ *
+ * The two entries are closer than neighbours: Calendar renders the reminders
+ * attached to notes, laid out by day instead of by list (see
+ * `app/(dashboard)/calendar/page.tsx`). One body of work, two views of it.
+ */
+const plannerItems: NavItem[] = [
   {
     href: "/notes",
     section: "notes",
@@ -223,6 +239,12 @@ export function AppSidebar({
         <NavSection
           label="Workspace"
           items={workspaceItems}
+          collapsed={collapsed}
+          onNavigate={onClose}
+        />
+        <NavSection
+          label="Planner"
+          items={plannerItems}
           collapsed={collapsed}
           onNavigate={onClose}
         />

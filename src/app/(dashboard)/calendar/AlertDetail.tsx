@@ -1,0 +1,252 @@
+"use client";
+
+import { Avatar } from "@sarunyu/system-one";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { CaretRightIcon, LightningIcon, XIcon } from "@phosphor-icons/react";
+import { usePrivacy } from "@/contexts/privacy-context";
+import { getInitial } from "@/lib/client-utils";
+import { maskName } from "@/lib/mask-name";
+import { dayLabel, weekdayLabel } from "./calendar-grid";
+import type { DayItem } from "./day-items";
+import { HolderContact } from "./HolderContact";
+import { SOURCE_BADGE } from "./source-badge";
+
+/** `useLayoutEffect` warns when React renders on the server, and there is no
+ * layout to read there anyway. */
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/**
+ * What a rule-based alert opens into.
+ *
+ * Read-only, because nothing here is the user's to edit — the desk didn't write
+ * a dividend date, it was told one. What it does offer is the part a note
+ * doesn't need: the holders, spelled out. In the day list they are an avatar
+ * stack, which answers "roughly who" in the space of three circles; the point of
+ * opening the alert is to get from "roughly who" to a list you can work down.
+ *
+ * Two states, not two surfaces: the list, and one holder's contact details
+ * (`HolderContact`). Both live in whatever shell the caller opened — a modal on
+ * a pointer device, a sheet on a phone — so Back returns to the alert rather
+ * than to the page.
+ *
+ * Names go through `maskName`, the way every other client name in the app does
+ * when privacy mode is on. A list of full names is a much louder leak than the
+ * initials on an avatar, so this is the one place in the Calendar where the
+ * setting has to be honoured.
+ */
+export function AlertDetail({
+  item,
+  day,
+  clients,
+  onClose,
+  variant = "modal",
+}: {
+  item: DayItem;
+  day: Date;
+  clients: { id: string; name: string }[];
+  onClose: () => void;
+  /** `sheet` drops the close button — the sheet has its own handle and backdrop. */
+  variant?: "modal" | "sheet";
+}) {
+  const { isPrivate } = usePrivacy();
+  const isSheet = variant === "sheet";
+  const badge = SOURCE_BADGE[item.source];
+
+  const holders = item.clientIds.map((id) => ({
+    id,
+    name: maskName(clients.find((c) => c.id === id)?.name ?? id, isPrivate),
+  }));
+
+  /**
+   * Which holder's contact details are open, if any — the panel's second state.
+   *
+   * A state inside this component rather than another entry in `CalendarView`'s
+   * modal bookkeeping: it is a drill-in, not a different surface, and Back has
+   * to land you exactly where you were. Held here, that is one `setState`.
+   *
+   * `shown` is the holder the contact pane is *rendering*, which is not the same
+   * question. Both panes stay mounted so the two can slide past each other, so
+   * on the way back the pane still needs someone to be about for the ~200ms it
+   * takes to leave — `contactId` goes null immediately, `shown` doesn't.
+   */
+  const [contactId, setContactId] = useState<string | null>(null);
+  const [shown, setShown] = useState<string | null>(null);
+  const contact = holders.find((h) => h.id === shown);
+  const atContact = contactId !== null;
+
+  /**
+   * The track slides; the box around it resizes to whichever pane is showing.
+   *
+   * Both are animated, and both have to be. Sliding alone would leave the box at
+   * the height of the taller pane with dead space under the shorter one; resizing
+   * alone is just a jump with extra steps.
+   *
+   * Measured rather than guessed: the list grows with the number of holders and
+   * the contact pane with how many ways there are to reach someone, so neither
+   * has a height worth hard-coding. `ResizeObserver` covers the panes changing
+   * under their own steam — a LINE ID appearing for one client and not another.
+   */
+  const boxRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const contactRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | undefined>(undefined);
+
+  useIsoLayoutEffect(() => {
+    const measure = () => {
+      const active = atContact ? contactRef.current : listRef.current;
+      if (active) setHeight(active.offsetHeight);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    if (listRef.current) observer.observe(listRef.current);
+    if (contactRef.current) observer.observe(contactRef.current);
+    return () => observer.disconnect();
+  }, [atContact]);
+
+  const listPane = (
+    <div className="flex w-full flex-col">
+      {/* First thing in the panel, said in words rather than left to the orange
+          circle to imply. Everything else the Calendar opens is the user's own
+          writing, so the default reading of a panel here is "something I made" —
+          and that framing has to be corrected before the content is read, not
+          after. */}
+      {/* No bottom rule — the tinted band is already its own edge, and a line
+          under it just doubles the separation it was drawing anyway. */}
+      <p className="flex shrink-0 items-center gap-1.5 bg-[var(--fill-orange-100)]/40 px-4 py-2 type-caption text-[var(--fill-orange-700)]">
+        <LightningIcon size={13} weight="fill" className="shrink-0" />
+        Raised automatically by the system
+      </p>
+
+      {/* No rule between this and the detail line below: the two are one
+          statement — what the event is, then what it amounts to — and a divider
+          across them reads as a change of subject. The rule stays above the
+          holders, which genuinely is one. Padding closes up to match, so the
+          block hangs together on spacing instead. */}
+      <header
+        className={`flex shrink-0 items-start gap-3 px-4 ${isSheet ? "pt-3" : "pt-4"} ${
+          item.detail ? "pb-2" : "pb-4"
+        }`}
+      >
+        {/* The row's own circle, read from the shared lookup rather than
+            restated here — the copy that used to live in this file is how the
+            panel stayed green after the list turned orange. */}
+        <span
+          role="img"
+          aria-label={badge.label}
+          className={`flex size-9 shrink-0 items-center justify-center rounded-full ${badge.tone}`}
+        >
+          {badge.icon}
+        </span>
+        <div className="min-w-0 flex-1">
+          {/* `font-bold!`, not `font-bold`: `.type-body-1` in
+              `@sarunyu/system-one` sets `font-weight` itself, and its stylesheet
+              loads after `globals.css` — a plain Tailwind weight ties on
+              specificity and loses, so the title rendered at 400 no matter what
+              was asked for. Same cascade trap as `SELECTED_ROW` in
+              `NotesSidebarList`. */}
+          <p className="type-body-1 font-bold! text-foreground">{item.title}</p>
+          <p className="type-caption text-muted-foreground">
+            {weekdayLabel(day)}, {dayLabel(day)}
+          </p>
+        </div>
+        {!isSheet && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors cursor-pointer hover:bg-[var(--bg-default-secondary)]! hover:text-foreground"
+          >
+            <XIcon size={16} />
+          </button>
+        )}
+      </header>
+
+      {item.detail && (
+        // Indented to the header's text column, not to the panel edge — it
+        // continues the title rather than starting a new block. `pt-2` on top of
+        // the header's own `pb-2`: enough air to read as its own sentence, still
+        // closer to the date above it than to the rule below.
+        <p className="shrink-0 pb-4 pl-16 pr-4 pt-2 type-body-2 text-foreground">
+          {item.detail}
+        </p>
+      )}
+
+      <p className="shrink-0 border-t border-border/60 px-4 pb-1 pt-3 type-caption font-medium uppercase tracking-wide text-muted-foreground">
+        Holders · {holders.length}
+      </p>
+
+      {/* `max-h` rather than `flex-1`, for the reason `HolderContact` gives: a
+          pane in the sliding track needs a height of its own to be measured. */}
+      <ul className="flex max-h-[40vh] flex-col overflow-y-auto pb-2">
+        {holders.map((holder) => (
+          <li key={holder.id}>
+            {/* Into this panel's contact view, not out to the client's page. An
+                alert like "notify holders" is answered by a phone number, and
+                leaving for a full profile to find one costs the alert you were
+                working from. The profile is still one button further in. */}
+            <button
+              type="button"
+              onClick={() => {
+                setShown(holder.id);
+                setContactId(holder.id);
+              }}
+              className={`group flex w-full items-center gap-2.5 px-4 text-left transition-colors cursor-pointer hover:bg-[var(--bg-default-secondary)]! ${
+                isSheet ? "py-3" : "py-2"
+              }`}
+            >
+              <Avatar type="text" initials={getInitial(holder.name)} size="s" />
+              <span className="min-w-0 flex-1 truncate type-body-2 text-foreground">
+                {holder.name}
+              </span>
+              <CaretRightIcon
+                size={14}
+                className={`shrink-0 text-muted-foreground transition-opacity ${
+                  isSheet ? "opacity-40" : "opacity-0 group-hover:opacity-100"
+                }`}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  return (
+    <div
+      ref={boxRef}
+      className={`relative overflow-hidden transition-[height] duration-200 ease-out ${
+        isSheet ? "w-full" : "w-full max-w-md"
+      }`}
+      style={{ height }}
+    >
+      {/* `items-start` is load-bearing, not cosmetic. A flex row stretches its
+          children to the tallest by default, which here means to the track —
+          whose height comes from the box, whose height comes from measuring a
+          pane. Both panes then measure the same number, the measurement feeds
+          itself, and the box freezes at whatever it happened to be first. Let
+          the panes keep their own heights and the loop is gone. */}
+      <div
+        className="flex w-[200%] items-start transition-transform duration-200 ease-out"
+        style={{ transform: atContact ? "translateX(-50%)" : "translateX(0)" }}
+      >
+        {/* `inert` on whichever pane is off-screen. Both are in the DOM the whole
+            time, so without it Tab walks into a panel nobody can see and a
+            screen reader reads out both. */}
+        <div ref={listRef} className="w-1/2 shrink-0" inert={atContact}>
+          {listPane}
+        </div>
+        <div ref={contactRef} className="w-1/2 shrink-0" inert={!atContact}>
+          {contact && (
+            <HolderContact
+              clientId={contact.id}
+              name={contact.name}
+              variant={variant}
+              onBack={() => setContactId(null)}
+              onClose={onClose}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

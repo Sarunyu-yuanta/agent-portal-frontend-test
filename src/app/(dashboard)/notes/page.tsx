@@ -41,6 +41,18 @@ function NotesPageInner() {
       clients={clients}
       initialSelectedId={initialSelectedId}
       heightClassName="flex-1 min-h-0"
+      // Below `xl` the shell drops its padding and its page title for this
+      // route (`isMobileFullBleed` in `page-chrome`), so the frame has to go
+      // too: rounded corners and a border pressed against the screen edge read
+      // as a rendering fault rather than a card.
+      //
+      // Written as `max-xl:` overrides with `!`, not as `rounded-none
+      // xl:rounded-xl`. That form left the corners square at every width: both
+      // are 0-1-0 specificity, and `@sarunyu/system-one`'s stylesheet — which
+      // ships plain `.rounded-none` and loads after `globals.css` — wins the tie
+      // against a Tailwind responsive variant. Same cascade trap `SELECTED_ROW`
+      // in `NotesSidebarList` documents.
+      surfaceClassName="max-xl:rounded-none! max-xl:border-0!"
     />
   );
 }

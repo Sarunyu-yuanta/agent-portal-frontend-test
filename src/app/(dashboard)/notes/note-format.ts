@@ -79,9 +79,9 @@ export function formatDayOnly(iso: string): string {
  *
  * Not hand-picked colours: these are the exact `--fill-*` variables `Tag` maps
  * each variant to, so a chip built here stays in step with every other tag in
- * the app and follows dark mode for free. Shared by the note detail pane's
- * summary chips and the Calendar's reminder pills, so a note's urgency colour
- * reads the same in both places.
+ * the app and follows dark mode for free. Used by the note detail pane's
+ * summary chips; the Calendar's own pills tint by day instead (`PILL_TONE` in
+ * `DayCell`), since the grid position already carries the urgency this encodes.
  */
 export const TAG_CHIP_TONE: Record<TagVariant, string> = {
   blue: "bg-[var(--fill-blue-50)] text-[var(--fill-blue-700)]",

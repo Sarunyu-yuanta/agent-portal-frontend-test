@@ -2,7 +2,7 @@
 
 import { Suspense, use, useState, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Avatar, Button, Card, TabGroup } from "@sarunyu/system-one";
+import { Avatar, Card, TabGroup } from "@sarunyu/system-one";
 import { ClientAssetSidebarContent } from "@/components/ClientAssetSidebarContent";
 import {
   PhoneIcon,
@@ -10,7 +10,6 @@ import {
   ArrowDownIcon,
   EnvelopeSimpleIcon,
   ChatCircleIcon,
-  NotePencilIcon,
 } from "@phosphor-icons/react";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
 import { useClientsResource, useNBAActions } from "@/hooks/use-api";
@@ -166,50 +165,33 @@ function ClientPageInner({ id }: { id: string }) {
         )}
         <div className={`flex flex-wrap md:flex-nowrap items-center md:items-start xl:items-center justify-between gap-4 lg:gap-8 transition-[padding] duration-300 ease-out ${scrolled ? "py-3" : "py-5"}`}>
 
-          {/* Left: identity + actions */}
+          {/* Left: identity */}
           <div className={`flex flex-col ${scrolled ? "justify-center" : "gap-4"}`}>
 
-            {/* Avatar + identity + actions (actions move inline when scrolled on desktop) */}
-            <div className={`flex flex-col ${scrolled ? "gap-2 lg:flex-row lg:items-center lg:gap-4" : "gap-4"}`}>
-
-              {/* Avatar + identity */}
-              <div className={`flex gap-4 ${scrolled ? "items-center" : "items-start"}`}>
-                {!scrolled && (
-                  <div className="shrink-0">
-                    <Avatar type="text" initials={getInitials(maskedClientName)} size="xxl" />
-                  </div>
-                )}
-                <div className="flex flex-col">
-                  {/* Name + Tier + Status pill */}
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h4 className="type-h4 text-foreground leading-none">{maskedClientName}</h4>
-                    <NineBoxCellPill client={client} />
-                  </div>
-                  {/* Metadata — collapses when scrolled */}
-                  <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${scrolled ? "grid-rows-[0fr]" : "grid-rows-[1fr]"}`}>
-                    <div className="overflow-hidden min-h-0">
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="type-caption text-muted-foreground">{client.id}</span>
-                        <span className="type-caption text-muted-foreground/40">·</span>
-                        <span className="type-caption text-muted-foreground">Last Contact: {lastContactFromCallLogs(callLogs)}</span>
-                      </div>
+            {/* Avatar + identity */}
+            <div className={`flex gap-4 ${scrolled ? "items-center" : "items-start"}`}>
+              {!scrolled && (
+                <div className="shrink-0">
+                  <Avatar type="text" initials={getInitials(maskedClientName)} size="xxl" />
+                </div>
+              )}
+              <div className="flex flex-col">
+                {/* Name + Tier + Status pill */}
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h4 className="type-h4 text-foreground leading-none">{maskedClientName}</h4>
+                  <NineBoxCellPill client={client} />
+                </div>
+                {/* Metadata — collapses when scrolled */}
+                <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${scrolled ? "grid-rows-[0fr]" : "grid-rows-[1fr]"}`}>
+                  <div className="overflow-hidden min-h-0">
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="type-caption text-muted-foreground">{client.id}</span>
+                      <span className="type-caption text-muted-foreground/40">·</span>
+                      <span className="type-caption text-muted-foreground">Last Contact: {lastContactFromCallLogs(callLogs)}</span>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Action buttons */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  leftIcon={<NotePencilIcon size={16} />}
-                  onClick={() => setActiveTab("notes")}
-                >
-                  Notes
-                </Button>
-              </div>
-
             </div>
 
             {/* Quick contact — collapses on scroll */}

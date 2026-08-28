@@ -1,0 +1,206 @@
+"use client";
+
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { Avatar } from "@sarunyu/system-one";
+import {
+  ArrowLeftIcon,
+  ChatCircleTextIcon,
+  CheckIcon,
+  CopyIcon,
+  EnvelopeSimpleIcon,
+  PhoneIcon,
+  XIcon,
+} from "@phosphor-icons/react";
+import { getInitial } from "@/lib/client-utils";
+import { getClientProfile } from "@/data/client-profiles";
+
+/** How long the tick stays after a copy. Long enough to be seen if you glanced
+ * away, short enough that the row is back to normal before you need it again. */
+const COPIED_MS = 1600;
+
+/**
+ * One contact line with the thing you actually came for: its value on the
+ * clipboard.
+ *
+ * The whole row copies, not just the icon. A phone number is a 130px target and
+ * the icon beside it is 28px; making only the small one work would be asking for
+ * precision the task doesn't need. The icon stays because it is what tells you
+ * the row is copyable at all.
+ */
+function CopyField({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clearing on unmount matters here: the panel this lives in is dismissed by
+  // the row above it, so a pending timer would fire into a gone component.
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      // Clipboard access is refused on an insecure origin and by some embedded
+      // webviews. Nothing was copied, so nothing should claim it was.
+      return;
+    }
+    setCopied(true);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setCopied(false), COPIED_MS);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      // `aria-live` on the label so a screen reader hears the confirmation; the
+      // tick alone says nothing to one.
+      className="group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors cursor-pointer hover:bg-[var(--bg-default-secondary)]!"
+    >
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[var(--bg-default-secondary)] text-muted-foreground">
+        {icon}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="type-caption text-muted-foreground">{label}</span>
+        <span className="type-body-2 text-foreground truncate">{value}</span>
+      </span>
+      <span
+        aria-live="polite"
+        className={`flex shrink-0 items-center gap-1 type-caption transition-colors ${
+          copied ? "text-[var(--text-success-primary)]" : "text-muted-foreground"
+        }`}
+      >
+        {copied ? <CheckIcon size={14} weight="bold" /> : <CopyIcon size={14} />}
+        {copied ? "Copied" : ""}
+      </span>
+    </button>
+  );
+}
+
+/**
+ * A holder's contact details, shown in place of the alert rather than instead of
+ * the page.
+ *
+ * Tapping a name used to leave for the client's profile, which is a lot of
+ * context to lose for the one thing an alert like "notify holders" actually
+ * needs — a number to call or an address to write to. This is that, one step
+ * away and one step back, with the profile still a button away for when the
+ * question turns out to be bigger.
+ */
+export function HolderContact({
+  clientId,
+  name,
+  onBack,
+  onClose,
+  variant = "modal",
+}: {
+  clientId: string;
+  /** Already masked by the caller if privacy mode is on. */
+  name: string;
+  onBack: () => void;
+  onClose: () => void;
+  variant?: "modal" | "sheet";
+}) {
+  const isSheet = variant === "sheet";
+  const profile = getClientProfile(clientId);
+
+  return (
+    <div className="flex w-full flex-col">
+      <header
+        className={`flex shrink-0 items-center gap-2 px-3 pb-3 ${isSheet ? "pt-2" : "pt-3"}`}
+      >
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back to the alert"
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors cursor-pointer hover:bg-[var(--bg-default-secondary)]! hover:text-foreground"
+        >
+          <ArrowLeftIcon size={16} />
+        </button>
+        <Avatar type="text" initials={getInitial(name)} size="s" />
+        <p className="min-w-0 flex-1 truncate type-body-1 font-bold! text-foreground">{name}</p>
+        {!isSheet && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors cursor-pointer hover:bg-[var(--bg-default-secondary)]! hover:text-foreground"
+          >
+            <XIcon size={16} />
+          </button>
+        )}
+      </header>
+
+      {/* Inset in a rounded card rather than running to the panel's edges.
+          Full-bleed rows read as a continuation of the panel; boxed, they read
+          as one thing — the ways to reach this person — which is what they are.
+          `overflow-hidden` is what rounds the first and last row's hover fill
+          along with the border.
+
+          `max-h` rather than `flex-1`: this pane sits in a sliding track whose
+          height is measured and animated (see `AlertDetail`), and a pane that
+          stretches to fill has no height of its own to measure. Three contact
+          rows never reach the cap anyway — it is only there so a future source
+          with a dozen fields still can't run off the screen. */}
+      <div className="max-h-[40vh] overflow-y-auto px-3 pb-1">
+        <div className="flex flex-col divide-y divide-border/60 overflow-hidden rounded-xl border border-border">
+          <CopyField
+            icon={<PhoneIcon size={14} weight="fill" />}
+            label="Phone"
+            value={profile.phone}
+          />
+          <CopyField
+            icon={<EnvelopeSimpleIcon size={14} weight="fill" />}
+            label="Email"
+            value={profile.email}
+          />
+          {/* Optional on the profile type, so it only appears for a client who
+              has one rather than showing an empty row. */}
+          {profile.lineId && (
+            <CopyField
+              icon={<ChatCircleTextIcon size={14} weight="fill" />}
+              label="LINE ID"
+              value={profile.lineId}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* No rule above the button any more — the card below the header already
+          bounds the contact block, and a line here would be a third horizontal
+          edge in 60px. Spacing separates it instead. */}
+      <div
+        className={`shrink-0 px-3 pt-2 ${
+          // Clears the home indicator on a gesture-navigation phone, where the
+          // last few pixels aren't reliably tappable.
+          isSheet ? "pb-[max(1rem,env(safe-area-inset-bottom))]" : "pb-4"
+        }`}
+      >
+        {/* A `Link` styled as a button rather than `Button` wrapping one:
+            `Button` has no `asChild`, so nesting an anchor inside it would put
+            an `<a>` in a `<button>` — invalid, and the two would fight over the
+            click. Middle-click and open-in-new-tab keep working this way too.
+            The classes copy what `Button variant="plain"` emits: transparent
+            fill, transparent border so nothing shifts on hover, accent label.
+
+            `onClick` closes the panel as it navigates: leaving it mounted over
+            the page it just opened is the same overlap the day popover had. */}
+        <Link
+          href={`/client/${clientId}`}
+          onClick={onClose}
+          className="flex h-9 w-full items-center justify-center rounded-lg border border-transparent bg-transparent type-body-2 font-medium text-primary-action transition-colors hover:bg-[var(--bg-default-secondary)]!"
+        >
+          View full profile
+        </Link>
+      </div>
+    </div>
+  );
+}

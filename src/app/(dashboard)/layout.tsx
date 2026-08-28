@@ -38,6 +38,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     isHouseView,
     isPerformance,
     isFullWidth,
+    isMobileFullBleed,
     isFullHeight,
     ownsMobileBreadcrumb,
     contentTopIsWhite,
@@ -124,7 +125,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </header>
 
           <main
-            className={`flex-1 overflow-x-clip bg-[var(--bg-default-secondary)] ${isFullWidth ? "" : "p-4 xl:p-6"} ${
+            className={`flex-1 overflow-x-clip bg-[var(--bg-default-secondary)] ${
+              isFullWidth ? "" : isMobileFullBleed ? "xl:p-6" : "p-4 xl:p-6"
+            } ${
               isFullHeight
                 ? "flex flex-col min-h-0 overflow-y-hidden"
                 : "overflow-y-auto [scrollbar-gutter:stable]"
@@ -142,13 +145,21 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 <ResponsiveBreadcrumb items={breadcrumb} />
               </div>
             )}
+            {/* The gap only ever separates the mobile page title from the
+                content: above `xl` that title is `display: none`, so it stops
+                being a flex item and the gap collapses to nothing. Tightened
+                below `xl` because a phone has the least room to spend on a
+                heading it is already reading as one — `xl:gap-6` is kept so a
+                page that ever renders two stacked children on desktop still gets
+                the roomier rhythm. */}
             <FadeIn
               key={pathname}
               className={`${isFullWidth ? "w-full min-h-full" : "max-w-[1280px] mx-auto"
-                } flex flex-col gap-6 ${isFullHeight ? "w-full flex-1 min-h-0" : ""}`}
+                } flex flex-col gap-3 xl:gap-6 ${isFullHeight ? "w-full flex-1 min-h-0" : ""}`}
             >
               {!breadcrumb &&
                 !isFullWidth &&
+                !isMobileFullBleed &&
                 (pageTitle || isCommandCenter || isHouseView) && (
                   <div className="flex items-center justify-between gap-3 xl:hidden">
                     <div className="flex items-center gap-3">

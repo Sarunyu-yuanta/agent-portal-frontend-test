@@ -15,7 +15,14 @@ import { fetchNotes, createNote, updateNote, deleteNote, type NoteDraft } from "
 type NotesContextValue = {
   notes: Note[];
   isLoading: boolean;
-  addNote: (draft: NoteDraft) => Promise<Note>;
+  /**
+   * `localId` lets a caller that was already showing the note under an id of its
+   * own hand that id over instead of being given a new one. `NotesSplitView`
+   * composes into a local draft and only creates the note once a character is
+   * typed — if that create minted a fresh id, the row and the editor would both
+   * change key mid-keystroke and remount, taking the caret with them.
+   */
+  addNote: (draft: NoteDraft, localId?: string) => Promise<Note>;
   editNote: (note: Note) => Promise<Note>;
   removeNote: (id: string) => Promise<void>;
 };
@@ -91,9 +98,9 @@ export function NotesProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const addNote = useCallback(async (draft: NoteDraft) => {
+  const addNote = useCallback(async (draft: NoteDraft, presetLocalId?: string) => {
     const now = new Date().toISOString();
-    const localId = `${LOCAL_ID_PREFIX}${++localIdSeq}`;
+    const localId = presetLocalId ?? `${LOCAL_ID_PREFIX}${++localIdSeq}`;
     const optimistic: Note = { ...draft, id: localId, createdAt: now, updatedAt: now };
     setNotes((prev) => [optimistic, ...prev]);
 

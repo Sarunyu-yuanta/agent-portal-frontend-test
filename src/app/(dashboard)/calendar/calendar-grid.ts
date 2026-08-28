@@ -3,16 +3,26 @@ import type { Note } from "@/types/domain";
 const WEEKDAYS_PER_WEEK = 7;
 /** Six rows covers every month (a 31-day month starting on Saturday needs it),
  * so paging between months always renders the same grid height. */
-const WEEKS_SHOWN = 6;
+export const WEEKS_SHOWN = 6;
 
 export const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+export type DayRelation = "past" | "today" | "future";
+
+/**
+ * Where a day sits relative to today — what the Calendar tints its reminder
+ * pills by.
+ *
+ * Compared by calendar day, not by timestamp, for the reason `reminderTag`
+ * documents: a date-only reminder means the whole day, so anything else calls
+ * this morning's reminder "past" from the moment the clock passes it.
+ */
+export function dayRelation(day: Date, today: Date): DayRelation {
+  const a = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
+  const b = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  if (a < b) return "past";
+  if (a > b) return "future";
+  return "today";
 }
 
 export function isSameMonth(a: Date, b: Date): boolean {
@@ -53,14 +63,15 @@ export function monthLabel(date: Date): string {
   return date.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
 }
 
-/** The heading a day's reminder popover reads — "Thursday, 27 Aug 2026". */
-export function dayHeading(date: Date): string {
-  return date.toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+/** A day popover's title line — "27 August 2026". */
+export function dayLabel(date: Date): string {
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}
+
+/** Its subtitle's first half — "Thursday". Split from `dayLabel` because the two
+ * are set at different sizes and the weekday shares its line with the count. */
+export function weekdayLabel(date: Date): string {
+  return date.toLocaleDateString("en-GB", { weekday: "long" });
 }
 
 /** Groups notes by the calendar day their reminder falls on — notes with no reminder are dropped. */

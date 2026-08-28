@@ -99,7 +99,8 @@ export function NoteDetailPane({
    * - `side` (default) — fields in a card beside the editor, delete at the top
    *   right. The Notes hub, which is full-width and has room for both, and where
    *   a delete button along the bottom edge would land under the floating New
-   *   Note button.
+   *   Note button. Below `md` the card stacks — above the editor, not below it;
+   *   see the `order` classes down there for why.
    * - `footer` — fields behind a pill and delete on one row under the editor.
    *   The drawer on a client's page: ~30vw wide, where a 256px side card would
    *   take a third of the writing area.
@@ -291,7 +292,7 @@ export function NoteDetailPane({
           layout === "side" ? "gap-4 md:flex-row md:gap-6" : ""
         }`}
       >
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="order-2 flex min-w-0 flex-1 flex-col gap-2 md:order-1">
           {/* What's been picked, restated above the title — read-only. The
               footer control is where you change it; this is the note saying what
               it is, in full names and with the reminder's urgency colour, which
@@ -344,8 +345,22 @@ export function NoteDetailPane({
             `md:` only — stacked under the editor on a narrow screen, where
             sticky would just pin them over the text. Editor first in the DOM
             either way, so tabbing starts where you type. */}
+        {/* `order-1` under `md`, so the card sits *above* the editor when the
+            row stacks into a column.
+
+            Not cosmetic. `DropdownMultiple` and `DateInput` position their
+            panels `fixed`, below the field, with no flip and no viewport clamp
+            — the design system offers no prop for either. Under the editor the
+            card lands at the bottom of the pane, so opening the client list
+            pushed ~300px of it off the screen with no way to reach it. Above the
+            editor there is a whole pane's worth of room underneath, and the
+            problem stops existing rather than being worked around.
+
+            Order, not DOM position: the editor stays first in the markup, so tab
+            order still starts where you type. `md:order-1/2` restores the
+            desktop arrangement, where the two are side by side anyway. */}
         {layout === "side" && (
-          <div className="shrink-0 md:w-80 md:sticky md:top-0 md:self-start">
+          <div className="order-1 shrink-0 md:order-2 md:w-80 md:sticky md:top-0 md:self-start">
             <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3 shadow-md">
               <ClientField
                 clientIds={note.clientIds}
