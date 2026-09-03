@@ -79,6 +79,19 @@ export function dayKey(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
+/**
+ * `dayKey` in reverse, for a caller that has to walk a keyed map and needs the
+ * day back out of it.
+ *
+ * Its own function because the obvious `new Date(key)` is wrong and looks
+ * right: the month in a key is `getMonth()`, which is zero-based, and the string
+ * parser reads it as a calendar month — so every day comes back one month late.
+ */
+export function dayFromKey(key: string): Date {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(year, month, day);
+}
+
 export function groupRemindersByDay(notes: Note[]): Map<string, Note[]> {
   const map = new Map<string, Note[]>();
   for (const note of notes) {

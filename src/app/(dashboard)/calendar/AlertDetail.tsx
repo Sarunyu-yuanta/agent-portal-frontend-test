@@ -40,6 +40,7 @@ export function AlertDetail({
   clients,
   onClose,
   variant = "modal",
+  showHolders = true,
 }: {
   item: DayItem;
   day: Date;
@@ -47,6 +48,17 @@ export function AlertDetail({
   onClose: () => void;
   /** `sheet` drops the close button — the sheet has its own handle and backdrop. */
   variant?: "modal" | "sheet";
+  /**
+   * Off when the panel is opened from inside one client's own profile.
+   *
+   * The list is the reason this panel exists on the Calendar — an alert there is
+   * a fact about a security, and "who does this land on" is the question you
+   * open it to answer. On a client's page that question is already answered by
+   * the page, and re-answering it with a list you're standing in the middle of
+   * is a way of asking which of these three people you meant. With it gone the
+   * panel says the one thing the row didn't: what the event actually is.
+   */
+  showHolders?: boolean;
 }) {
   const { isPrivate } = usePrivacy();
   const isSheet = variant === "sheet";
@@ -171,6 +183,8 @@ export function AlertDetail({
         </p>
       )}
 
+      {showHolders && (
+        <>
       <p className="shrink-0 border-t border-border/60 px-4 pb-1 pt-3 type-caption font-medium uppercase tracking-wide text-muted-foreground">
         Holders · {holders.length}
       </p>
@@ -208,6 +222,8 @@ export function AlertDetail({
           </li>
         ))}
       </ul>
+        </>
+      )}
     </div>
   );
 

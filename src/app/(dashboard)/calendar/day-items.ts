@@ -69,8 +69,17 @@ function fromAlert(alert: CalendarAlert): DayItem {
  * @param today anchors the mock alerts to the month being looked at. Passed in
  * rather than read here so the whole view agrees on what "now" is; see
  * `mock-alerts`.
+ * @param clientId narrows both sources to the rows that name this client — what
+ * a client's own Reminders tab asks for. Applied here rather than by the caller
+ * because an alert's holder list is the alert's business, not the UI's, and
+ * filtering it afterwards would mean every caller learning the shape of a
+ * source it otherwise never touches.
  */
-export function groupDayItems(notes: Note[], today: Date): Map<string, DayItem[]> {
+export function groupDayItems(
+  notes: Note[],
+  today: Date,
+  clientId?: string,
+): Map<string, DayItem[]> {
   const map = new Map<string, DayItem[]>();
 
   const push = (when: Date, item: DayItem) => {
@@ -82,9 +91,11 @@ export function groupDayItems(notes: Note[], today: Date): Map<string, DayItem[]
 
   for (const note of notes) {
     if (!note.reminderAt) continue;
+    if (clientId && !note.clientIds.includes(clientId)) continue;
     push(new Date(note.reminderAt), fromNote(note));
   }
   for (const alert of dividendAlerts(today)) {
+    if (clientId && !alert.clientIds.includes(clientId)) continue;
     push(alert.date, fromAlert(alert));
   }
 

@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Popover } from "@sarunyu/system-one";
+import { BottomSheet, Popover } from "@sarunyu/system-one";
 import { CoinsIcon } from "@phosphor-icons/react";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { BottomSheet } from "./BottomSheet";
 import { DayPopoverContent } from "./DayPopoverContent";
 import type { DayItem } from "./day-items";
-import { dayRelation, isSameMonth, WEEKS_SHOWN, type DayRelation } from "./calendar-grid";
+import {
+  dayLabel,
+  dayRelation,
+  isSameMonth,
+  WEEKS_SHOWN,
+  type DayRelation,
+} from "./calendar-grid";
 
 /**
  * Pill fill by how the day reads against today — one primary ramp rather than
@@ -33,7 +38,7 @@ const PILL_TONE: Record<DayRelation, string> = {
  * never sees these. The case this is actually for is a touch laptop or a
  * narrowed desktop window: under 768px the pill is a plain `<span>` with nothing
  * to click, and a hover response on something inert is a promise the UI can't
- * keep — the same reason the sheet's drag handle had to be made real.
+ * keep.
  */
 const PILL_HOVER: Record<DayRelation, string> = {
   past: "hover:opacity-100 hover:bg-[var(--fill-p1-200)]!",
@@ -362,8 +367,31 @@ export function DayCell({
       </div>
     </Popover>
 
-    {isMobile && open && (
-      <BottomSheet onClose={() => setOpen(false)}>{dayContent}</BottomSheet>
+    {/* Mounted for the whole time the viewport is a phone, not only while open:
+        `BottomSheet` is a vaul drawer and plays its own slide-out off the `open`
+        prop, so unmounting on close would cut the animation. It renders nothing
+        until first opened.
+
+        `px-0 pb-0` rather than the sheet's own `px-4 pb-6` — the day list draws
+        full-bleed section rules and row hovers, and the footer already sets its
+        own bottom padding around the home indicator. `flex min-h-0 flex-col` on
+        the content is what lets the list scroll: the sheet caps itself at 80vh,
+        and a long day only stays inside that cap if the box between the two can
+        shrink. No header, because the content leads with its own date and
+        weekday — the design system's would be a second title above it. */}
+    {isMobile && (
+      <BottomSheet
+        open={open}
+        onOpenChange={setOpen}
+        showHeader={false}
+        // Not rendered — it goes to the drawer's `sr-only` title, which vaul
+        // requires and screen readers announce on open.
+        title={dayLabel(day)}
+        className="px-0 pb-0"
+        contentClassName="flex min-h-0 flex-col pt-0"
+      >
+        {dayContent(() => setOpen(false))}
+      </BottomSheet>
     )}
     </>
   );

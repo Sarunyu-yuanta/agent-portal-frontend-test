@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Popover } from "@sarunyu/system-one";
+import { BottomSheet, Popover } from "@sarunyu/system-one";
 import { CaretDownIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { BottomSheet } from "./BottomSheet";
 import { monthLabel } from "./calendar-grid";
 
 /** Built from a fixed date so the list is the same on the server and the client
@@ -149,8 +148,20 @@ export function MonthPicker({
       </button>
     </Popover>
 
-    {isMobile && open && (
-      <BottomSheet onClose={() => setOpen(false)}>{panel}</BottomSheet>
+    {/* See `DayCell` for why this is mounted rather than gated on `open`, and
+        why the sheet's own padding is turned off — the grid sets its own, and
+        its bottom edge already clears the home indicator. */}
+    {isMobile && (
+      <BottomSheet
+        open={open}
+        onOpenChange={handleOpenChange}
+        showHeader={false}
+        title="Change month"
+        className="px-0 pb-0"
+        contentClassName="pt-0"
+      >
+        {panel(() => setOpen(false))}
+      </BottomSheet>
     )}
     </>
   );

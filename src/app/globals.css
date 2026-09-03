@@ -280,3 +280,35 @@ table.border-collapse th,
 table.border-collapse td {
   border-color: rgba(0, 0, 0, 0.16);
 }
+
+/* `Dropdown` / `DropdownMultiple` in `@sarunyu/system-one` render their option
+   list as a `position: fixed` panel portalled to <body>, sized to its content,
+   with `overflow-clip` and no max-height. Two consequences, and the second is
+   the one that bites: the panel can run past the bottom of the viewport, and
+   because it clips rather than scrolls, whatever falls past the edge cannot be
+   reached at all. Eight clients already overflow a phone; a real book of them
+   would be mostly unreachable on any screen.
+
+   Capping the height and letting it scroll is the whole fix. `min()` so it
+   stays sensible on a short window as well as a tall one.
+
+   Scoped as tightly as the markup allows: a direct child of <body> (the portal
+   target) carrying all three of the panel's own classes. Radix and vaul
+   portals wrap their content in a div, so neither is matched, and nothing else
+   in this app renders `.bg-popover.overflow-clip` at the top level — checked.
+
+   `pointer-events` is a second, unrelated fix that happens to belong on the
+   same node. `BottomSheet` is a vaul Drawer that is always modal, and a modal
+   drawer sets `pointer-events: none` on <body> — which this panel, being a
+   child of <body>, inherits. Without this line the option list renders inside a
+   sheet and refuses every click. Restoring it here is what lets the note
+   attributes use the design system's sheet at all.
+
+   Deliberately outside every @layer, and `!important` on the overflow, for the
+   reason the table rule above documents: `system-one`'s stylesheet loads after
+   this file and would otherwise win the tie. */
+body > .bg-popover.overflow-clip.p-\[8px\] {
+  max-height: min(320px, 45vh);
+  overflow-y: auto !important;
+  pointer-events: auto;
+}

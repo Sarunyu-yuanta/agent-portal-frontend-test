@@ -168,6 +168,7 @@ export function NoteComposer({
           onOpenChange={setAttributesOpen}
           onClientIdsChange={(clientIds) => patch({ clientIds })}
           onReminderChange={(reminderAt) => patch({ reminderAt })}
+          onClear={() => patch({ clientIds: [], reminderAt: null })}
         />
 
         <div className="flex shrink-0 items-center gap-2">

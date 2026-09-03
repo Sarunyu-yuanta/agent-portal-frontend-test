@@ -35,11 +35,12 @@ import {
 import { CallLogTable } from "./ClientSections";
 import { ClientNotesTab } from "./ClientNotesTab";
 import { FadeIn } from "@/components/ui/fade-in";
+import { ClientRemindersTab } from "./ClientRemindersTab";
 import { KycTab } from "./KycTab";
 import { OverviewTab } from "./OverviewTab";
 
 /** Sub-tabs that `?tab=` may address; anything else falls back to Overview. */
-const CLIENT_TABS = ["overview", "kyc", "assets", "call-log", "notes"];
+const CLIENT_TABS = ["overview", "kyc", "assets", "call-log", "notes", "reminders"];
 
 export default function ClientPage({
   params,
@@ -263,6 +264,9 @@ function ClientPageInner({ id }: { id: string }) {
               { id: "assets", title: "Assets" },
               { id: "call-log", title: "Call Log" },
               { id: "notes", title: "Notes" },
+              // After Notes, because that is where reminders are set: the tab
+              // order reads as write it, then track it.
+              { id: "reminders", title: "Reminders" },
             ]}
             activeId={activeTab}
             onChange={setActiveTab}
@@ -300,6 +304,10 @@ function ClientPageInner({ id }: { id: string }) {
           <div className="pt-8 w-full">
             <ClientNotesTab clientId={client.id} />
           </div>
+        ) : activeTab === "reminders" ? (
+          <div className="pt-8 w-full">
+            <ClientRemindersTab clientId={client.id} />
+          </div>
         ) : (
           <OverviewTab
             clientId={client.id}
@@ -312,7 +320,7 @@ function ClientPageInner({ id }: { id: string }) {
               setHoldingsSortDir(dir);
             }}
             onViewAllHoldings={() => setActiveTab("assets")}
-            onViewReminders={() => setActiveTab("notes")}
+            onViewReminders={() => setActiveTab("reminders")}
           />
         )}
       </FadeIn>

@@ -4,7 +4,6 @@ import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button, Modal, Toaster, Tooltip } from "@sarunyu/system-one";
 import type { ToastProps } from "@sarunyu/system-one";
 import { CalendarDotIcon, CaretLeftIcon, CaretRightIcon, PlusIcon } from "@phosphor-icons/react";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { useNotes } from "@/contexts/notes-context";
 import type { Note } from "@/types/domain";
 import { DayCell } from "./DayCell";
@@ -17,9 +16,8 @@ import {
   weeksOf,
   WEEKDAY_LABELS,
 } from "./calendar-grid";
-import { AlertDetail } from "./AlertDetail";
-import { BottomSheet } from "./BottomSheet";
-import { groupDayItems, type DayItem } from "./day-items";
+import { AlertOverlay, type AlertTarget } from "./AlertOverlay";
+import { groupDayItems } from "./day-items";
 import { NoteDetailPane } from "../notes/NoteDetailPane";
 import { reminderAtFromDate } from "../notes/note-format";
 
@@ -31,7 +29,6 @@ export function CalendarView({
   clients: { id: string; name: string }[];
 }) {
   const { addNote, editNote, removeNote } = useNotes();
-  const isMobile = useMediaQuery("(max-width: 767px)");
   const isHydrated = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -133,14 +130,12 @@ export function CalendarView({
   };
 
   /**
-   * The alert panel, held here rather than in the cell that opened it for the
-   * same reason the note modals are: a cell is 50px of a grid that scrolls and
-   * re-renders, and a panel owned by one would be at the mercy of it.
-   *
-   * The day travels with the item because a `DayItem` doesn't carry its own
-   * date — it is only ever read out of a map keyed by one.
+   * The alert panel's target, held here rather than in the cell that opened it
+   * for the same reason the note modals are: a cell is 50px of a grid that
+   * scrolls and re-renders, and a panel owned by one would be at the mercy of
+   * it. `AlertOverlay` owns the shell around it.
    */
-  const [alertTarget, setAlertTarget] = useState<{ item: DayItem; day: Date } | null>(null);
+  const [alertTarget, setAlertTarget] = useState<AlertTarget | null>(null);
 
   // `todayKey` rather than the `Date`: a fresh object every render would make
   // this memo useless, and only the day the mock alerts hang off actually
@@ -428,43 +423,11 @@ export function CalendarView({
       {/* A sheet on a phone and a centred panel on a pointer device — the same
           split the day list makes, and for the same reason: a floating card is
           fine where there is room around it and wrong where there isn't. */}
-      {alertTarget &&
-        (isMobile ? (
-          <BottomSheet onClose={() => setAlertTarget(null)}>
-            {(dismiss) => (
-              <AlertDetail
-                item={alertTarget.item}
-                day={alertTarget.day}
-                clients={clients}
-                variant="sheet"
-                onClose={dismiss}
-              />
-            )}
-          </BottomSheet>
-        ) : (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) setAlertTarget(null);
-            }}
-          >
-            {/* `role`/`aria-modal` to match what `BottomSheet` already declares
-                on the phone side — the same panel shouldn't be a dialog on one
-                device and an anonymous div on the other. */}
-            <div
-              role="dialog"
-              aria-modal="true"
-              className="max-h-[75vh] w-full max-w-md overflow-hidden rounded-xl border border-border bg-card shadow-xl"
-            >
-              <AlertDetail
-                item={alertTarget.item}
-                day={alertTarget.day}
-                clients={clients}
-                onClose={() => setAlertTarget(null)}
-              />
-            </div>
-          </div>
-        ))}
+      <AlertOverlay
+        target={alertTarget}
+        clients={clients}
+        onClose={() => setAlertTarget(null)}
+      />
     </>
   );
 }

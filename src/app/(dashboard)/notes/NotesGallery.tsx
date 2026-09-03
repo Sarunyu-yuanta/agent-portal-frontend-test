@@ -1,10 +1,30 @@
 "use client";
 
-import { PlusIcon } from "@phosphor-icons/react";
+import { BellIcon, CheckCircleIcon, PlusIcon } from "@phosphor-icons/react";
+import type { TagProps } from "@sarunyu/system-one";
 import type { Note } from "@/types/domain";
 import { groupNotesByDate } from "./notes-grouping";
 import { formatDayOnly } from "./note-format";
 import { reminderTag } from "./note-format";
+
+/**
+ * The reminder line's colour, by the same variants `reminderTag` already sorts
+ * notes into — text only, since here it is a caption under a card rather than
+ * the filled chip `TAG_CHIP_TONE` paints elsewhere.
+ *
+ * Colour is doing the work the words "Overdue" and "Due today" used to, so it
+ * can't be the only carrier: the icon switches for a done reminder, and the
+ * full label is still in the accessible name. What's left visible is the one
+ * thing the group header above can't tell you.
+ */
+const REMINDER_TONE: Record<NonNullable<TagProps["variant"]>, string> = {
+  blue: "text-[var(--fill-blue-700)]",
+  green: "text-[var(--fill-green-600)]",
+  yellow: "text-[var(--fill-yellow-600)]",
+  red: "text-[var(--fill-red-600)]",
+  gray: "text-subtle-text",
+  lime: "text-[var(--fill-lime-600)]",
+};
 
 /**
  * Notes as a wall of cards rather than a list beside a reader.
@@ -164,14 +184,53 @@ function NoteCard({
         </span>
       </span>
 
-      <span className="flex flex-col gap-0.5">
-        <span className="type-body-2 font-semibold text-foreground truncate">
+      {/* Title, then the reminder — and nothing else.
+
+          The written-on date used to lead this line, and it was saying what the
+          group header two rows up had already said: every card under "Today"
+          was stamped with today's date. Between that and spelling out
+          "Reminder ·" the line ran past the width of a card on a phone and
+          wrapped, which is what threw the rows out of line with each other.
+
+          What's left is only the part the wall can't otherwise tell you: that
+          this note comes due, and when. The bell says which of the two dates
+          this is, so the word doesn't have to.
+
+          On a phone the title goes too, for the same reason the date did: the
+          card right above it is already showing it, and at two columns there
+          isn't room to say anything twice. The card's copy is the truncated
+          one, so nothing is lost by keeping that one and dropping this. From
+          `md` up the wall is three or four columns of smaller cards and the
+          caption is what you read along, so it stays.
+
+          With no reminder there is then nothing left to caption, and the block
+          has to go rather than sit there as an empty row of `gap-2` under the
+          card. Driven off `reminder` rather than a media-query hook: the
+          stylesheet knows the width before first paint, and a hook would only
+          learn it after hydration — one frame of captions appearing and
+          vanishing across the whole wall. */}
+      <span className={`flex-col gap-0.5 ${reminder ? "flex" : "hidden md:flex"}`}>
+        <span className="type-body-2 font-semibold text-foreground truncate max-md:hidden">
           {note.title || "New Note"}
         </span>
-        <span className="type-caption text-muted-foreground">
-          {formatDayOnly(note.updatedAt)}
-          {reminder && <> · {reminder.label}</>}
-        </span>
+        {reminder && (
+          <span
+            className={`flex items-center gap-1 type-caption ${REMINDER_TONE[reminder.variant]}`}
+          >
+            {note.reminderDone ? (
+              <CheckCircleIcon size={13} weight="fill" className="shrink-0" aria-hidden />
+            ) : (
+              <BellIcon size={13} weight="fill" className="shrink-0" aria-hidden />
+            )}
+            {/* The date is `aria-hidden` and the full label carries it instead,
+                so a screen reader gets "Overdue · 4 Sept" as one phrase rather
+                than a bare date it has no way to place. */}
+            <span aria-hidden className="truncate">
+              {formatDayOnly(note.reminderAt!)}
+            </span>
+            <span className="sr-only">{reminder.label}</span>
+          </span>
+        )}
       </span>
     </button>
   );
