@@ -1,0 +1,26 @@
+{
+  "kpiBar": [
+    { "label": "High Priority Actions", "tag": "Urgent", "tagVariant": "red", "value": "3", "sub": "Requires action today" },
+    { "label": "Est. Revenue Impact", "tag": "+฿ 9.5M", "tagVariant": "green", "value": "฿ 9.5M", "sub": "Across 8 insights" },
+    { "label": "Critical Risk Alerts", "tag": "2 New", "tagVariant": "red", "value": "2", "sub": "Portfolio concentration" },
+    { "label": "Engagement Drops", "tag": "Watch", "tagVariant": "yellow", "value": "1", "sub": "Avg 14 days silent" }
+  ],
+  "aiSummaryCard": {
+    "modelUpdated": "Today, 08:30",
+    "avgConfidence": "83%",
+    "clientsAnalyzed": 24
+  },
+  "modelStatsBreakdown": [
+    { "label": "Product Match", "count": 3 },
+    { "label": "Risk Alert", "count": 2 },
+    { "label": "Engagement", "count": 2 },
+    { "label": "Portfolio", "count": 1 }
+  ],
+  "tabs": [
+    { "id": "all", "title": "All" },
+    { "id": "product", "title": "Product Match", "notification": 4 },
+    { "id": "risk", "title": "Risk Alert", "notification": 2 },
+    { "id": "engagement", "title": "Engagement", "notification": 1 },
+    { "id": "portfolio", "title": "Portfolio", "notification": 1 }
+  ]
+}

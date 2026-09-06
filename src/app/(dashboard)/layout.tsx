@@ -2,7 +2,12 @@
 
 import { Suspense, useState } from "react";
 import { usePathname } from "next/navigation";
-import { NavHeaderIconButton, Tag } from "@sarunyu/system-one";
+import {
+  NavHeaderIconButton,
+  NavHeaderNotification,
+  Tag,
+  type NotificationItem,
+} from "@sarunyu/system-one";
 import { ListIcon } from "@phosphor-icons/react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { FadeIn } from "@/components/ui/fade-in";
@@ -10,10 +15,21 @@ import { NavStateMemory } from "@/components/layout/NavStateMemory";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
 import { PrivacyProvider } from "@/contexts/privacy-context";
-import { NotesProvider } from "@/contexts/notes-context";
+import { NotesProvider, useNotes } from "@/contexts/notes-context";
+import { useClients } from "@/hooks/use-api";
 import { ResponsiveBreadcrumb } from "@/components/layout/ResponsiveBreadcrumb";
 import { FloatingNoteButton } from "./notes/FloatingNoteButton";
 import { usePageChrome } from "./page-chrome";
+import { useNotificationFeed } from "./calendar/use-notification-feed";
+import { useDayItemModals } from "./calendar/use-day-item-modals";
+
+/** Hover state for the bell's rows — the library's own `NotificationRow` has
+ *  none (checked its compiled source), and exposes no className prop to add
+ *  one. The rule lives in `globals.css`, keyed off this class: a Tailwind
+ *  arbitrary descendant selector was tried first and generated no CSS at all
+ *  for the nested-bracket selector it needed, so this is a plain hand-written
+ *  rule instead — see the comment there. */
+const NOTIFICATION_ROW_HOVER = "notification-bell-panel";
 
 function MarketOpenBadge() {
   return (
@@ -44,6 +60,26 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     contentTopIsWhite,
   } = usePageChrome();
   const headerSlot = useHeaderSlot();
+
+  const { notes } = useNotes();
+  const clients = useClients();
+
+  // Clicking a bell row opens the reminder itself — the same two modals
+  // `ClientRemindersTab` opens for the same job, just hoisted up here since
+  // the bell can be clicked from any page, not only a client's own. `null`
+  // clientId scoping (no `pinnedClientId`, `showHolders` left at its
+  // default `true`) is deliberate: unlike a client's own Reminders tab,
+  // this modal doesn't already know whose page you're on.
+  const { open: openReminder, modals: reminderModals } = useDayItemModals({ clients });
+
+  const { notificationGroups, notificationBadgeCount, notificationTargets } =
+    useNotificationFeed(notes, clients);
+
+  const handleNotificationClick = (notifItem: NotificationItem) => {
+    const target = notificationTargets.get(notifItem.id);
+    if (!target) return;
+    openReminder(target.item, target.day);
+  };
 
   return (
     <>
@@ -113,6 +149,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             )}
 
             <div className={`flex items-center gap-4 ${headerSlot ? "xl:justify-self-end" : ""}`}>
+              <NavHeaderNotification
+                groups={notificationGroups}
+                badgeCount={notificationBadgeCount}
+                emptyText="No reminders"
+                onItemClick={handleNotificationClick}
+                panelClassName={NOTIFICATION_ROW_HOVER}
+              />
+
               <div className="xl:hidden">
                 <NavHeaderIconButton
                   aria-label="Open navigation"
@@ -187,6 +231,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       </div>
 
       <FloatingNoteButton />
+
+      {/* What a bell row opens into. Global rather than per-page, the same
+          reason the bell itself is: the reminder it points at can belong to
+          whichever client you aren't currently looking at. */}
+      {reminderModals}
 
       {/* Rendered last on purpose — its scroll restore has to win over any
           `main.scrollTop` reset a page does in its own mount effect. */}

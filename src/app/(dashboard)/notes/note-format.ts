@@ -92,6 +92,22 @@ export const TAG_CHIP_TONE: Record<TagVariant, string> = {
   lime: "bg-[var(--fill-lime-100)] text-[var(--fill-lime-600)]",
 };
 
+/**
+ * The reminder line's colour, by the same variants `reminderTag` already sorts
+ * notes into — text only, since this is a caption under a card rather than the
+ * filled chip `TAG_CHIP_TONE` paints elsewhere. Kept as its own map rather than
+ * merged with `TAG_CHIP_TONE`: same variant keys, but the two are genuinely
+ * different visual treatments (fill+text chip vs. text-only caption).
+ */
+export const REMINDER_TONE: Record<NonNullable<TagProps["variant"]>, string> = {
+  blue: "text-[var(--fill-blue-700)]",
+  green: "text-[var(--fill-green-600)]",
+  yellow: "text-[var(--fill-yellow-600)]",
+  red: "text-[var(--fill-red-600)]",
+  gray: "text-subtle-text",
+  lime: "text-[var(--fill-lime-600)]",
+};
+
 export type ReminderTag = { label: string; variant: NonNullable<TagProps["variant"]> };
 
 export function reminderTag(note: Note): ReminderTag | null {

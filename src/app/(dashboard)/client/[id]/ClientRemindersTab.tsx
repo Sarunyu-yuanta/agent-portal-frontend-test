@@ -1,35 +1,64 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { CalendarBlankIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { useMemo } from "react";
+import { CalendarBlankIcon, CalendarCheckIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from "@sarunyu/system-one";
 import { useClients } from "@/hooks/use-api";
 import { useNotes } from "@/contexts/notes-context";
-import { setQueryState, withQuery } from "@/lib/query-state";
-import { AlertOverlay, type AlertTarget } from "../../calendar/AlertOverlay";
-import { dayFromKey, dayRelation, weekdayLabel } from "../../calendar/calendar-grid";
+import { CompactList } from "@/components/ui/compact-list";
+import { EmptyState } from "@/components/ui/empty-state";
+import {
+  dayFromKey,
+  dayKey,
+  dayLabel,
+  dayOffset,
+  dayRelation,
+  relativeDayLabel,
+  todayDateKey,
+} from "../../calendar/calendar-grid";
 import { groupDayItems, type DayItem } from "../../calendar/day-items";
-import { DONE_BADGE_TONE, SOURCE_BADGE } from "../../calendar/source-badge";
+import { DONE_BADGE_TONE, SOURCE_BADGE, SourceBadgeIcon } from "../../calendar/source-badge";
+import { useDayItemModals } from "../../calendar/use-day-item-modals";
 import { formatDayOnly } from "../../notes/note-format";
 import { snippet } from "../../notes/notes-grouping";
 
-/** One row: an item plus the day it was read off. */
-type Row = { item: DayItem; day: Date };
-
 /**
- * The four buckets, in the order they matter.
+ * The four buckets the desktop table's Status column reads off, in the order
+ * they matter there. Not one flat chronological list: a reminder's date only
+ * means something relative to today, and the thing that table opens to find
+ * out is what has slipped — which a single run of dates ordered by day buries
+ * in the middle. Done sits at the bottom in reverse: it is finished business,
+ * kept so a ticked reminder can still be found, and the one you finished last
+ * is the one you are most likely looking for.
  *
- * Not one flat chronological list. A reminder's date only means something
- * relative to today, and the thing you open this tab to find out is what has
- * slipped — which a single run of dates ordered by day buries in the middle. So
- * the sections carry the urgency and the dates inside them only have to say
- * "when", which is why no row needs a status word of its own.
- *
- * Done sits at the bottom in reverse: it is finished business, kept so a ticked
- * reminder can still be found, and the one you finished last is the one you are
- * most likely looking for.
+ * The card lists (mobile and the Client Hub's compact dialog) don't use this
+ * — see `daySections` below for why they're grouped by calendar day instead.
  */
 const SECTIONS = ["Overdue", "Today", "Upcoming", "Done"] as const;
+
+/** One row: an item, the day it was read off, which bucket it landed in, and
+ *  that day's offset from today (negative = past) for the "in N days" line. */
+type Row = { item: DayItem; day: Date; bucket: (typeof SECTIONS)[number]; daysDiff: number };
+
+/** One calendar day's worth of items, for the card lists. `isToday` is what
+ *  lets the section render even when `items` is empty — every other day only
+ *  exists here because `dayMap` already had something under it. */
+type DaySection = { key: string; day: Date; isToday: boolean; items: DayItem[] };
+
+/**
+ * Status badge tone per bucket, matching the badges the Calendar's day popover
+ * already uses for the same concept (`RELATION_BADGE` in `DayPopoverContent`) —
+ * Overdue reads off the primary ramp rather than red, so it doesn't compete with
+ * the KYC-style risk red used elsewhere for "urgent" concepts. Upcoming gets a
+ * neutral tag the popover skips (there the date line already says it; here every
+ * row needs a badge since rows from different buckets sit in the same table).
+ */
+const BUCKET_TONE: Record<(typeof SECTIONS)[number], string> = {
+  Overdue: "bg-[var(--fill-p1-100)] text-[var(--fill-p1-600)]",
+  Today: "bg-primary-action text-white",
+  Upcoming: "bg-[var(--fill-gray-100)] text-[var(--fill-gray-600)]",
+  Done: DONE_BADGE_TONE,
+};
 
 /**
  * A client's reminders, on their own tab.
@@ -40,55 +69,111 @@ const SECTIONS = ["Overdue", "Today", "Upcoming", "Done"] as const;
  * backend raised that name this client. Until now those two only met on the
  * Calendar, where finding one client's meant reading every day of the month.
  *
- * A note row hands off to the Notes tab with that note open rather than growing
- * a second editor here — one place notes are written, whichever list you found
- * one from. An alert row opens the read-only panel, since there is nothing on it
- * for the desk to edit.
+ * A note row opens `NoteEditModal` in place — the same editor `CalendarView`
+ * opens its own note rows into — rather than hopping to the Notes tab, so
+ * triaging reminders doesn't cost the place you were reading them from. An
+ * alert row opens the read-only panel, since there is nothing on it for the
+ * desk to edit.
+ *
+ * Two shapes off the same data: the desktop table keeps the bucket grouping
+ * above (`rows`), each row still saying its own Overdue/Today/Upcoming/Done.
+ * The card lists (mobile, and the Client Hub's compact dialog) are grouped by
+ * calendar day instead (`daySections`) — a header per day rather than per
+ * status, with Today pinned first and shown even when it's empty, so opening
+ * the tab always answers "what's today" before anything else. Any other day
+ * only appears because it already has something under it.
  */
-export function ClientRemindersTab({ clientId }: { clientId: string }) {
-  const searchParams = useSearchParams();
+export function ClientRemindersTab({
+  clientId,
+  compact = false,
+  onViewAll,
+}: {
+  clientId: string;
+  /**
+   * Always the card list, never the table — for the Client Hub's quick-view
+   * dialog, which sits at Call Log's width and reuses Call Log's own card
+   * shape. `md:` there would still read the *page's* viewport, not the
+   * dialog's, so the table would never actually give way on its own.
+   */
+  compact?: boolean;
+  /**
+   * "View all" for the compact list — the full Reminders tab, which is where
+   * the cut-off past the scroll cap actually lives. Ignored outside `compact`:
+   * the full table already *is* all of them.
+   */
+  onViewAll?: () => void;
+}) {
   const clients = useClients();
   const { notes, isLoading } = useNotes();
-  const [alertTarget, setAlertTarget] = useState<AlertTarget | null>(null);
+  // No holder list: this whole page is one client, so the panel would be
+  // listing the person whose profile you are standing in — see `AlertDetail`.
+  const { open: openItem, modals: reminderModals } = useDayItemModals({
+    clients,
+    pinnedClientId: clientId,
+    showHolders: false,
+  });
 
   // `todayKey` rather than the `Date`: a fresh object every render would make
-  // the memo useless, and only the day is what either source is measured
+  // the memos useless, and only the day is what either source is measured
   // against. Same trick `CalendarView` uses.
-  const todayKey = new Date().toDateString();
+  const todayKey = todayDateKey();
 
-  const sections = useMemo(() => {
+  // Computed once and read by both `rows` and `daySections` below — the two
+  // are different regroupings of the same items, not two different fetches.
+  const dayMap = useMemo(
+    () => groupDayItems(notes, new Date(todayKey), clientId),
+    [notes, clientId, todayKey],
+  );
+
+  const rows = useMemo(() => {
     const today = new Date(todayKey);
-    const rows: Row[] = [];
-    for (const [key, items] of groupDayItems(notes, today, clientId)) {
+    const all: Row[] = [];
+    for (const [key, items] of dayMap) {
       // `dayFromKey`, not `new Date(key)` — see the note on it. A key's month is
       // zero-based and the string parser isn't.
       const day = dayFromKey(key);
-      for (const item of items) rows.push({ item, day });
+      const relation = dayRelation(day, today);
+      const daysDiff = dayOffset(day, today);
+      for (const item of items) {
+        const bucket = item.done
+          ? "Done"
+          : ({ past: "Overdue", today: "Today", future: "Upcoming" } as const)[relation];
+        all.push({ item, day, bucket, daysDiff });
+      }
     }
 
-    const bucket = (row: Row) =>
-      row.item.done ? "Done" : ({ past: "Overdue", today: "Today", future: "Upcoming" } as const)[
-        dayRelation(row.day, today)
-      ];
-
-    return SECTIONS.map((label) => {
-      const group = rows.filter((row) => bucket(row) === label);
-      // Ascending everywhere but Done — oldest first means most overdue first,
-      // and soonest first for what's ahead.
+    // Ascending everywhere but Done — oldest first means most overdue first,
+    // and soonest first for what's ahead. Grouped bucket by bucket rather than
+    // one global sort, so the buckets keep their order (Overdue, Today,
+    // Upcoming, Done) instead of interleaving by date.
+    return SECTIONS.flatMap((label) => {
+      const group = all.filter((row) => row.bucket === label);
       group.sort((a, b) =>
         label === "Done"
           ? b.day.getTime() - a.day.getTime()
           : a.day.getTime() - b.day.getTime(),
       );
-      return { label, rows: group };
-    }).filter((section) => section.rows.length > 0);
-  }, [notes, clientId, todayKey]);
+      return group;
+    });
+  }, [dayMap, todayKey]);
 
-  const openNote = (noteId: string) =>
-    setQueryState(
-      withQuery(`/client/${clientId}`, searchParams, { tab: "notes", note: noteId }),
-      "push",
-    );
+  const daySections = useMemo<DaySection[]>(() => {
+    const today = new Date(todayKey);
+    const todayKeyStr = dayKey(today);
+    const keys = new Set(dayMap.keys());
+    // Today's key goes in even when `dayMap` never got one — that's the whole
+    // point of pinning it: an empty Today still has to render, with its own
+    // empty state, rather than the day silently not showing up.
+    keys.add(todayKeyStr);
+    return [...keys]
+      .sort((a, b) => dayFromKey(a).getTime() - dayFromKey(b).getTime())
+      .map((key) => ({
+        key,
+        day: dayFromKey(key),
+        isToday: key === todayKeyStr,
+        items: dayMap.get(key) ?? [],
+      }));
+  }, [dayMap, todayKey]);
 
   if (isLoading) {
     return (
@@ -96,123 +181,184 @@ export function ClientRemindersTab({ clientId }: { clientId: string }) {
     );
   }
 
-  if (sections.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card py-12 text-center">
-        <CalendarBlankIcon size={32} className="text-muted-foreground/40" />
-        <p className="type-body-2 text-muted-foreground">No reminders</p>
-        {/* Says where they come from, because there is nothing on this tab that
-            makes one — a reminder is an attribute of a note. */}
-        <p className="type-caption text-muted-foreground/60">
-          Set one from a note on the Notes tab.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="flex flex-col gap-6">
-        {sections.map((section) => (
-          <div key={section.label} className="flex flex-col gap-2">
-            <p className="type-caption font-medium uppercase tracking-wide text-muted-foreground">
-              {section.label} · {section.rows.length}
-            </p>
-            {/* `overflow-hidden` so the first and last row's hover fill clips to
-                the card's rounded corners instead of squaring them off — the
-                same reason the Calendar's popover turns off its own padding. */}
-            <ul className="flex flex-col divide-y divide-border/60 overflow-hidden rounded-xl border border-border bg-card">
-              {section.rows.map((row) => (
-                <ReminderRow
-                  key={row.item.id}
-                  row={row}
-                  onOpen={() =>
-                    row.item.noteId
-                      ? openNote(row.item.noteId)
-                      : setAlertTarget({ item: row.item, day: row.day })
-                  }
-                />
-              ))}
-            </ul>
+      {compact ? (
+        // ~4 cards' worth before it scrolls — enough to read as "here's what's
+        // coming" without the dialog outgrowing the screen the way an
+        // unbounded list would. Past that, View All is the way out rather
+        // than more scrolling.
+        <CompactList onViewAll={onViewAll} contentClassName="gap-4 max-h-[380px] overflow-y-auto pr-1 -mr-1">
+          <DaySectionedList sections={daySections} onOpen={openItem} />
+        </CompactList>
+      ) : (
+        <>
+          {/* Mobile / tablet — day-sectioned cards */}
+          <div className="md:hidden">
+            <DaySectionedList sections={daySections} onOpen={openItem} />
           </div>
-        ))}
-      </div>
 
-      {/* No holder list: this whole page is one client, so the panel would be
-          listing the person whose profile you are standing in — see
-          `AlertDetail`. */}
-      <AlertOverlay
-        target={alertTarget}
-        clients={clients}
-        showHolders={false}
-        onClose={() => setAlertTarget(null)}
-      />
+          {/* Desktop — table, still bucketed by status rather than by day: a
+              Status column already says Overdue/Today/Upcoming/Done per row,
+              so a day header above each group would be repeating the Date
+              column rather than adding anything the table doesn't already say. */}
+          <div className="hidden md:block">
+            {rows.length === 0 ? (
+              <EmptyState
+                icon={<CalendarBlankIcon size={40} className="text-[var(--text-default-placeholder)]" />}
+                title="No reminders"
+                // Says where they come from, because there is nothing on this tab
+                // that makes one — a reminder is an attribute of a note.
+                body="Set one from a note on the Notes tab."
+              />
+            ) : (
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Status</TableHeaderCell>
+                    <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Date</TableHeaderCell>
+                    <TableHeaderCell sortable={false} className="min-w-0 whitespace-nowrap">Source</TableHeaderCell>
+                    <TableHeaderCell sortable={false} className="min-w-0">Reminder</TableHeaderCell>
+                    <TableHeaderCell sortable={false} className="min-w-0">Detail</TableHeaderCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((row) => (
+                    <ReminderRow key={row.item.id} row={row} onOpen={() => openItem(row.item, row.day)} />
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </>
+      )}
+
+      {reminderModals}
     </>
   );
 }
 
+function DaySectionedList({
+  sections,
+  onOpen,
+}: {
+  sections: DaySection[];
+  onOpen: (item: DayItem, day: Date) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-7">
+      {sections.map((section) => (
+        <div key={section.key} className="flex flex-col gap-2">
+          <p className="type-subtitle-2 text-muted-foreground">
+            {section.isToday ? "Today" : dayLabel(section.day)} · {section.items.length}
+          </p>
+          {section.items.length === 0 ? (
+            // Only Today can ever land here — every other key in `daySections`
+            // exists because `dayMap` already had at least one item under it.
+            // The check mark rather than `CalendarBlankIcon` (the whole-page
+            // empty state's icon): blank reads as "nothing has ever been set",
+            // checked reads as "today specifically is clear" — the actual news
+            // here, since other days already have things in them.
+            <div className="flex flex-col items-center gap-1.5 rounded-xl border border-dashed border-border py-6 text-center">
+              <CalendarCheckIcon size={22} className="text-muted-foreground/40" />
+              <p className="type-body-2 text-muted-foreground/60">Nothing due today</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {section.items.map((item) => (
+                <ReminderCard key={item.id} item={item} onOpen={() => onOpen(item, section.day)} />
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ReminderCard({ item, onOpen }: { item: DayItem; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex items-start gap-3 rounded-xl border border-border p-3 text-left cursor-pointer transition-colors active:bg-[var(--bg-default-pressed)]"
+    >
+      {/* The circle carries where the row came from — primary for the user's
+          own handwriting, orange for anything the system raised. Read from the
+          shared lookup rather than restated here; a local copy is how the
+          alert panel stayed green after the Calendar's pills turned orange. */}
+      <SourceBadgeIcon item={item} size="default" label={item.source === "note" ? "Note" : "System"} />
+      <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+        <span
+          className={`type-body-2 font-semibold truncate ${
+            item.done ? "text-muted-foreground line-through" : "text-foreground"
+          }`}
+        >
+          {item.title}
+        </span>
+        <span className="type-caption text-muted-foreground truncate">
+          {item.detail ? snippet(item.detail, 60) : "No additional text"}
+        </span>
+      </div>
+      <CaretRightIcon size={14} className="shrink-0 self-center text-muted-foreground/60" />
+    </button>
+  );
+}
+
 function ReminderRow({ row, onOpen }: { row: Row; onOpen: () => void }) {
-  const { item, day } = row;
+  const { item, day, bucket, daysDiff } = row;
   const badge = SOURCE_BADGE[item.source];
 
   return (
-    <li>
-      <button
-        type="button"
-        onClick={onOpen}
-        className="group flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors cursor-pointer hover:bg-[var(--bg-default-secondary)]!"
-      >
-        {/* The circle carries where the row came from — primary for the user's
-            own handwriting, orange for anything the system raised. Read from the
-            shared lookup rather than restated here; a local copy is how the
-            alert panel stayed green after the Calendar's pills turned orange. */}
+    <TableRow
+      hoverable
+      className="cursor-pointer transition-colors active:bg-[var(--bg-default-pressed)]"
+      onClick={onOpen}
+    >
+      <TableCell className="min-w-0 whitespace-nowrap">
         <span
-          role="img"
-          aria-label={badge.label}
-          className={`flex size-8 shrink-0 items-center justify-center rounded-full ${
+          className={`inline-flex items-center rounded-full px-2 py-0.5 type-caption font-medium ${BUCKET_TONE[bucket]}`}
+        >
+          {bucket}
+        </span>
+      </TableCell>
+
+      <TableCell className="min-w-0 whitespace-nowrap">
+        <div className="flex flex-col">
+          <span className="type-body-2 text-foreground font-medium">{formatDayOnly(day.toISOString())}</span>
+          <span className="type-caption text-muted-foreground">{relativeDayLabel(daysDiff)}</span>
+        </div>
+      </TableCell>
+
+      <TableCell className="min-w-0 whitespace-nowrap">
+        {/* Same lookup the Reminder cell's icon used to carry inline — now its
+            own column, so "note" vs "system" reads as a fact about the row
+            rather than something to infer from an icon shape. */}
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 type-caption font-medium ${
             item.done ? DONE_BADGE_TONE : badge.tone
           }`}
         >
           {badge.icon}
+          {item.source === "note" ? "Note" : "System"}
         </span>
+      </TableCell>
 
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span
-            className={`type-body-2 font-medium truncate ${
-              item.done ? "text-muted-foreground line-through" : "text-foreground"
-            }`}
-          >
-            {item.title}
-          </span>
-          <span className="type-caption text-muted-foreground truncate">
-            {item.detail ? snippet(item.detail, 60) : "No additional text"}
-          </span>
+      <TableCell className="min-w-0">
+        <span
+          className={`type-body-2 font-medium ${
+            item.done ? "text-muted-foreground line-through" : "text-foreground"
+          }`}
+        >
+          {item.title}
         </span>
+      </TableCell>
 
-        {/* The date, where the Calendar's day panel puts the avatar stack. That
-            stack would be this same client on every row here, and a list
-            spanning months needs the one thing a single-day panel never did:
-            which day each row is actually on — so it is the one thing that
-            can't be dropped on a phone.
-
-            The weekday under it can. "Friday" is what makes a date land as a
-            day rather than a number, and it is worth a line where there's room;
-            at two hundred-odd pixels of row it would be competing with the
-            title for the space. */}
-        <span className="flex shrink-0 flex-col items-end gap-0.5">
-          <span className="type-caption font-medium text-foreground tabular-nums">
-            {formatDayOnly(day.toISOString())}
-          </span>
-          <span className="type-caption text-muted-foreground max-sm:hidden">
-            {weekdayLabel(day)}
-          </span>
+      <TableCell className="min-w-0">
+        <span className="type-body-2 text-foreground">
+          {item.detail ? snippet(item.detail, 60) : "No additional text"}
         </span>
-
-        <CaretRightIcon
-          size={14}
-          className="shrink-0 text-muted-foreground transition-opacity max-sm:opacity-40 sm:opacity-0 sm:group-hover:opacity-100"
-        />
-      </button>
-    </li>
+      </TableCell>
+    </TableRow>
   );
 }

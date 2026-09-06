@@ -1,0 +1,22 @@
+{
+  "Qualified": [
+    { "id": "product-match", "label": "ยืนยัน product ตรงกับ risk profile ของลูกค้า" },
+    { "id": "proposal-ready", "label": "เตรียม term sheet / proposal document เรียบร้อยแล้ว" },
+    { "id": "meeting-scheduled", "label": "นัดหมายการนำเสนอกับลูกค้าแล้ว" }
+  ],
+  "Proposed": [
+    { "id": "sent-to-client", "label": "ส่ง proposal ให้ลูกค้าแล้ว" },
+    { "id": "client-ack", "label": "ลูกค้ารับทราบและตรวจสอบเอกสาร" },
+    { "id": "compliance-ok", "label": "ผ่านการตรวจสอบ compliance เบื้องต้น" }
+  ],
+  "Under Review": [
+    { "id": "client-feedback", "label": "ได้รับ feedback จากลูกค้าแล้ว" },
+    { "id": "pricing-reviewed", "label": "ทบทวนราคาและเงื่อนไขเรียบร้อยแล้ว" },
+    { "id": "internal-approval", "label": "ได้รับ internal approval" }
+  ],
+  "Negotiation": [
+    { "id": "terms-agreed", "label": "ตกลงเงื่อนไขสุดท้ายกับลูกค้าแล้ว" },
+    { "id": "compliance-signoff", "label": "compliance sign-off เรียบร้อย" },
+    { "id": "contract-signed", "label": "ลูกค้าลงนามสัญญา / subscription form แล้ว" }
+  ]
+}

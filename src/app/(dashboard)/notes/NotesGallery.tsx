@@ -1,30 +1,9 @@
 "use client";
 
 import { BellIcon, CheckCircleIcon, PlusIcon } from "@phosphor-icons/react";
-import type { TagProps } from "@sarunyu/system-one";
 import type { Note } from "@/types/domain";
 import { groupNotesByDate } from "./notes-grouping";
-import { formatDayOnly } from "./note-format";
-import { reminderTag } from "./note-format";
-
-/**
- * The reminder line's colour, by the same variants `reminderTag` already sorts
- * notes into — text only, since here it is a caption under a card rather than
- * the filled chip `TAG_CHIP_TONE` paints elsewhere.
- *
- * Colour is doing the work the words "Overdue" and "Due today" used to, so it
- * can't be the only carrier: the icon switches for a done reminder, and the
- * full label is still in the accessible name. What's left visible is the one
- * thing the group header above can't tell you.
- */
-const REMINDER_TONE: Record<NonNullable<TagProps["variant"]>, string> = {
-  blue: "text-[var(--fill-blue-700)]",
-  green: "text-[var(--fill-green-600)]",
-  yellow: "text-[var(--fill-yellow-600)]",
-  red: "text-[var(--fill-red-600)]",
-  gray: "text-subtle-text",
-  lime: "text-[var(--fill-lime-600)]",
-};
+import { formatDayOnly, reminderTag, REMINDER_TONE } from "./note-format";
 
 /**
  * Notes as a wall of cards rather than a list beside a reader.

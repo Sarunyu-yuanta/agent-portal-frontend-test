@@ -8,15 +8,22 @@ import {
   PhoneOutgoingIcon,
   UserIcon,
   NotePencilIcon,
+  BellIcon,
   ArrowLeftIcon,
 } from "@phosphor-icons/react";
 import { getCallLogs, relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
-import { ClientNotesTab } from "../client/[id]/ClientNotesTab";
+import { ClientRemindersTab } from "../client/[id]/ClientRemindersTab";
+import { useClients } from "@/hooks/use-api";
+import { useNotes } from "@/contexts/notes-context";
+import { useNoteEditModal } from "../calendar/use-note-edit-modal";
+import { formatDayOnly, formatListStamp } from "../notes/note-format";
+import { snippet } from "../notes/notes-grouping";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
 import { getInitials } from "@/lib/client-utils";
 import { useSlideOver, SlideOverPanel } from "@/components/ui/slide-over";
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
+import { CompactList } from "@/components/ui/compact-list";
 import { ClientAssetSidebarContent, type AssetListViewMode } from "@/components/ClientAssetSidebarContent";
 import { HoldingDetailContent } from "@/components/HoldingDetailContent";
 import { LiabilitiesDetailContent } from "@/components/LiabilitiesDetailModal";
@@ -32,10 +39,18 @@ import type { Client } from "@/types/domain";
 export function ClientDetailPanel({
   client,
   onViewFull,
+  onViewCallLog,
+  onViewReminders,
+  onViewNotes,
   onBack,
 }: {
   client: Client;
   onViewFull: () => void;
+  /** "View all" past each compact list's scroll cap — the matching full tab
+   *  on that client's own profile page. */
+  onViewCallLog?: () => void;
+  onViewReminders?: () => void;
+  onViewNotes?: () => void;
   onBack?: () => void;
 }) {
   const { isPrivate } = usePrivacy();
@@ -44,8 +59,15 @@ export function ClientDetailPanel({
   const detail = useSlideOver<{ item: AssetAccountItem; viewMode: AssetListViewMode }>();
   const liabilities = useSlideOver<{ amount: string; detail: LiabilitiesDetail }>();
   const [callLogOpen, setCallLogOpen] = useState(false);
+  const [remindersOpen, setRemindersOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const callLogs = getCallLogs(client.id);
+  const clients = useClients();
+  const { notes } = useNotes();
+  const { openNote, modal: noteModal } = useNoteEditModal({ clients, pinnedClientId: client.id });
+  const clientNotes = notes
+    .filter((n) => n.clientIds.includes(client.id))
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
   const { reset: resetDetail } = detail;
   const { reset: resetLiabilities } = liabilities;
@@ -98,6 +120,38 @@ export function ClientDetailPanel({
       ))}
       {callLogs.length === 0 && (
         <p className="type-body-2 text-muted-foreground text-center py-6">No call history yet.</p>
+      )}
+    </>
+  );
+
+  const noteCards = (
+    <>
+      {clientNotes.map((note) => (
+        <button
+          key={note.id}
+          type="button"
+          onClick={() => openNote(note.id)}
+          className="flex flex-col gap-1.5 rounded-xl border border-border p-3 text-left transition-colors cursor-pointer hover:bg-[var(--bg-default-secondary)]"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="type-body-2 text-foreground font-semibold truncate">
+              {note.title || "Untitled note"}
+            </span>
+            {note.reminderAt && (
+              <div className="flex items-center gap-1.5 shrink-0 text-muted-foreground">
+                <BellIcon size={14} />
+                <span className="type-caption">{formatDayOnly(note.reminderAt)}</span>
+              </div>
+            )}
+          </div>
+          <p className="type-caption text-muted-foreground">{formatListStamp(note.updatedAt)}</p>
+          <p className="type-body-2 text-foreground mt-1">
+            {note.body ? snippet(note.body, 80) : "No additional text"}
+          </p>
+        </button>
+      ))}
+      {clientNotes.length === 0 && (
+        <p className="type-body-2 text-muted-foreground text-center py-6">No notes yet.</p>
       )}
     </>
   );
@@ -160,10 +214,13 @@ export function ClientDetailPanel({
           }`}
         >
           <div className="overflow-hidden min-h-0">
-            <div className="grid grid-cols-2 gap-2">
+            {/* Reminders before Notes — same order as the Client 360 page's
+                own tabs, so the two surfaces agree on which comes first. */}
+            <div className="grid grid-cols-3 gap-2">
               {[
-                { icon: <PhoneListIcon size={20} />,  label: "Call log", onClick: () => setCallLogOpen(true), comingSoon: false },
-                { icon: <NotePencilIcon size={20} />, label: "Notes",    onClick: () => setNotesOpen(true),   comingSoon: false },
+                { icon: <PhoneListIcon size={20} />,  label: "Call log",  onClick: () => setCallLogOpen(true),   comingSoon: false },
+                { icon: <BellIcon size={20} />,       label: "Reminder",  onClick: () => setRemindersOpen(true), comingSoon: false },
+                { icon: <NotePencilIcon size={20} />, label: "Notes",     onClick: () => setNotesOpen(true),     comingSoon: false },
               ].map(({ icon, label, onClick, comingSoon }) => (
                 <button
                   key={label}
@@ -280,21 +337,70 @@ export function ClientDetailPanel({
       mobileContentClassName="flex flex-col gap-3 p-4"
       desktopContentClassName="flex flex-col gap-3 min-w-[420px] max-w-[520px]"
     >
-      {callLogCards}
+      <CompactList
+        onViewAll={
+          callLogs.length > 0 && onViewCallLog
+            ? () => {
+                setCallLogOpen(false);
+                onViewCallLog();
+              }
+            : undefined
+        }
+      >
+        {callLogCards}
+      </CompactList>
     </ResponsiveDialog>
 
-    {/* Notes — same responsive pattern, same note history as the Notes tab/hub.
-        Wider than the Call Log dialog: this hosts the sidebar+detail split view,
-        which needs real estate the Call Log's simple card list doesn't. */}
+    {/* Reminder — `compact` keeps this to the card list `ClientRemindersTab`
+        already draws below `md` on the Client 360 page, so it reads as the
+        same shape as the Call Log dialog right above rather than switching to
+        the wider table. Same width as that dialog for the same reason. */}
+    <ResponsiveDialog
+      open={remindersOpen}
+      onOpenChange={setRemindersOpen}
+      title={`Reminders — ${client.name}`}
+      mobileContentClassName="flex flex-col gap-3 p-4"
+      desktopContentClassName="flex flex-col gap-3 min-w-[420px] max-w-[520px]"
+    >
+      <ClientRemindersTab
+        clientId={client.id}
+        compact
+        onViewAll={
+          onViewReminders &&
+          (() => {
+            setRemindersOpen(false);
+            onViewReminders();
+          })
+        }
+      />
+    </ResponsiveDialog>
+
+    {/* Notes — same card-list shape as Call Log and Reminders rather than the
+        Notes tab's full gallery/editor: a note opens in place through
+        `NoteEditModal`, the same modal the Reminders dialog already opens a
+        note into, so it looks like itself wherever it's found. */}
     <ResponsiveDialog
       open={notesOpen}
       onOpenChange={setNotesOpen}
       title={`Notes — ${client.name}`}
       mobileContentClassName="flex flex-col gap-3 p-4"
-      desktopContentClassName="flex flex-col gap-3 min-w-[720px] max-w-[900px]"
+      desktopContentClassName="flex flex-col gap-3 min-w-[420px] max-w-[520px]"
     >
-      <ClientNotesTab clientId={client.id} />
+      <CompactList
+        onViewAll={
+          clientNotes.length > 0 && onViewNotes
+            ? () => {
+                setNotesOpen(false);
+                onViewNotes();
+              }
+            : undefined
+        }
+      >
+        {noteCards}
+      </CompactList>
     </ResponsiveDialog>
+
+    {noteModal}
     </>
   );
 }

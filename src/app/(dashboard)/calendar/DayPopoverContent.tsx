@@ -8,7 +8,7 @@ import {
 import { ClientAvatarStack } from "@/components/ui/client-avatar-stack";
 import { dayLabel, weekdayLabel, type DayRelation } from "./calendar-grid";
 import type { DayItem } from "./day-items";
-import { DONE_BADGE_TONE, SOURCE_BADGE } from "./source-badge";
+import { SourceBadgeIcon } from "./source-badge";
 import { snippet } from "../notes/notes-grouping";
 
 /**
@@ -125,7 +125,6 @@ export function DayPopoverContent({
             const clientNames = item.clientIds.map(
               (id) => clients.find((c) => c.id === id)?.name ?? id,
             );
-            const sourceBadge = SOURCE_BADGE[item.source];
             // Every row opens something now — a note goes to its editor, an
             // alert to a read-only panel listing the holders it affects.
             const open = item.noteId ? () => onOpenNote(item.noteId!) : () => onOpenAlert(item);
@@ -134,15 +133,7 @@ export function DayPopoverContent({
               <>
                 {/* `self-center`, like the caret: the badge stands for the row
                     rather than for its title line. */}
-                <span
-                  role="img"
-                  aria-label={sourceBadge.label}
-                  className={`flex shrink-0 self-center items-center justify-center rounded-full ${
-                    isSheet ? "size-8" : "size-7"
-                  } ${item.done ? DONE_BADGE_TONE : sourceBadge.tone}`}
-                >
-                  {sourceBadge.icon}
-                </span>
+                <SourceBadgeIcon item={item} size={isSheet ? "default" : "small"} selfCenter />
 
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span

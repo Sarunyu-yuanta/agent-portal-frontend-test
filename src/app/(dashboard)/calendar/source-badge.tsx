@@ -38,3 +38,38 @@ export const SOURCE_BADGE: Record<
 /** Done drops out of the ramp, the way it does everywhere else in the calendar:
  * finished business shouldn't keep a colour that asks to be dealt with. */
 export const DONE_BADGE_TONE = "bg-[var(--fill-gray-100)] text-[var(--fill-gray-400)]";
+
+/**
+ * The circle itself — `SOURCE_BADGE`/`DONE_BADGE_TONE` plus the shell every
+ * caller built by hand around them. `size`/`selfCenter`/`label` all default to
+ * the calendar day popover's own shape; the Reminders tab's card needs a
+ * bigger circle that isn't vertically centered and an accessible name that
+ * says "System" rather than the fuller `label` (see the two call sites for
+ * why — kept as-is rather than normalized, since it's the accessible name,
+ * not anything visible, that would change).
+ */
+export function SourceBadgeIcon({
+  item,
+  size = "small",
+  selfCenter = false,
+  label,
+}: {
+  item: { source: DayItemSource; done: boolean };
+  size?: "small" | "default";
+  selfCenter?: boolean;
+  /** Accessible name override — defaults to the shared source label. */
+  label?: string;
+}) {
+  const badge = SOURCE_BADGE[item.source];
+  return (
+    <span
+      role="img"
+      aria-label={label ?? badge.label}
+      className={`flex shrink-0 items-center justify-center rounded-full ${
+        selfCenter ? "self-center " : ""
+      }${size === "small" ? "size-7" : "size-8"} ${item.done ? DONE_BADGE_TONE : badge.tone}`}
+    >
+      {badge.icon}
+    </span>
+  );
+}

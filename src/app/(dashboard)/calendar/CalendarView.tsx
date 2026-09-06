@@ -2,9 +2,9 @@
 
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button, Modal, Toaster, Tooltip } from "@sarunyu/system-one";
-import type { ToastProps } from "@sarunyu/system-one";
 import { CalendarDotIcon, CaretLeftIcon, CaretRightIcon, PlusIcon } from "@phosphor-icons/react";
 import { useNotes } from "@/contexts/notes-context";
+import { useToasts } from "@/hooks/use-toasts";
 import type { Note } from "@/types/domain";
 import { DayCell } from "./DayCell";
 import { MonthPicker } from "./MonthPicker";
@@ -13,12 +13,14 @@ import {
   dayKey,
   dayLabel,
   monthGrid,
+  todayDateKey,
   weeksOf,
   WEEKDAY_LABELS,
 } from "./calendar-grid";
 import { AlertOverlay, type AlertTarget } from "./AlertOverlay";
 import { groupDayItems } from "./day-items";
 import { NoteDetailPane } from "../notes/NoteDetailPane";
+import { NOTE_AUTHOR } from "../notes/note-constants";
 import { reminderAtFromDate } from "../notes/note-format";
 
 export function CalendarView({
@@ -45,9 +47,7 @@ export function CalendarView({
   const modalValuesRef = useRef<{ title: string; body: string } | null>(null);
   const [blank, setBlank] = useState(true);
 
-  const [toasts, setToasts] = useState<Array<ToastProps & { id: string }>>([]);
-  const addToast = (props: Omit<ToastProps, "onClose">) =>
-    setToasts((prev) => [...prev, { ...props, id: crypto.randomUUID() }]);
+  const { toasts, addToast, removeToast } = useToasts();
 
   // --- Create modal (new reminder, draft — saved only on "Add note") ---
   const [createOpen, setCreateOpen] = useState(false);
@@ -64,7 +64,7 @@ export function CalendarView({
       id: "__draft__",
       title: null,
       body: "",
-      author: "Relation Manager",
+      author: NOTE_AUTHOR,
       createdAt: draftCreatedAt.current,
       updatedAt: draftCreatedAt.current,
       ...draftAttrs,
@@ -88,7 +88,7 @@ export function CalendarView({
         clientIds: draftAttrs.clientIds,
         title: values.title.trim() || null,
         body: values.body,
-        author: "Relation Manager",
+        author: NOTE_AUTHOR,
         reminderAt: draftAttrs.reminderAt,
         reminderDone: draftAttrs.reminderDone,
       });
@@ -140,7 +140,7 @@ export function CalendarView({
   // `todayKey` rather than the `Date`: a fresh object every render would make
   // this memo useless, and only the day the mock alerts hang off actually
   // matters here.
-  const todayKey = new Date().toDateString();
+  const todayKey = todayDateKey();
   const itemsByDay = useMemo(
     () => groupDayItems(notes, new Date(todayKey)),
     [notes, todayKey],
@@ -170,10 +170,7 @@ export function CalendarView({
 
   return (
     <>
-      <Toaster
-        items={toasts}
-        onRemove={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))}
-      />
+      <Toaster items={toasts} onRemove={removeToast} />
 
       {/* `max-xl:` overrides with `!`, not `rounded-none xl:rounded-xl`: the two
           tie on specificity and `@sarunyu/system-one`, which ships a plain

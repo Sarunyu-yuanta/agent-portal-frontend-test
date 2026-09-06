@@ -1,5 +1,3 @@
-import type { Note } from "@/types/domain";
-
 const WEEKDAYS_PER_WEEK = 7;
 /** Six rows covers every month (a 31-day month starting on Saturday needs it),
  * so paging between months always renders the same grid height. */
@@ -92,19 +90,23 @@ export function dayFromKey(key: string): Date {
   return new Date(year, month, day);
 }
 
-export function groupRemindersByDay(notes: Note[]): Map<string, Note[]> {
-  const map = new Map<string, Note[]>();
-  for (const note of notes) {
-    if (!note.reminderAt) continue;
-    const key = dayKey(new Date(note.reminderAt));
-    const list = map.get(key);
-    if (list) list.push(note);
-    else map.set(key, [note]);
-  }
-  // Open reminders before done ones within a day, so a completed reminder
-  // doesn't bump an active one out of the cell's visible pills.
-  for (const list of map.values()) {
-    list.sort((a, b) => Number(a.reminderDone) - Number(b.reminderDone));
-  }
-  return map;
+/** A stable memo key for "today," anchored to the calendar day rather than a
+ *  fresh `Date` object every render — a `useMemo` keyed on the object itself
+ *  would recompute every time regardless of whether the day actually changed. */
+export function todayDateKey(): string {
+  return new Date().toDateString();
+}
+
+/** Whole calendar days between `day` and `today` — negative when `day` has
+ *  already passed. */
+export function dayOffset(day: Date, today: Date): number {
+  return Math.round((day.getTime() - today.getTime()) / 86_400_000);
+}
+
+/** "In 5 days" / "3 days overdue" / "Today". */
+export function relativeDayLabel(diff: number): string {
+  if (diff === 0) return "Today";
+  const n = Math.abs(diff);
+  const noun = `day${n === 1 ? "" : "s"}`;
+  return diff > 0 ? `In ${n} ${noun}` : `${n} ${noun} overdue`;
 }

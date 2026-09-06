@@ -1,0 +1,9 @@
+{
+  "kpis": [
+    { "label": "Critical Alerts", "value": "2", "sub": "Require immediate action", "variant": "red" },
+    { "label": "Pending KYC", "value": "3", "sub": "Documents outstanding", "variant": "yellow" },
+    { "label": "Suitability Flags", "value": "1", "sub": "Trade blocked", "variant": "red" },
+    { "label": "Expiring in 30 Days", "value": "2", "sub": "Malee · Wichai", "variant": "yellow" }
+  ],
+  "alertTimestamps": ["2 hrs ago", "3 hrs ago", "5 hrs ago", "Today"]
+}

@@ -1,0 +1,51 @@
+{
+  "categories": [
+    "บทวิเคราะห์ทั้งหมด", "Wealth Designs Daily", "Chart Perspective Morning", "Chart Perspective Afternoon",
+    "Derivative", "บทวิเคราะห์หุ้นรายตัว", "บทวิเคราะห์อุตสาหกรรม", "ความเห็นนักวิเคราะห์",
+    "Theme Strategy", "Trading Portfolio", "Wealth Compass", "ELN Pick",
+    "Technical Trading Portfolio", "SBL IDEA", "Top 5 DCA", "Yuanta Universe",
+    "เอกสารการสัมมนา", "จับข่าวมาเล่าหุ้น", "Yuanta Global Wealth", "Commodities Highlight",
+    "Power Investing"
+  ],
+  "reports": [
+    { "id": "r01", "date": "03/08/2569", "category": "Derivative", "title": "DERIVATIVES - AFTERNOON" },
+    { "id": "r02", "date": "03/08/2569", "category": "Yuanta Global Wealth", "title": "Global Insights - Cancelled Attacks on Iran: Unlocking Energy Market Overhang" },
+    { "id": "r03", "date": "03/08/2569", "category": "Chart Perspective Afternoon", "title": "TECHNICAL - BDMS, LH, M" },
+    { "id": "r04", "date": "03/08/2569", "category": "จับข่าวมาเล่าหุ้น", "title": "จับข่าวมาเล่าหุ้น - ENERGY, BANPU, TLI, TASCO" },
+    { "id": "r05", "date": "03/08/2569", "category": "Wealth Designs Daily", "title": "Sentiment การลงทุนยังดีในช่วงสั้น แนะนำสะสม CBG, SJWD, TASCO, JMART" },
+    { "id": "r06", "date": "03/08/2569", "category": "Wealth Signal", "title": "WEALTH SIGNAL - The Pullback Has a Purpose: Repricing Risk, Revealing the Winners - Part 2" },
+    { "id": "r07", "date": "03/08/2569", "category": "Wealth Signal", "title": "WEALTH SIGNAL - The Pullback Has a Purpose: Repricing Risk, Revealing the Winners - Part 1" },
+    { "id": "r08", "date": "03/08/2569", "category": "Chart Perspective Morning", "title": "TECHNICAL - STA, HMPRO, JMART, SISB, SAMART, CKP" },
+    { "id": "r09", "date": "03/08/2569", "category": "Power Investing", "title": "POWER INVESTING - CBG, SJWD, TASCO" },
+    { "id": "r10", "date": "03/08/2569", "category": "Top 5 DCA", "title": "TOP 5 DCA - GULF, SJWD, TASCO, ITC, MTC" },
+    { "id": "r11", "date": "02/08/2569", "category": "Wealth Designs Daily", "title": "Market Wrap - SET ปรับตัวขึ้น นำโดยกลุ่มพลังงานและธนาคาร" },
+    { "id": "r12", "date": "02/08/2569", "category": "Theme Strategy", "title": "THEME STRATEGY - AI Infrastructure Play: Data Center & Power" },
+    { "id": "r13", "date": "02/08/2569", "category": "Trading Portfolio", "title": "TRADING PORTFOLIO UPDATE - สัปดาห์ที่ 31/2569" },
+    { "id": "r14", "date": "02/08/2569", "category": "Commodities Highlight", "title": "COMMODITIES HIGHLIGHT - Gold & Oil Outlook Q3/2026" },
+    { "id": "r15", "date": "01/08/2569", "category": "Wealth Compass", "title": "WEALTH COMPASS - Asset Allocation Monthly: สิงหาคม 2569" },
+    { "id": "r16", "date": "01/08/2569", "category": "ELN Pick", "title": "ELN PICK - DELTA, AOT, PTT: Attractive Entry for Structured Products" },
+    { "id": "r17", "date": "01/08/2569", "category": "SBL IDEA", "title": "SBL IDEA - Short Selling Opportunity: GULF, INTUCH" },
+    { "id": "r18", "date": "01/08/2569", "category": "Yuanta Universe", "title": "YUANTA UNIVERSE - Monthly Model Portfolio Rebalancing" },
+    { "id": "r19", "date": "01/08/2569", "category": "ความเห็นนักวิเคราะห์", "title": "Daily Morning Note - Macro Outlook & Stock Picks" },
+    { "id": "r20", "date": "31/07/2569", "category": "บทวิเคราะห์หุ้นรายตัว", "title": "PTTEP - Maintain BUY, TP 155 บาท: Strong Cash Flow Despite Oil Weakness" },
+    { "id": "r21", "date": "31/07/2569", "category": "บทวิเคราะห์อุตสาหกรรม", "title": "Sector Report: Thai Banking Sector - Asset Quality Improvement Ahead" },
+    { "id": "r22", "date": "31/07/2569", "category": "Technical Trading Portfolio", "title": "TECHNICAL TRADING - Buy Signals: ADVANC, CPALL, GULF" },
+    { "id": "r23", "date": "30/07/2569", "category": "เอกสารการสัมมนา", "title": "Wealth Seminar: Navigating Volatility in Global Markets - สไลด์ประกอบการสัมมนา" }
+  ],
+  "landingTiles": [
+    { "id": "t01", "title": "Smart Pick", "subtitle": "แนะนำหุ้นเด่นประจำวัน" },
+    { "id": "t02", "title": "Afternoon Tactic", "subtitle": "แนวโน้มตลาดบ่าย" },
+    { "id": "t03", "title": "Yuanta Channel", "subtitle": "ช่องทางอัปเดตข่าวสาร" },
+    { "id": "t04", "title": "เปิดพอร์ตโชว์หุ้น", "subtitle": "พอร์ตจำลองแนะนำ" },
+    { "id": "t13", "title": "Theme Strategy", "subtitle": "ธีมการลงทุนเด่น" },
+    { "id": "t10", "title": "Sector Update", "subtitle": "วิเคราะห์อุตสาหกรรม" },
+    { "id": "t05", "title": "Company Focus", "subtitle": "วิเคราะห์หุ้นรายตัว" },
+    { "id": "t07", "title": "Warrant UPDATE", "subtitle": "อัปเดตวอร์แรนต์" },
+    { "id": "t08", "title": "Derivative Warrant", "subtitle": "อนุพันธ์และวอร์แรนต์" },
+    { "id": "t09", "title": "เทคนิคและอนุพันธ์", "subtitle": "Technical & Future" },
+    { "id": "t06", "title": "Analyst Note", "subtitle": "ความเห็นนักวิเคราะห์" },
+    { "id": "t11", "title": "Yuanta Universe", "subtitle": "โมเดลพอร์ตการลงทุน" },
+    { "id": "t12", "title": "Top 5 DCA", "subtitle": "หุ้นเด่นสะสมประจำสัปดาห์" }
+  ],
+  "mockReportPdfUrl": "/mock-reports/sample-report.pdf"
+}

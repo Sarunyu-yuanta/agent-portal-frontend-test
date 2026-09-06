@@ -6,6 +6,7 @@ import { Button, Popover } from "@sarunyu/system-one";
 import { NotePencilIcon } from "@phosphor-icons/react";
 import { useClients } from "@/hooks/use-api";
 import { useNotes } from "@/contexts/notes-context";
+import { NOTE_AUTHOR } from "./note-constants";
 import {
   NoteComposer,
   draftHasContent,
@@ -15,18 +16,15 @@ import {
 
 const CLIENT_PAGE = /^\/client\/([^/]+)/;
 
-const NOTES_PAGE = /^\/notes(\/|$)/;
-
 /**
- * Persistent "New note" button, bottom-right on every dashboard page. On a
+ * Persistent "New note" button, bottom-right — desktop only (hidden on
+ * mobile/tablet, visible on `xl+`, the same cutoff the sidebar uses). On a
  * client's Full Profile the note it creates is filed under that client, so a
  * thought captured while looking at someone lands on them without being asked.
  *
- * Every page but one. Notes carries its own New Note in the list header, so on
- * a phone — where that list is the whole screen, and the detail pane is one
- * back arrow from it — this is a second button for the same thing, floating
- * over the note you're writing. It stays from `md` up, where the list and the
- * note are side by side and the corner it sits in is empty.
+ * Below `xl` there's no room to spare for a second "new note" entry point —
+ * the Notes hub already has one in its list header, and every other page's
+ * corner is busy with page content rather than the empty margin desktop has.
  *
  * The composer opens as a panel beside the button rather than a dialog over the
  * page: what you were looking at when you thought of the note stays visible
@@ -82,7 +80,7 @@ export function FloatingNoteButton() {
         clientIds: draft.clientIds,
         title: draft.title.trim() || null,
         body: draft.body.trim(),
-        author: "Relation Manager",
+        author: NOTE_AUTHOR,
         reminderAt: draft.reminderAt,
         reminderDone: false,
       });
@@ -102,11 +100,9 @@ export function FloatingNoteButton() {
     <div
       // A class rather than a `useMediaQuery` early return: that hook can only
       // answer `false` on the server, so the button would ship in the HTML and
-      // blink out on hydration — on the one page where it's meant to be absent.
-      // A media query in the stylesheet has the answer before first paint.
-      className={`fixed bottom-5 right-5 md:bottom-8 md:right-8 z-40 ${
-        NOTES_PAGE.test(pathname) ? "max-md:hidden" : ""
-      }`}
+      // blink out on hydration. A media query in the stylesheet has the
+      // answer before first paint.
+      className="fixed bottom-8 right-8 z-40 hidden xl:block"
     >
       <Popover
         open={open}

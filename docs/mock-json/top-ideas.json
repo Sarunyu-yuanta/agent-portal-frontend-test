@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "maxCoupon": "30.5%",
+    "updatedAt": "10 September 2026 - 09:00",
+    "updatedAtMobile": "10 Sep 2026 - 09:00"
+  },
+  "sectors": [
+    {
+      "id": "Energy",
+      "theme": "สงครามน้ำมันแพง",
+      "subtitle": "อุตหกรรมที่ตอนนี้กำลังมาแรงที่สุด"
+    },
+    {
+      "id": "Material",
+      "theme": "ต้นทุนการผลิตสูงขึ้น",
+      "subtitle": "อุตหกรรมที่ตอนนี้กำลังมาแรงที่สุด"
+    },
+    {
+      "id": "Industrials",
+      "theme": "การขนส่งล่าช้าและมีราคาแพง",
+      "subtitle": "อุตหกรรมที่ตอนนี้กำลังมาแรงที่สุด"
+    },
+    {
+      "id": "Consumer Discretionary",
+      "theme": "ความต้องการสินค้าอุตสาหกรรมลดลง",
+      "subtitle": "อุตหกรรมที่ตอนนี้กำลังมาแรงที่สุด"
+    },
+    {
+      "id": "Consumer Staples",
+      "theme": "ผู้บริโภคลดการใช้จ่าย",
+      "subtitle": "อุตหกรรมที่ตอนนี้กำลังมาแรงที่สุด"
+    }
+  ],
+  "homeStrip": [
+    "Energy",
+    "Material",
+    "Industrials",
+    "Consumer Discretionary",
+    "Consumer Staples",
+    "Material",
+    "Energy",
+    "Consumer Discretionary"
+  ],
+  "allGrid": [
+    "Energy",
+    "Consumer Discretionary",
+    "Consumer Staples",
+    "Industrials",
+    "Industrials",
+    "Material",
+    "Consumer Discretionary",
+    "Consumer Staples",
+    "Consumer Discretionary",
+    "Consumer Discretionary",
+    "Energy",
+    "Material",
+    "Material",
+    "Material",
+    "Consumer Staples"
+  ]
+}

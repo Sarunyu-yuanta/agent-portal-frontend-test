@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BottomSheet, Button, Popover } from "@sarunyu/system-one";
 import { BellIcon, SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useClientNames } from "@/hooks/use-client-names";
 import { ClientAvatarStack } from "@/components/ui/client-avatar-stack";
 import { ClientField, ReminderField } from "./NoteAttributeFields";
 import { formatDayOnly } from "./note-format";
@@ -68,6 +69,7 @@ export function NoteAttributesControl({
 }) {
   const nothingSet = clientIds.length === 0 && !reminderAt;
   const isMobile = useMediaQuery("(max-width: 767px)");
+  const nameFor = useClientNames(clients);
   // Bumped by Clear. The fields hold their own on/off state, so emptying the
   // values is only half of it — see `useResetToggle` in `NoteAttributeFields`.
   const [resetKey, setResetKey] = useState(0);
@@ -124,7 +126,7 @@ export function NoteAttributesControl({
         ) : (
           <>
             <ClientAvatarStack
-              names={clientIds.map((id) => clients.find((c) => c.id === id)?.name ?? id)}
+              names={clientIds.map(nameFor)}
               slots={3}
               size="small"
             />

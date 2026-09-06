@@ -12,7 +12,7 @@ import {
   ChatCircleIcon,
 } from "@phosphor-icons/react";
 import { mockClients, mockClientDetails } from "@/lib/mock-data";
-import { useClientsResource, useNBAActions } from "@/hooks/use-api";
+import { useClientsResource } from "@/hooks/use-api";
 import { ClientProfileSkeleton } from "./ClientProfileSkeleton";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
@@ -40,7 +40,7 @@ import { KycTab } from "./KycTab";
 import { OverviewTab } from "./OverviewTab";
 
 /** Sub-tabs that `?tab=` may address; anything else falls back to Overview. */
-const CLIENT_TABS = ["overview", "kyc", "assets", "call-log", "notes", "reminders"];
+const CLIENT_TABS = ["overview", "kyc", "assets", "call-log", "reminders", "notes"];
 
 export default function ClientPage({
   params,
@@ -63,7 +63,6 @@ function ClientPageInner({ id }: { id: string }) {
   const pathname = usePathname();
   const { isPrivate } = usePrivacy();
   const { data: clients, isLoading } = useClientsResource();
-  const nbaActions = useNBAActions(clients);
 
   // Same source as the desktop top-bar breadcrumb — this page renders its own
   // only so it can live inside the sticky identity bar.
@@ -85,8 +84,6 @@ function ClientPageInner({ id }: { id: string }) {
   const [holdingsSortDir, setHoldingsSortDir] = useState<SortDir>("none");
   const [holdingsSortKey, setHoldingsSortKey] = useState<HoldingsSortKey>(null);
 
-  // NBA action for this client (provides aiDraft + revenueImpact for AI cards)
-  const nbaAction = nbaActions.find((a) => a.clientId === client.id);
   const callLogs = getCallLogs(client.id);
   const profile = getClientProfile(client.id);
   const [liabilitiesOpen, setLiabilitiesOpen] = useState(false);
@@ -235,12 +232,28 @@ function ClientPageInner({ id }: { id: string }) {
 
           {/* Right: KPIs — fade between sizes, hide on mobile when scrolled */}
           <div className={`flex items-center justify-center gap-8 md:justify-start md:gap-0 shrink-0 w-full md:w-auto bg-[var(--bg-default-secondary)] md:!bg-transparent border border-border md:!border-0 rounded-2xl md:!rounded-none p-4 md:!p-0 ${scrolled ? "hidden sm:flex" : ""}`}>
-            <div className="flex flex-col items-center text-center md:items-end md:text-right gap-1 md:pr-8">
+            {/* `flex-1` only below `md` — the two stats don't naturally take
+                equal width (the P&L side carries an extra arrow icon), so
+                without it the pair centers as a whole and the divider lands
+                off the card's actual midline, leaving "Total AUM" reading as
+                pushed toward it rather than centered in its own half. `md:`
+                drops it: the desktop layout right-aligns each stat against
+                its own edge instead of splitting a shared box in half. */}
+            <div className="flex flex-1 md:flex-none flex-col items-center text-center md:items-end md:text-right gap-1 md:pr-8">
               <p className="type-caption text-muted-foreground">Total AUM</p>
-              <p className={`text-foreground transition-opacity duration-150 ${scrolled ? "type-subtitle-1" : "type-h3"}`}>{client.aum}</p>
+              {/* `type-h3` is a fixed 32px — fine on the desktop layout this
+                  block switches to at `md`, but on a narrow phone that's wide
+                  enough to wrap "฿ 220M" onto two lines. `!` on the mobile
+                  override because `@sarunyu/system-one`'s stylesheet loads
+                  after `globals.css` and would otherwise win the specificity
+                  tie against a plain Tailwind class — same trap `SELECTED_ROW`
+                  in `NotesSidebarList` documents. `md:text-[32px]!` restores
+                  `type-h3`'s exact size rather than Tailwind's own `text-3xl`
+                  (30px), so nothing shifts at the breakpoint. */}
+              <p className={`text-foreground transition-opacity duration-150 ${scrolled ? "type-subtitle-1" : "type-h3 text-xl! md:text-[32px]!"}`}>{client.aum}</p>
             </div>
             <div className="w-px bg-border self-stretch -my-4 md:my-1 shrink-0" />
-            <div className="flex flex-col items-center text-center md:items-end md:text-right gap-1 md:pl-8">
+            <div className="flex flex-1 md:flex-none flex-col items-center text-center md:items-end md:text-right gap-1 md:pl-8">
               <p className="type-caption text-muted-foreground">YTD P&L</p>
               <div className="flex items-center gap-1.5">
                 {client.plPositive ? (
@@ -248,7 +261,7 @@ function ClientPageInner({ id }: { id: string }) {
                 ) : (
                   <ArrowDownIcon size={scrolled ? 14 : 18} className="text-destructive shrink-0" weight="bold" />
                 )}
-                <p className={`transition-opacity duration-150 ${scrolled ? "type-subtitle-1" : "type-h3"} ${client.plPositive ? "text-success" : "text-destructive"}`}>{client.plYtd}</p>
+                <p className={`transition-opacity duration-150 ${scrolled ? "type-subtitle-1" : "type-h3 text-xl! md:text-[32px]!"} ${client.plPositive ? "text-success" : "text-destructive"}`}>{client.plYtd}</p>
               </div>
             </div>
           </div>
@@ -263,10 +276,8 @@ function ClientPageInner({ id }: { id: string }) {
               { id: "kyc", title: "KYC" },
               { id: "assets", title: "Assets" },
               { id: "call-log", title: "Call Log" },
-              { id: "notes", title: "Notes" },
-              // After Notes, because that is where reminders are set: the tab
-              // order reads as write it, then track it.
               { id: "reminders", title: "Reminders" },
+              { id: "notes", title: "Notes" },
             ]}
             activeId={activeTab}
             onChange={setActiveTab}
@@ -306,13 +317,17 @@ function ClientPageInner({ id }: { id: string }) {
           </div>
         ) : activeTab === "reminders" ? (
           <div className="pt-8 w-full">
-            <ClientRemindersTab clientId={client.id} />
+            <Card variant="default">
+              <div className="flex flex-col gap-4">
+                <h6 className="type-h6 text-foreground">Reminders</h6>
+                <ClientRemindersTab clientId={client.id} />
+              </div>
+            </Card>
           </div>
         ) : (
           <OverviewTab
             clientId={client.id}
             detail={detail}
-            nbaAction={nbaAction}
             holdingsSortKey={holdingsSortKey}
             holdingsSortDir={holdingsSortDir}
             onSort={(key, dir) => {

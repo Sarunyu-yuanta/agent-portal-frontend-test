@@ -1,0 +1,29 @@
+[
+  {
+    "id": "secure-income",
+    "name": "Secure Income",
+    "desc": "ความเสี่ยงต่ำ ลงทุนอย่างมั่นคง",
+    "couponRange": "12%-15%",
+    "tenor": "12 เดือน",
+    "heroImage": "/invest-secure-income-hero.png",
+    "showCoupon": false
+  },
+  {
+    "id": "balanced-growth",
+    "name": "Balanced Growth",
+    "desc": "ความเสี่ยงปานกลาง ผลตอบแทนคุ้มค่า",
+    "couponRange": "25%-30%",
+    "tenor": "9 เดือน",
+    "heroImage": "/invest-balanced-growth-hero.png",
+    "showCoupon": false
+  },
+  {
+    "id": "high-conviction",
+    "name": "High Conviction",
+    "desc": "ความเสี่ยงสูง ผลตอบแทนสูงสุด",
+    "couponRange": "35%-40%",
+    "tenor": "6 เดือน",
+    "heroImage": "/invest-high-conviction-hero.png",
+    "showCoupon": true
+  }
+]

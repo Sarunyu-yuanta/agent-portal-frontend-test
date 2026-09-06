@@ -7,6 +7,7 @@ import { ClientAvatarStack } from "@/components/ui/client-avatar-stack";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Note } from "@/types/domain";
 import { LOCAL_ID_PREFIX } from "@/contexts/notes-context";
+import { useClientNames } from "@/hooks/use-client-names";
 import { groupNotesByDate, snippet } from "./notes-grouping";
 import { formatListStamp } from "./note-format";
 
@@ -30,7 +31,7 @@ const FILTERS: { id: Filter; label: string }[] = [
 ];
 
 /** How long a discarded row takes to fade and collapse out. */
-export const DISCARD_EXIT_MS = 200;
+const DISCARD_EXIT_MS = 200;
 
 /**
  * When `NotesSplitView` may actually drop the note from state — strictly *after*
@@ -221,12 +222,7 @@ export function NotesSidebarList({
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
 
-  // Built once per render of the list rather than per row: every row would
-  // otherwise re-scan the whole client array for each of its ids.
-  const nameById = useMemo(
-    () => new Map(clients.map((c) => [c.id, c.name])),
-    [clients],
-  );
+  const nameFor = useClientNames(clients);
 
   const searchActive = search.trim().length > 0;
 
@@ -246,11 +242,11 @@ export function NotesSidebarList({
           // reads as broken: you type the name you can see and get nothing.
           // Matching them is also what keeps "which client" out of the filter
           // segments, since narrowing to one person is what this box is for.
-          n.clientIds.some((id) => (nameById.get(id) ?? id).toLowerCase().includes(q)),
+          n.clientIds.some((id) => nameFor(id).toLowerCase().includes(q)),
       );
     }
     return result;
-  }, [notes, filter, search, nameById]);
+  }, [notes, filter, search, nameFor]);
 
   const groups = useMemo(() => groupNotesByDate(filtered), [filtered]);
 
@@ -574,9 +570,7 @@ export function NotesSidebarList({
                                   {(note.clientIds.length > 0 || note.reminderAt) && (
                                     <span className="flex shrink-0 items-center gap-1.5">
                                       <ClientAvatarStack
-                                        names={note.clientIds.map(
-                                          (id) => nameById.get(id) ?? id,
-                                        )}
+                                        names={note.clientIds.map(nameFor)}
                                         slots={3}
                                         size="small"
                                       />

@@ -1,0 +1,44 @@
+{
+  "baseTotal": 185000,
+  "categories": [
+    {
+      "id": "debt",
+      "label": "ภาระหนี้",
+      "percent": 42,
+      "color": "#8B1538",
+      "subItems": [
+        { "label": "Credit Balance a/c", "amount": "55,000" },
+        { "label": "Derivative a/c", "amount": "22,700" }
+      ]
+    },
+    {
+      "id": "payable",
+      "label": "ยอดค้างจ่าย",
+      "percent": 28,
+      "color": "#E11D48",
+      "subItems": [
+        { "label": "Settlement Payable", "amount": "32,400" },
+        { "label": "Fee Payable", "amount": "19,400" }
+      ]
+    },
+    {
+      "id": "receivable",
+      "label": "ยอดค้างรับ",
+      "percent": 20,
+      "color": "#0A6EE7",
+      "subItems": [
+        { "label": "Dividend Receivable", "amount": "22,000" },
+        { "label": "Coupon Receivable", "amount": "15,000" }
+      ]
+    },
+    {
+      "id": "short",
+      "label": "มูลค่าขายชอร์ต",
+      "percent": 10,
+      "color": "#F9A8D4",
+      "subItems": [
+        { "label": "Short Sell Position", "amount": "18,500" }
+      ]
+    }
+  ]
+}

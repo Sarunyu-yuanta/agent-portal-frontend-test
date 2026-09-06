@@ -2,17 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Modal, Toaster } from "@sarunyu/system-one";
-import type { ToastProps } from "@sarunyu/system-one";
 import { NotePencilIcon } from "@phosphor-icons/react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useToasts } from "@/hooks/use-toasts";
 import { useNotes, LOCAL_ID_PREFIX } from "@/contexts/notes-context";
 import type { Note } from "@/types/domain";
+import { NOTE_AUTHOR } from "./note-constants";
 import { NotesSidebarList, DISCARD_REMOVE_MS } from "./NotesSidebarList";
 import { NoteDetailPane } from "./NoteDetailPane";
-
-const AUTHOR = "Relation Manager";
 
 /** Distinguishes one composition from the next, so clicking New Note twice in a
  * row gives the editor a key it hasn't seen and it mounts empty. */
@@ -66,10 +65,7 @@ export function NotesSplitView({
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId ?? null);
   const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
-  // Same local-state Toaster the Calendar and the client Notes tab use.
-  const [toasts, setToasts] = useState<Array<ToastProps & { id: string }>>([]);
-  const addToast = (props: Omit<ToastProps, "onClose">) =>
-    setToasts((prev) => [...prev, { ...props, id: crypto.randomUUID() }]);
+  const { toasts, addToast, removeToast } = useToasts();
   // Reported by NoteDetailPane on every keystroke, not on its save debounce.
   const [draftBlank, setDraftBlank] = useState(false);
   // Notes mid-exit: still in the list, already animating out of it.
@@ -246,7 +242,7 @@ export function NotesSplitView({
       clientIds: seedClient ? [seedClient] : [],
       title: null,
       body: "",
-      author: AUTHOR,
+      author: NOTE_AUTHOR,
       reminderAt: null,
       reminderDone: false,
       createdAt: now,
@@ -423,10 +419,7 @@ export function NotesSplitView({
     <>
       {/* Outside the split view's own box, which clips its contents — the
           Toaster is fixed-position and would be cut off inside it. */}
-      <Toaster
-        items={toasts}
-        onRemove={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))}
-      />
+      <Toaster items={toasts} onRemove={removeToast} />
 
       <div
         className={cn(

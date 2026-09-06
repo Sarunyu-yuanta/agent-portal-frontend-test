@@ -7,6 +7,7 @@ import type { TagVariant } from "@sarunyu/system-one";
 import { ClientAvatarStack } from "@/components/ui/client-avatar-stack";
 import type { Note } from "@/types/domain";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useClientNames } from "@/hooks/use-client-names";
 import { ClientField, ReminderField } from "./NoteAttributeFields";
 import { NoteAttributesControl } from "./NoteAttributesControl";
 import { NoteEditorFields } from "./NoteEditorFields";
@@ -208,7 +209,6 @@ export function NoteDetailPane({
   }, [title, body, onValuesChange]);
 
   // Resolved from `clients` rather than taken as a prop — the pane already has
-  // Resolved from `clients` rather than taken as a prop — the pane already has
   // the list it feeds the dropdown, so a second `clientName` prop would be the
   // same fact arriving twice and able to disagree with itself. Falls back to the
   // raw id so an unknown client still shows something rather than vanishing.
@@ -221,10 +221,11 @@ export function NoteDetailPane({
   // Pinned first, whatever order `clientIds` happens to be in: the pin guard in
   // `ClientField` re-appends it when the dropdown drops it, so left alone the
   // note's owner would drift to the end of their own chip row.
+  const nameFor = useClientNames(clients);
   const clientLabels = [
     ...(pinnedClientId && note.clientIds.includes(pinnedClientId) ? [pinnedClientId] : []),
     ...note.clientIds.filter((id) => id !== pinnedClientId),
-  ].map((id) => clients.find((c) => c.id === id)?.name ?? id);
+  ].map(nameFor);
   const reminder = reminderTag(note);
 
 

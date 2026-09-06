@@ -400,6 +400,9 @@ function ClientHubPageInner() {
           <ClientDetailPanel
             client={panelClient}
             onViewFull={() => goToProfile(panelClient.id)}
+            onViewCallLog={() => router.push(`/client/${panelClient.id}?tab=call-log`)}
+            onViewReminders={() => router.push(`/client/${panelClient.id}?tab=reminders`)}
+            onViewNotes={() => router.push(`/client/${panelClient.id}?tab=notes`)}
           />
         )}
       </DetailDrawer>

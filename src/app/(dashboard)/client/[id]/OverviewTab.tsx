@@ -1,28 +1,29 @@
 "use client";
 
-import { Card, Tag, Button, List, ListItem } from "@sarunyu/system-one";
+import { useMemo } from "react";
+import { Card, Button } from "@sarunyu/system-one";
 import {
-  SparkleIcon,
-  CurrencyCircleDollarIcon,
-  WarningCircleIcon,
-  PresentationChartIcon,
-  ArrowsLeftRightIcon,
-  ArrowsClockwiseIcon,
   CalendarCheckIcon,
+  CalendarBlankIcon,
+  BellIcon,
 } from "@phosphor-icons/react";
-import { mockNBAActions } from "@/lib/mock-data";
+import { useClients } from "@/hooks/use-api";
 import { useNotes } from "@/contexts/notes-context";
-import { reminderTag } from "../../notes/note-format";
+import { dayFromKey, dayOffset, todayDateKey } from "../../calendar/calendar-grid";
+import { groupDayItems, type DayItem } from "../../calendar/day-items";
+import { useDayItemModals } from "../../calendar/use-day-item-modals";
+import { formatDayOnly, TAG_CHIP_TONE } from "../../notes/note-format";
 import { CurrentAllocationSection, TopHoldingsSection } from "./ClientSections";
 import type { SortDir, HoldingsSortKey } from "./client-detail-data";
 import type { ClientDetail } from "@/types/domain";
 
-type NbaAction = (typeof mockNBAActions)[number];
+/** How far out the Reminders card looks — past this, a reminder only shows
+ *  up once you open the full Reminders tab. */
+const REMINDER_WINDOW_DAYS = 15;
 
 export function OverviewTab({
   clientId,
   detail,
-  nbaAction,
   holdingsSortKey,
   holdingsSortDir,
   onSort,
@@ -31,114 +32,78 @@ export function OverviewTab({
 }: {
   clientId: string;
   detail: ClientDetail;
-  nbaAction: NbaAction | undefined;
   holdingsSortKey: HoldingsSortKey;
   holdingsSortDir: SortDir;
   onSort: (key: "value" | "pnlPct" | "pct", dir: SortDir) => void;
   onViewAllHoldings?: () => void;
   onViewReminders?: () => void;
 }) {
+  const clients = useClients();
   const { notes } = useNotes();
-  const upcomingReminders = notes
-    .filter((n) => n.clientIds.includes(clientId) && n.reminderAt && !n.reminderDone)
-    .sort((a, b) => new Date(a.reminderAt!).getTime() - new Date(b.reminderAt!).getTime())
-    .slice(0, 3);
+
+  // `assetSummary.allocationSlices` only exists in the mock data for one
+  // client — everyone else has it as `undefined`, and the old `?? []`
+  // fallback rendered a chart with nothing in it rather than an actual
+  // fallback. `allocationData` is a required field every client's record
+  // does carry, so that's what a missing `allocationSlices` falls back to.
+  const allocationSlices =
+    detail.assetSummary?.allocationSlices ??
+    detail.allocationData.map((s) => ({ label: s.name, percent: s.value }));
+
+  // `todayKey` rather than the `Date`: a fresh object every render would make
+  // the memo useless, and only the day is what either source is measured
+  // against. Same trick `ClientRemindersTab` uses.
+  const todayKey = todayDateKey();
+
+  // Sourced from `groupDayItems`, not `notes` directly — the client's own
+  // notes aren't the only thing with a date attached. A dividend ex-date the
+  // backend raised is a reminder just as much as one the desk wrote, and
+  // filtering `notes` alone silently dropped every one of those from this
+  // card even though the full Reminders tab already shows them.
+  const upcomingReminders = useMemo(() => {
+    const today = new Date(todayKey);
+    const map = groupDayItems(notes, today, clientId);
+    const items: { item: DayItem; day: Date; daysUntil: number }[] = [];
+    for (const [key, dayItems] of map) {
+      const day = dayFromKey(key);
+      const daysUntil = dayOffset(day, today);
+      // Due today counts as "upcoming" too (`daysUntil === 0`); anything
+      // already overdue is what the full Reminders tab is for, not this card.
+      if (daysUntil < 0 || daysUntil > REMINDER_WINDOW_DAYS) continue;
+      for (const item of dayItems) {
+        if (item.done) continue;
+        items.push({ item, day, daysUntil });
+      }
+    }
+    items.sort((a, b) => a.day.getTime() - b.day.getTime());
+    return items.slice(0, 3);
+  }, [notes, clientId, todayKey]);
+
+  // Opens the reminder's own note in place — see `useDayItemModals` — rather
+  // than only handing off to the Reminders tab, which is all `onViewReminders`
+  // can do since it doesn't know which row was clicked. A system-raised item
+  // (no note behind it) opens the same read-only panel the Reminders tab and
+  // the Calendar both use. No holder list: this whole page is one client, so
+  // the panel would be listing the person whose profile you are standing in
+  // — see `AlertDetail`.
+  const { open: openReminder, modals: reminderModals } = useDayItemModals({
+    clients,
+    pinnedClientId: clientId,
+    showHolders: false,
+  });
 
   return (
+    <>
     <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start pt-8">
 
       {/* ── Left column (main) ── */}
       <div className="flex-[3] min-w-0 flex flex-col gap-6">
 
-      {/* AI Intelligence — hidden for now */}
-      {false && (
-      <section className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <SparkleIcon size={18} weight="fill" className="text-primary-action" />
-          <h5 className="type-h5 text-foreground">AI Intelligence</h5>
-        </div>
-
-        {detail.aiHighPriority && (
-          <div className="rounded-xl border border-border overflow-hidden flex bg-card">
-            <div className="w-1 shrink-0 bg-red-400" />
-            <div className="flex-1 min-w-0 flex flex-col">
-              <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
-                <div className="flex flex-col gap-1.5">
-                  <p className="type-subtitle-2 text-foreground leading-snug">{detail.aiHighPriority?.title}</p>
-                  <Tag text="Revenue Opportunity" variant="green" size="small" />
-                </div>
-                <Tag text="HIGH" variant="red" size="small" />
-              </div>
-              <div className="mx-4 border-t border-[var(--border-divider)]" />
-              <div className="px-4 py-3 flex flex-col gap-3">
-                <p className="type-body-2 text-muted-foreground leading-snug">{detail.aiHighPriority?.message}</p>
-                {nbaAction?.aiDraft && (
-                  <div className="flex gap-2 bg-primary-action-light rounded-lg px-3 py-2.5">
-                    <SparkleIcon size={14} className="text-primary-action shrink-0 mt-0.5" weight="fill" />
-                    <p className="text-[13px] text-foreground leading-relaxed">{nbaAction?.aiDraft}</p>
-                  </div>
-                )}
-                <div className="flex items-center justify-between gap-2 pt-0.5">
-                  {nbaAction?.revenueImpact.startsWith("฿") ? (
-                    <div className="flex items-baseline gap-1.5">
-                      <CurrencyCircleDollarIcon size={13} className="text-success shrink-0 translate-y-[1px]" weight="fill" />
-                      <span className="text-[14px] font-bold text-success leading-none">{nbaAction?.revenueImpact.replace(" est. revenue", "")}</span>
-                      <span className="text-[11px] text-muted-foreground leading-none">est. revenue</span>
-                    </div>
-                  ) : <span />}
-                  <div className="flex items-center gap-2">
-                    <Button variant="plain" size="sm">{detail.aiHighPriority?.secondaryAction}</Button>
-                    <Button variant="primary" size="sm">{detail.aiHighPriority?.primaryAction}</Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {detail.aiRiskAlert && (
-          <div className="rounded-xl border border-border overflow-hidden flex bg-card">
-            <div className="w-1 shrink-0 bg-yellow-400" />
-            <div className="flex-1 min-w-0 flex flex-col">
-              <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
-                <div className="flex flex-col gap-1.5">
-                  <p className="type-subtitle-2 text-foreground leading-snug">{detail.aiRiskAlert?.title}</p>
-                  <Tag text="Compliance Risk" variant="red" size="small" />
-                </div>
-                <Tag text="MEDIUM" variant="yellow" size="small" />
-              </div>
-              <div className="mx-4 border-t border-[var(--border-divider)]" />
-              <div className="px-4 py-3 flex flex-col gap-3">
-                <p className="type-body-2 text-muted-foreground leading-snug">{detail.aiRiskAlert?.message}</p>
-                <div className="flex items-center justify-between gap-2 pt-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <WarningCircleIcon size={13} className="text-warning shrink-0" weight="fill" />
-                    <span className="text-[12px] font-medium text-warning leading-none">Requires immediate review</span>
-                  </div>
-                  <Button variant="outline" size="sm">{detail.aiRiskAlert?.action}</Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!detail.aiHighPriority && !detail.aiRiskAlert && (
-          <div className="rounded-xl border border-border overflow-hidden flex bg-card">
-            <div className="w-1 shrink-0 bg-border" />
-            <div className="flex items-center gap-3 px-4 py-4">
-              <SparkleIcon size={16} weight="duotone" className="text-muted-foreground" />
-              <p className="type-body-2 text-muted-foreground">All caught up — no pending actions.</p>
-            </div>
-          </div>
-        )}
-      </section>
-      )}
-
         {/* Current Allocation */}
         <Card variant="default">
           <div className="flex flex-col gap-4">
             <h6 className="type-h6 text-foreground">Current Allocation</h6>
-            <CurrentAllocationSection slices={detail.assetSummary?.allocationSlices ?? []} />
+            <CurrentAllocationSection slices={allocationSlices} />
           </div>
         </Card>
 
@@ -163,52 +128,6 @@ export function OverviewTab({
       {/* ── Right column (sidebar) ── */}
       <div className="flex-[2] min-w-0 flex flex-col gap-5">
 
-        {/* Quick Trade & Propose — hidden for now */}
-        {false && (
-        <Card variant="default">
-          <div className="flex flex-col gap-3">
-            <h6 className="type-h6 text-foreground">Quick Trade & Propose</h6>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => {}}
-                className="w-full flex items-center justify-center gap-2.5 bg-foreground text-background rounded-xl px-4 py-3 text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                <PresentationChartIcon size={18} />
-                Build New Proposal
-              </button>
-              <button
-                onClick={() => {}}
-                className="w-full flex items-center justify-center gap-2.5 border border-border rounded-xl px-4 py-3 text-sm font-medium text-foreground hover:bg-[var(--bg-default-secondary)] transition-colors cursor-pointer"
-              >
-                <ArrowsLeftRightIcon size={18} />
-                Execute Trade / Order
-              </button>
-              <button
-                onClick={() => {}}
-                className="w-full flex items-center justify-center gap-2.5 border border-border rounded-xl px-4 py-3 text-sm font-medium text-foreground hover:bg-[var(--bg-default-secondary)] transition-colors cursor-pointer"
-              >
-                <ArrowsClockwiseIcon size={18} />
-                Simulate Rebalance
-              </button>
-            </div>
-          </div>
-        </Card>
-        )}
-
-        {/* Behavioral Profile — hidden for now */}
-        {false && (
-        <Card variant="default">
-          <div className="flex flex-col gap-4">
-            <h6 className="type-h6 text-foreground">Behavioral Profile</h6>
-            <List>
-              {detail.behavioralProfile.map((item) => (
-                <ListItem key={item.label} label={item.label} trailing={item.value} />
-              ))}
-            </List>
-          </div>
-        </Card>
-        )}
-
         {/* Reminders */}
         <Card variant="default">
           <div className="flex flex-col gap-4">
@@ -226,21 +145,50 @@ export function OverviewTab({
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                {upcomingReminders.map((note) => {
-                  const tag = reminderTag(note);
+                {upcomingReminders.map(({ item, day, daysUntil }) => {
+                  // Only two states ever reach this card: everything overdue
+                  // or done was already filtered out above, so "today" is the
+                  // one date that needs to say more than just the date.
+                  const dueToday = daysUntil === 0;
                   return (
                     <button
-                      key={note.id}
+                      key={item.id}
                       type="button"
-                      onClick={onViewReminders}
-                      className="flex flex-col gap-1 items-start rounded-lg p-2 -m-2 hover:bg-[var(--bg-default-secondary)] transition-colors text-left cursor-pointer"
+                      onClick={() => openReminder(item, day)}
+                      className="flex items-center gap-3 rounded-xl bg-[var(--bg-default-secondary)] p-3 text-left transition-colors cursor-pointer hover:bg-[var(--fill-gray-200)]!"
                     >
-                      <div className="flex items-center gap-2">
-                        {tag && <Tag text={tag.label} variant={tag.variant} size="small" />}
+                      {/* The bell carries the urgency colour on its own — a
+                          second colour on a text tag beside it would say the
+                          same thing twice, so the tag's label prints in plain
+                          muted text below instead. */}
+                      <span
+                        className={`flex size-9 shrink-0 items-center justify-center rounded-full ${
+                          TAG_CHIP_TONE[dueToday ? "yellow" : "green"]
+                        }`}
+                      >
+                        <BellIcon size={16} weight="fill" />
+                      </span>
+                      <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                        <p className="type-body-2 font-semibold text-foreground truncate">
+                          {item.title}
+                        </p>
+                        {/* "Reminder" (the plain-scheduled case) is the one
+                            status word that says nothing past "there's a date
+                            here" — a small calendar glyph carries that without
+                            spending a word on it. Due today still prints,
+                            since that's actual news about the date rather
+                            than a label for it. */}
+                        {dueToday ? (
+                          <p className="type-caption text-muted-foreground/70">
+                            Due today · {formatDayOnly(day.toISOString())}
+                          </p>
+                        ) : (
+                          <p className="flex items-center gap-1 type-caption text-muted-foreground/70">
+                            <CalendarBlankIcon size={12} />
+                            {formatDayOnly(day.toISOString())}
+                          </p>
+                        )}
                       </div>
-                      <p className="type-body-2 text-foreground truncate w-full">
-                        {note.title || note.body}
-                      </p>
                     </button>
                   );
                 })}
@@ -279,5 +227,8 @@ export function OverviewTab({
       </div>{/* end right column */}
 
     </div>
+
+    {reminderModals}
+    </>
   );
 }
