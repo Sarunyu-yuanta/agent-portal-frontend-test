@@ -9,6 +9,7 @@ import {
 } from "@phosphor-icons/react";
 import { useClients } from "@/hooks/use-api";
 import { useNotes } from "@/contexts/notes-context";
+import { REMINDERS_ENABLED } from "@/lib/feature-flags";
 import { dayFromKey, dayOffset, todayDateKey } from "../../calendar/calendar-grid";
 import { groupDayItems, type DayItem } from "../../calendar/day-items";
 import { useDayItemModals } from "../../calendar/use-day-item-modals";
@@ -128,7 +129,11 @@ export function OverviewTab({
       {/* ── Right column (sidebar) ── */}
       <div className="flex-[2] min-w-0 flex flex-col gap-5">
 
-        {/* Reminders */}
+        {/* Reminders — out of the current delivery phase (see
+            `lib/feature-flags`). Hiding the card rather than letting it render
+            its empty state: "No reminders yet" invites the user to go and set
+            one, and the surface that would take them there isn't shipping. */}
+        {REMINDERS_ENABLED && (
         <Card variant="default">
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-2">
@@ -196,6 +201,7 @@ export function OverviewTab({
             )}
           </div>
         </Card>
+        )}
 
         {/* Recent Activity */}
         <Card variant="default">
@@ -228,7 +234,7 @@ export function OverviewTab({
 
     </div>
 
-    {reminderModals}
+    {REMINDERS_ENABLED && reminderModals}
     </>
   );
 }

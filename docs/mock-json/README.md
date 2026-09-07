@@ -43,5 +43,5 @@ Every mock data domain from [`../mock-data-inventory.md`](../mock-data-inventory
 | `pipeline-checklist.json` | 4.6 | `src/app/(dashboard)/pipeline/pipeline-data.ts` — keyed by pipeline stage name |
 | `compliance-page-extras.json` | 4.7 | `src/app/(dashboard)/compliance/KpiBar.tsx` + `AlertCards.tsx` — `alertTimestamps` is positionally mapped onto `compliance-alerts.json`'s 4 records (index 0 → first alert, etc.), not its own keyed dataset |
 | `ai-insights-page-extras.json` | 4.8 | `src/app/(dashboard)/ai-insights/page.tsx` |
-| `research4u.json` | 4.9 | `src/app/(dashboard)/insights/Research4U.tsx` — every report links to the same placeholder PDF (`mockReportPdfUrl`); this is a fully standalone dataset, not customer/client data |
+| `research.json` | 4.9 | `src/app/(dashboard)/insights/Research.tsx` — every report links to the same placeholder PDF (`mockReportPdfUrl`); this is a fully standalone dataset, not customer/client data |
 | `notes-shape-example.json` | 5 | N/A — Notes has **zero** seeded data; this file is 2 illustrative example records showing the shape (`ApiNote`), not real mock content |

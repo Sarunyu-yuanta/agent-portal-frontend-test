@@ -205,3 +205,25 @@ export function getKycDueClients(clients: Client[]) {
 export function getTopClientsByAum(clients: Client[]): Client[] {
   return [...clients].sort((a, b) => parseAumToThb(b.aum) - parseAumToThb(a.aum));
 }
+
+/**
+ * Clients holding idle cash, most first, with the amount alongside.
+ *
+ * Returns the THB figure rather than leaving the caller to re-derive it: this is
+ * the same `aum × cashIdlePct` that {@link getClientTotals} sums into the Cash
+ * Under Advice total, and the two have to agree for the breakdown to add up to
+ * the headline. Backend: return per-client idle cash directly and this becomes a
+ * sort.
+ *
+ * Clients with no idle cash are dropped — they contribute nothing to the total,
+ * so a `฿ 0M` row would only be noise in a list about where the cash is.
+ */
+export function getClientsByCash(clients: Client[]): { client: Client; cashThb: number }[] {
+  return clients
+    .map((client) => ({
+      client,
+      cashThb: parseAumToThb(client.aum) * (client.cashIdlePct / 100),
+    }))
+    .filter((entry) => entry.cashThb > 0)
+    .sort((a, b) => b.cashThb - a.cashThb);
+}

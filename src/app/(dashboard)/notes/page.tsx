@@ -1,9 +1,10 @@
 "use client";
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { useClients } from "@/hooks/use-api";
 import { useNotes } from "@/contexts/notes-context";
+import { NOTES_ENABLED } from "@/lib/feature-flags";
 import { NotesSplitView } from "./NotesSplitView";
 
 /**
@@ -12,6 +13,13 @@ import { NotesSplitView } from "./NotesSplitView";
  * this page is where general (non-client) notes actually live.
  */
 export default function NotesPage() {
+  // Out of the current delivery phase (see `lib/feature-flags`). The sidebar
+  // entry is gone, so this only catches a pasted or bookmarked URL — and it
+  // sends it somewhere real rather than showing a feature that isn't shipping
+  // yet. `redirect` during a Client Component's render is supported and turns
+  // into a server-side redirect on a cold load.
+  if (!NOTES_ENABLED) redirect("/client-hub");
+
   return (
     <Suspense fallback={null}>
       <NotesPageInner />

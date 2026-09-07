@@ -32,15 +32,13 @@ import {
   type SortDir,
   type HoldingsSortKey,
 } from "./client-detail-data";
+import { CLIENT_TABS, CLIENT_TAB_ITEMS } from "./client-tabs";
 import { CallLogTable } from "./ClientSections";
 import { ClientNotesTab } from "./ClientNotesTab";
 import { FadeIn } from "@/components/ui/fade-in";
 import { ClientRemindersTab } from "./ClientRemindersTab";
 import { KycTab } from "./KycTab";
 import { OverviewTab } from "./OverviewTab";
-
-/** Sub-tabs that `?tab=` may address; anything else falls back to Overview. */
-const CLIENT_TABS = ["overview", "kyc", "assets", "call-log", "reminders", "notes"];
 
 export default function ClientPage({
   params,
@@ -271,14 +269,7 @@ function ClientPageInner({ id }: { id: string }) {
         {/* ── Tab navigation ── */}
         <div className="transparent-tabs scrollable-tabs -mx-4 xl:-mx-6 pl-4 xl:pl-6">
           <TabGroup
-            items={[
-              { id: "overview", title: "Overview" },
-              { id: "kyc", title: "KYC" },
-              { id: "assets", title: "Assets" },
-              { id: "call-log", title: "Call Log" },
-              { id: "reminders", title: "Reminders" },
-              { id: "notes", title: "Notes" },
-            ]}
+            items={CLIENT_TAB_ITEMS}
             activeId={activeTab}
             onChange={setActiveTab}
             size="md"

@@ -14,7 +14,7 @@ import {
   type AssetClassFilter,
 } from "./StrategyPlaybooks";
 import { AIRecommendCard } from "./AIRecommendCard";
-import { Research4U } from "./Research4U";
+import { Research } from "./Research";
 
 /** The Insights tab's "playbooks + sidebar" two-column split. */
 function InsightsLayout({ children }: { children: React.ReactNode }) {
@@ -62,7 +62,7 @@ function InsightsPageInner() {
 
   // The tab stays in the URL — it's a destination, not a refinement.
   const activeTab =
-    searchParams.get("tab") === "research4u" ? "research4u" : "insights";
+    searchParams.get("tab") === "research" ? "research" : "insights";
 
   // Seeded from storage rather than held there: on a fresh load it has just
   // been cleared, so the server and the client both start at "All" and
@@ -88,8 +88,8 @@ function InsightsPageInner() {
       <div className="transparent-tabs scrollable-tabs -mx-4 xl:-mx-6 pl-4 xl:pl-6">
         <TabGroup
           items={[
-            { id: "insights",   title: "House View" },
-            { id: "research4u", title: "Research 4U" },
+            { id: "insights", title: "House View" },
+            { id: "research", title: "Research" },
           ]}
           activeId={activeTab}
           onChange={(id) =>
@@ -115,7 +115,7 @@ function InsightsPageInner() {
             </SidebarColumn>
           </InsightsLayout>
         ) : (
-          <Research4U />
+          <Research />
         )}
       </FadeIn>
     </div>

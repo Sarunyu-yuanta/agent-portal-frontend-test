@@ -1,7 +1,9 @@
 "use client";
 
+import { redirect } from "next/navigation";
 import { useClients } from "@/hooks/use-api";
 import { useNotes } from "@/contexts/notes-context";
+import { CALENDAR_ENABLED } from "@/lib/feature-flags";
 import { CalendarView } from "./CalendarView";
 
 /**
@@ -10,6 +12,14 @@ import { CalendarView } from "./CalendarView";
  * upcoming ones read at a glance.
  */
 export default function CalendarPage() {
+  // Out of the current delivery phase — same guard, and the same reasoning, as
+  // `/notes` (see `lib/feature-flags`). The page body is a separate component
+  // so the guard sits above every hook rather than in front of them.
+  if (!CALENDAR_ENABLED) redirect("/client-hub");
+  return <CalendarPageInner />;
+}
+
+function CalendarPageInner() {
   const clients = useClients();
   const { notes, isLoading } = useNotes();
 

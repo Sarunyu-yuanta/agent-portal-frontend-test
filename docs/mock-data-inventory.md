@@ -109,7 +109,7 @@ Raw JSON in `src/data/*.json`, reshaped/typed by `src/lib/mock-data.ts`.
 - **Lives in**: hardcoded directly in `src/lib/mock-data.ts` — **no JSON file**
 - **Shape**: `{ id: string, name: string, title: string, photo: string }`
 - **Records**: 8
-- **Used in**: Insights page's "Analyst Contact" / Research4U tab
+- **Used in**: Insights page's "Analyst Contact" / Research tab
 
 ---
 
@@ -209,7 +209,7 @@ These never made it into `src/data/` — they're inline arrays/objects living in
 | 4.6 | Pipeline stage-advance checklist | `pipeline/pipeline-data.ts` (`ADVANCE_CHECKLIST`) | 4 stages × 3 items = 12 |
 | 4.7 | Compliance page KPI tiles + alert timestamps | `compliance/KpiBar.tsx`, `compliance/AlertCards.tsx` (`ALERT_TIMESTAMPS`) | 4 KPI tiles, 4 timestamp strings |
 | 4.8 | AI Insights page: KPI tiles, AI summary card, model-confidence stats, tab counts | `ai-insights/page.tsx` (inline arrays) | 4 KPI tiles, 4 model-stat rows, 5 tabs |
-| 4.9 | Research4U: category taxonomy, landing tiles, research report list | `insights/Research4U.tsx` (`R4U_CATS`, `MOCK_R4U`, `R4U_LANDING_TILES`) | 20 categories, 23 reports, 14 landing tiles — every report links to the same placeholder PDF at `/mock-reports/sample-report.pdf` |
+| 4.9 | Research: category taxonomy, landing tiles, research report list | `insights/Research.tsx` (`RESEARCH_CATS`, `MOCK_RESEARCH`, `RESEARCH_LANDING_TILES`) | 20 categories, 23 reports, 14 landing tiles — every report links to the same placeholder PDF at `/mock-reports/sample-report.pdf` |
 
 ---
 

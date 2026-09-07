@@ -15,6 +15,7 @@ import {
   CalendarBlankIcon,
 } from "@phosphor-icons/react";
 import { usePrivacy } from "@/contexts/privacy-context";
+import { CALENDAR_ENABLED, NOTES_ENABLED } from "@/lib/feature-flags";
 import {
   lastSectionPath,
   sectionForPath,
@@ -58,22 +59,34 @@ const workspaceItems: NavItem[] = [
  * The two entries are closer than neighbours: Calendar renders the reminders
  * attached to notes, laid out by day instead of by list (see
  * `app/(dashboard)/calendar/page.tsx`). One body of work, two views of it.
+ *
+ * Both are out of the current delivery phase (see `lib/feature-flags`), so the
+ * list is filtered rather than written out — with both off it comes back empty
+ * and the whole Planner section, label included, stops rendering.
  */
 const plannerItems: NavItem[] = [
-  {
-    href: "/notes",
-    section: "notes",
-    label: "Notes",
-    icon: NotePencilIcon,
-    badge: null,
-  },
-  {
-    href: "/calendar",
-    section: "calendar",
-    label: "Calendar",
-    icon: CalendarBlankIcon,
-    badge: null,
-  },
+  ...(NOTES_ENABLED
+    ? [
+        {
+          href: "/notes",
+          section: "notes" as const,
+          label: "Notes",
+          icon: NotePencilIcon,
+          badge: null,
+        },
+      ]
+    : []),
+  ...(CALENDAR_ENABLED
+    ? [
+        {
+          href: "/calendar",
+          section: "calendar" as const,
+          label: "Calendar",
+          icon: CalendarBlankIcon,
+          badge: null,
+        },
+      ]
+    : []),
 ];
 
 type NavItem = {
@@ -242,12 +255,14 @@ export function AppSidebar({
           collapsed={collapsed}
           onNavigate={onClose}
         />
-        <NavSection
-          label="Planner"
-          items={plannerItems}
-          collapsed={collapsed}
-          onNavigate={onClose}
-        />
+        {plannerItems.length > 0 && (
+          <NavSection
+            label="Planner"
+            items={plannerItems}
+            collapsed={collapsed}
+            onNavigate={onClose}
+          />
+        )}
       </nav>
 
       {/* Privacy mode toggle */}

@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { CLIENT_TAB_ITEMS } from "./client-tabs";
 
 /** Matches `Card variant="default"` shell (`bg-card rounded-[8px] p-4`) exactly. */
 function CardShell({ children }: { children: React.ReactNode }) {
@@ -109,8 +110,11 @@ export function ClientProfileSkeleton() {
       </div>
 
       <div className="flex items-center gap-6 border-b border-border pb-3">
-        {["Overview", "KYC", "Assets", "Call Log"].map((label) => (
-          <Skeleton key={label} className="h-4 w-16" />
+        {/* One bar per tab the page will actually render — drawn from the same
+            list the real strip uses, so a phase-gated tab doesn't leave a bar
+            here that then never resolves into anything. */}
+        {CLIENT_TAB_ITEMS.map((tab) => (
+          <Skeleton key={tab.id} className="h-4 w-16" />
         ))}
       </div>
 

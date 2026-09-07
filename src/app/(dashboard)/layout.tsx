@@ -16,6 +16,7 @@ import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
 import { PrivacyProvider } from "@/contexts/privacy-context";
 import { NotesProvider, useNotes } from "@/contexts/notes-context";
+import { NOTES_ENABLED, REMINDERS_ENABLED } from "@/lib/feature-flags";
 import { useClients } from "@/hooks/use-api";
 import { ResponsiveBreadcrumb } from "@/components/layout/ResponsiveBreadcrumb";
 import { FloatingNoteButton } from "./notes/FloatingNoteButton";
@@ -149,13 +150,19 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             )}
 
             <div className={`flex items-center gap-4 ${headerSlot ? "xl:justify-self-end" : ""}`}>
-              <NavHeaderNotification
-                groups={notificationGroups}
-                badgeCount={notificationBadgeCount}
-                emptyText="No reminders"
-                onItemClick={handleNotificationClick}
-                panelClassName={NOTIFICATION_ROW_HOVER}
-              />
+              {/* The bell is a reminder surface and nothing else — with
+                  Reminders out of phase (see `lib/feature-flags`) there is
+                  nothing for it to hold, so it goes rather than sitting there
+                  permanently empty. */}
+              {REMINDERS_ENABLED && (
+                <NavHeaderNotification
+                  groups={notificationGroups}
+                  badgeCount={notificationBadgeCount}
+                  emptyText="No reminders"
+                  onItemClick={handleNotificationClick}
+                  panelClassName={NOTIFICATION_ROW_HOVER}
+                />
+              )}
 
               <div className="xl:hidden">
                 <NavHeaderIconButton
@@ -230,12 +237,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      <FloatingNoteButton />
+      {NOTES_ENABLED && <FloatingNoteButton />}
 
       {/* What a bell row opens into. Global rather than per-page, the same
           reason the bell itself is: the reminder it points at can belong to
           whichever client you aren't currently looking at. */}
-      {reminderModals}
+      {REMINDERS_ENABLED && reminderModals}
 
       {/* Rendered last on purpose — its scroll restore has to win over any
           `main.scrollTop` reset a page does in its own mount effect. */}

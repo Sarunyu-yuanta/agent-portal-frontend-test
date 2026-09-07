@@ -24,7 +24,7 @@ import { mockAnalysts, type AnalystItem } from "@/lib/mock-data";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-const R4U_CATS = [
+const RESEARCH_CATS = [
   "บทวิเคราะห์ทั้งหมด",
   "Wealth Designs Daily",
   "Chart Perspective Morning",
@@ -49,11 +49,11 @@ const R4U_CATS = [
 ] as const;
 
 const MOCK_PDF_URL = "/mock-reports/sample-report.pdf";
-const R4U_HOME_OPTION = "__home__";
+const RESEARCH_HOME_OPTION = "__home__";
 
-type R4UItem = { id: string; date: string; category: string; title: string };
+type ResearchItem = { id: string; date: string; category: string; title: string };
 
-const MOCK_R4U: R4UItem[] = [
+const MOCK_RESEARCH: ResearchItem[] = [
   { id: "r01", date: "03/08/2569", category: "Derivative",                  title: "DERIVATIVES - AFTERNOON" },
   { id: "r02", date: "03/08/2569", category: "Yuanta Global Wealth",        title: "Global Insights - Cancelled Attacks on Iran: Unlocking Energy Market Overhang" },
   { id: "r03", date: "03/08/2569", category: "Chart Perspective Afternoon", title: "TECHNICAL - BDMS, LH, M" },
@@ -81,7 +81,7 @@ const MOCK_R4U: R4UItem[] = [
 
 type LandingTile = { id: string; title: string; subtitle: string; icon: PhosphorIcon; color: string; span?: string };
 
-const R4U_LANDING_TILES: LandingTile[] = [
+const RESEARCH_LANDING_TILES: LandingTile[] = [
   { id: "t01", title: "Smart Pick",          subtitle: "แนะนำหุ้นเด่นประจำวัน",     icon: SparkleIcon,      color: "#f59e0b", span: "lg:col-start-1 lg:row-start-1 lg:row-span-2" },
   { id: "t02", title: "Afternoon Tactic",    subtitle: "แนวโน้มตลาดบ่าย",           icon: SunIcon,          color: "#f97316" },
   { id: "t03", title: "Yuanta Channel",      subtitle: "ช่องทางอัปเดตข่าวสาร",     icon: BroadcastIcon,    color: "#06b6d4" },
@@ -128,11 +128,11 @@ function AnalystCard({ analyst }: { analyst: AnalystItem }) {
   );
 }
 
-function R4ULandingGrid() {
+function ResearchLandingGrid() {
   return (
     <div className="flex-1 overflow-y-auto hide-scrollbar p-4">
       <BentoGrid className="grid-cols-2 lg:grid-cols-3 auto-rows-[130px] lg:auto-rows-[150px] gap-2 lg:gap-3 grid-flow-dense">
-        {R4U_LANDING_TILES.map((tile) => (
+        {RESEARCH_LANDING_TILES.map((tile) => (
           <BentoCard
             key={tile.id}
             name={tile.title}
@@ -156,7 +156,7 @@ function R4ULandingGrid() {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function Research4U() {
+export function Research() {
   const [subTab, setSubTab] = useState<"research" | "analyst">("research");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchDate, setSearchDate] = useState<Date | undefined>(undefined);
@@ -173,7 +173,7 @@ export function Research4U() {
   const isSearching = searchQuery.trim().length > 0;
   const showList = activeCategory !== null || isSearching || searchDate !== undefined;
 
-  const filtered = MOCK_R4U.filter((item) => {
+  const filtered = MOCK_RESEARCH.filter((item) => {
     const catOk = activeCategory === null || activeCategory === "บทวิเคราะห์ทั้งหมด" || item.category === activeCategory;
     const dateOk = !searchDate || item.date === formatBuddhistDate(searchDate);
     const searchOk = !isSearching || item.title.toLowerCase().includes(searchQuery.trim().toLowerCase());
@@ -225,7 +225,7 @@ export function Research4U() {
             >
               หน้าแรก
             </button>
-            {R4U_CATS.map((cat) => (
+            {RESEARCH_CATS.map((cat) => (
               <button
                 key={cat}
                 type="button"
@@ -275,21 +275,21 @@ export function Research4U() {
                   className="w-full"
                 />
                 <Dropdown
-                  value={activeCategory ?? R4U_HOME_OPTION}
+                  value={activeCategory ?? RESEARCH_HOME_OPTION}
                   onChange={(v) => {
-                    if (v === R4U_HOME_OPTION) goHome();
+                    if (v === RESEARCH_HOME_OPTION) goHome();
                     else setActiveCategory(v);
                   }}
                   options={[
-                    { label: "‹ หน้าแรก", value: R4U_HOME_OPTION },
-                    ...R4U_CATS.map((c) => ({ label: c, value: c })),
+                    { label: "‹ หน้าแรก", value: RESEARCH_HOME_OPTION },
+                    ...RESEARCH_CATS.map((c) => ({ label: c, value: c })),
                   ]}
                   placeholder="เลือกหมวดบทวิเคราะห์"
                 />
               </div>
 
               {!showList ? (
-                <R4ULandingGrid />
+                <ResearchLandingGrid />
               ) : (
                 <>
                   {/* Column headers — desktop */}

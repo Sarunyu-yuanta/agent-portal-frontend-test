@@ -21,6 +21,11 @@ import { snippet } from "../notes/notes-grouping";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
 import { getInitials } from "@/lib/client-utils";
+import {
+  CALL_LOG_ENABLED,
+  NOTES_ENABLED,
+  REMINDERS_ENABLED,
+} from "@/lib/feature-flags";
 import { useSlideOver, SlideOverPanel } from "@/components/ui/slide-over";
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { CompactList } from "@/components/ui/compact-list";
@@ -124,6 +129,34 @@ export function ClientDetailPanel({
     </>
   );
 
+  /**
+   * The panel's shortcut row. All three tiles are out of the current delivery
+   * phase (see `lib/feature-flags`) — hence a list rather than three tiles
+   * written into the markup: the column count follows its length, and at zero
+   * the row itself stops rendering instead of leaving a gap above "View Full
+   * Profile" where a `grid-cols-3` used to be.
+   *
+   * `comingSoon` marks a tile that shows but can't be clicked. That's a
+   * different thing from a phase gate: it's for a feature the user is meant to
+   * know is on the way, where a gated one isn't advertised at all.
+   */
+  const quickActions = [
+    ...(CALL_LOG_ENABLED
+      ? [{ icon: <PhoneListIcon size={20} />,  label: "Call log", onClick: () => setCallLogOpen(true),   comingSoon: false }]
+      : []),
+    ...(REMINDERS_ENABLED
+      ? [{ icon: <BellIcon size={20} />,       label: "Reminder", onClick: () => setRemindersOpen(true), comingSoon: false }]
+      : []),
+    ...(NOTES_ENABLED
+      ? [{ icon: <NotePencilIcon size={20} />, label: "Notes",    onClick: () => setNotesOpen(true),     comingSoon: false }]
+      : []),
+  ];
+
+  // Spelled out, not built as `grid-cols-${n}` — Tailwind only emits classes
+  // it can see as literal text in the source.
+  const quickActionCols =
+    quickActions.length >= 3 ? "grid-cols-3" : quickActions.length === 2 ? "grid-cols-2" : "grid-cols-1";
+
   const noteCards = (
     <>
       {clientNotes.map((note) => (
@@ -195,7 +228,7 @@ export function ClientDetailPanel({
           </div>
           {compact ? (
             <Button
-              variant="outline"
+              variant="primary"
               size="sm"
               className="shrink-0 mr-8 whitespace-nowrap"
               leftIcon={<UserIcon size={14} />}
@@ -208,6 +241,10 @@ export function ClientDetailPanel({
           )}
         </div>
 
+        {/* Gone entirely, not left empty: this header is a `gap-4` stack, so an
+            empty row here would still spend a gap between the client's name and
+            "View Full Profile". */}
+        {quickActions.length > 0 && (
         <div
           className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
             compact ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
@@ -216,12 +253,8 @@ export function ClientDetailPanel({
           <div className="overflow-hidden min-h-0">
             {/* Reminders before Notes — same order as the Client 360 page's
                 own tabs, so the two surfaces agree on which comes first. */}
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { icon: <PhoneListIcon size={20} />,  label: "Call log",  onClick: () => setCallLogOpen(true),   comingSoon: false },
-                { icon: <BellIcon size={20} />,       label: "Reminder",  onClick: () => setRemindersOpen(true), comingSoon: false },
-                { icon: <NotePencilIcon size={20} />, label: "Notes",     onClick: () => setNotesOpen(true),     comingSoon: false },
-              ].map(({ icon, label, onClick, comingSoon }) => (
+            <div className={`grid ${quickActionCols} gap-2`}>
+              {quickActions.map(({ icon, label, onClick, comingSoon }) => (
                 <button
                   key={label}
                   onClick={comingSoon ? undefined : onClick}
@@ -246,6 +279,7 @@ export function ClientDetailPanel({
             </div>
           </div>
         </div>
+        )}
 
         <div
           className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
@@ -254,7 +288,7 @@ export function ClientDetailPanel({
         >
           <div className="overflow-hidden min-h-0">
             <Button
-              variant="outline"
+              variant="primary"
               size="lg"
               className="w-full"
               leftIcon={<UserIcon size={16} />}
@@ -330,6 +364,7 @@ export function ClientDetailPanel({
     </div>
 
     {/* Call log — BottomSheet on mobile, Modal on tablet/desktop */}
+    {CALL_LOG_ENABLED && (
     <ResponsiveDialog
       open={callLogOpen}
       onOpenChange={setCallLogOpen}
@@ -350,11 +385,13 @@ export function ClientDetailPanel({
         {callLogCards}
       </CompactList>
     </ResponsiveDialog>
+    )}
 
     {/* Reminder — `compact` keeps this to the card list `ClientRemindersTab`
         already draws below `md` on the Client 360 page, so it reads as the
         same shape as the Call Log dialog right above rather than switching to
         the wider table. Same width as that dialog for the same reason. */}
+    {REMINDERS_ENABLED && (
     <ResponsiveDialog
       open={remindersOpen}
       onOpenChange={setRemindersOpen}
@@ -374,11 +411,13 @@ export function ClientDetailPanel({
         }
       />
     </ResponsiveDialog>
+    )}
 
     {/* Notes — same card-list shape as Call Log and Reminders rather than the
         Notes tab's full gallery/editor: a note opens in place through
         `NoteEditModal`, the same modal the Reminders dialog already opens a
         note into, so it looks like itself wherever it's found. */}
+    {NOTES_ENABLED && (
     <ResponsiveDialog
       open={notesOpen}
       onOpenChange={setNotesOpen}
@@ -399,8 +438,9 @@ export function ClientDetailPanel({
         {noteCards}
       </CompactList>
     </ResponsiveDialog>
+    )}
 
-    {noteModal}
+    {NOTES_ENABLED && noteModal}
     </>
   );
 }

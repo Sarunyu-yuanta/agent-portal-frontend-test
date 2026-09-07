@@ -4,6 +4,8 @@ import {
   CurrencyCircleDollarIcon,
   IdentificationCardIcon,
   CalendarCheckIcon,
+  CalendarXIcon,
+  DiamondIcon,
   ShieldCheckIcon,
   CakeIcon,
   HourglassIcon,
@@ -19,8 +21,16 @@ import {
   AlarmIcon,
 } from "@phosphor-icons/react";
 import { getClientProfile } from "@/data/client-profiles";
-import { IMPORTANT_FORMS } from "./client-detail-data";
+import { IMPORTANT_FORMS, kycExpiry } from "./client-detail-data";
 import type { Client } from "@/types/domain";
+
+/** How far off the KYC expiry is, in words — the date alone doesn't say. */
+function countdownLabel(daysLeft: number): string {
+  if (daysLeft < 0) return `Overdue by ${Math.abs(daysLeft)} days`;
+  if (daysLeft === 0) return "Due today";
+  if (daysLeft === 1) return "in 1 day";
+  return `in ${daysLeft} days`;
+}
 
 export function KycTab({
   client,
@@ -29,6 +39,8 @@ export function KycTab({
   client: Client;
   profile: ReturnType<typeof getClientProfile>;
 }) {
+  const expiry = kycExpiry(client.id);
+
   return (
     <div className="pt-8 w-full">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
@@ -36,19 +48,60 @@ export function KycTab({
       {/* ── Single profile card ── */}
       <div className="rounded-[6px] md:rounded-[8px] border border-border bg-card overflow-hidden shadow-sm">
 
-        {/* Stat tiles 2×2 */}
+        {/* Stat tiles — 3 rows of 2. Wealth Status sits beside the KYC expiry
+            because six tiles fill the grid exactly; the expiry had the last row
+            to itself while there were five, and a balanced grid is worth more
+            than the emphasis that gave it. Its colour and alarm icon are what
+            actually carry the urgency anyway. */}
         <div className="grid grid-cols-2 divide-x divide-y divide-blue-100 bg-blue-50">
           {[
-            { icon: <CurrencyCircleDollarIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Total AUM", value: client.aum },
-            { icon: <IdentificationCardIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Client ID", value: client.id },
-            { icon: <CalendarCheckIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Account Opened", value: profile.relationshipSince },
-            { icon: <ShieldCheckIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Risk Profile", value: profile.riskProfile },
-          ].map(({ icon, label, value }) => (
+            { icon: <CurrencyCircleDollarIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Total AUM", value: client.aum, sub: null, valueClass: "text-foreground" },
+            { icon: <IdentificationCardIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Client ID", value: client.id, sub: null, valueClass: "text-foreground" },
+            { icon: <CalendarCheckIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Account Opened", value: profile.relationshipSince, sub: null, valueClass: "text-foreground" },
+            { icon: <ShieldCheckIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Risk Profile", value: profile.riskProfile, sub: null, valueClass: "text-foreground" },
+            // The client's segment — UHNW / HNW / Affluent. Plain text like the
+            // Risk Profile beside it: both are classifications, and the segment
+            // colours the client hub uses are for telling slices of a chart
+            // apart, which one tile has nothing to be apart from.
+            { icon: <DiamondIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Wealth Status", value: client.tier, sub: null, valueClass: "text-foreground" },
+            {
+              // A calendar that reads as an alarm once the date is close — the
+              // date alone doesn't say whether it's a note or a deadline.
+              icon: expiry?.dueSoon
+                ? <AlarmIcon size={20} weight="fill" className={expiry.urgent ? "text-[var(--text-danger-primary)]" : "text-[var(--text-warning-primary)]"} />
+                : <CalendarXIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />,
+              label: "KYC Expired Date",
+              value: expiry?.date ?? "—",
+              // Parenthesised because it now sits on the date's own line, where
+              // it reads as an aside about that date rather than a value of its
+              // own. The no-record message is a statement, not an aside, so it
+              // stays bare.
+              sub: !expiry
+                ? "No KYC record for this client"
+                : expiry.daysLeft === null
+                  ? null
+                  : `(${countdownLabel(expiry.daysLeft)})`,
+              valueClass: expiry?.urgent
+                ? "text-[var(--text-danger-primary)]"
+                : expiry?.dueSoon
+                  ? "text-[var(--text-warning-primary)]"
+                  : "text-foreground",
+            },
+          ].map(({ icon, label, value, sub, valueClass }) => (
             <div key={label} className="flex items-center gap-3 px-5 py-4">
               <div className="shrink-0">{icon}</div>
               <div className="flex flex-col gap-0.5 min-w-0">
                 <p className="type-caption text-[var(--text-brand-primary)]">{label}</p>
-                <p className="type-body-2 !font-semibold text-foreground">{value}</p>
+                {/* Value and its note share a line: the countdown qualifies the
+                    date rather than being a second fact under it.
+                    `items-baseline` so 13px and 11px text sit on one baseline
+                    instead of one being optically high, and `flex-wrap` so a
+                    narrow tile drops the note to its own line rather than
+                    squeezing the date it belongs to. */}
+                <div className="flex flex-wrap items-baseline gap-x-2 min-w-0">
+                  <p className={`type-body-2 !font-semibold ${valueClass}`}>{value}</p>
+                  {sub && <p className="type-caption text-muted-foreground">{sub}</p>}
+                </div>
               </div>
             </div>
           ))}

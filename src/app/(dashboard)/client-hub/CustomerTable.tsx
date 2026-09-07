@@ -121,7 +121,11 @@ export function CustomerTable({
                 side="top"
                 delayDuration={400}
               >
-                <TableRow ref={flipRef(client.id)} className="cursor-pointer transition-colors active:bg-[var(--bg-default-pressed)]" hoverable onClick={() => onRowClick(client)}>
+                {/* `data-client-row` is how the open quick-view panel tells a
+                    press on another client apart from a press on the page: one
+                    is a switch, the other a dismissal. See the drawer's
+                    `onOpenChange` in `client-hub/page.tsx`. */}
+                <TableRow data-client-row="" ref={flipRef(client.id)} className="cursor-pointer transition-colors active:bg-[var(--bg-default-pressed)]" hoverable onClick={() => onRowClick(client)}>
                   <TableCell {...noCellPin}>
                     <p className="text-[13px] text-muted-foreground">{rowNo}</p>
                   </TableCell>

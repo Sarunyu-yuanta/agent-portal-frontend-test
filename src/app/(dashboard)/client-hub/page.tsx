@@ -8,6 +8,7 @@ import { useClientsResource } from "@/hooks/use-api";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { DetailDrawer } from "@/components/ui/detail-drawer";
 import { setQueryState } from "@/lib/query-state";
+import { recordVisit } from "@/lib/nav-memory";
 import { useStoredIds } from "@/hooks/use-stored-ids";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { FadeIn } from "@/components/ui/fade-in";
@@ -35,6 +36,17 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
  */
 const HIDDEN_COLUMNS_PREF = "client-hub:hidden-columns";
 const isColumnId = (id: string) => CUSTOMER_COLUMNS.some((c) => c.id === id);
+
+/**
+ * Whether a press landed on a client row in the customer table — the one kind
+ * of "outside" press the open quick-view panel must not treat as a dismissal.
+ * The attribute is set in `CustomerTable`; matched with `closest` because the
+ * press lands on a cell's contents, not the row itself.
+ */
+function isClientRowPress(event: Event): boolean {
+  const target = event.target;
+  return target instanceof Element && target.closest("[data-client-row]") !== null;
+}
 
 /**
  * A `SearchInput` paired with the spinner that marks "typed, not yet applied" —
@@ -115,7 +127,9 @@ function ClientHubPageInner() {
 
 
   // Client quick view — URL-owned (`?client=110001`) so refresh, browser back
-  // and a shared link all land on the same open panel.
+  // and a shared link all land on the same open panel. The one place that
+  // *doesn't* reconstruct it is a return from that client's Full Profile: see
+  // `goToProfile`, which clears the param out of the entry it leaves behind.
   const clientParam = searchParams.get("client");
   const selectedClient =
     (clientParam && clients.find((c) => c.id === clientParam)) || null;
@@ -241,7 +255,47 @@ function ClientHubPageInner() {
     }
   }
 
-  const goToProfile = (clientId: string) => router.push(`/client/${clientId}`);
+  /**
+   * Leaves for a client's Full Profile — and makes sure the entry we leave
+   * behind doesn't hold `?client=…`, so coming back lands on the list with
+   * nothing over it. The profile is the deeper view of the same client the
+   * panel was previewing; finding the preview still stacked on top of the list
+   * on the way back is just something to dismiss.
+   */
+  const goToProfile = (clientId: string, tab?: string) => {
+    const href = tab ? `/client/${clientId}?tab=${tab}` : `/client/${clientId}`;
+
+    if (clientParam) {
+      // Two things remember the panel, and both have to forget it — browser
+      // back reads the history entry, while the profile's own "Client 360"
+      // breadcrumb (and the sidebar entry, coming from another section) reads
+      // the section trail. Clearing only the first left the breadcrumb still
+      // pointing at `?client=…`.
+      //
+      // Both writes are synchronous — `setQueryState` is `history.replaceState`
+      // and `recordVisit` is a `sessionStorage` write — so they land before the
+      // navigation below instead of racing `NavStateMemory`'s effect, which may
+      // never run for a URL we leave in the same tick. `recordVisit` is
+      // idempotent, so it doesn't matter if that effect fires anyway.
+      setQueryState("/client-hub", "replace");
+      recordVisit("/client-hub", "/client-hub");
+    }
+
+    if (pushedPanelRef.current) {
+      // We pushed the panel's entry, so spend it on the profile rather than
+      // stacking on top: back then goes to the `/client-hub` entry from before
+      // the panel opened. Replacing is also what keeps the strip above from
+      // leaving two identical `/client-hub` entries to click through.
+      pushedPanelRef.current = false;
+      router.replace(href);
+    } else {
+      // The param came from the URL the user arrived on (a refresh with the
+      // panel open, a pasted link), so there's no earlier entry to fall back to
+      // — the same case `closeClient` guards. The stripped entry above becomes
+      // the way back instead.
+      router.push(href);
+    }
+  };
 
   return (
     <>
@@ -392,17 +446,33 @@ function ClientHubPageInner() {
       <DetailDrawer
         className="overflow-hidden flex flex-col"
         open={drawerOpen}
-        onOpenChange={(open) => {
-          if (!open) closeClient();
+        onOpenChange={(open, details) => {
+          if (open) return;
+          // Pressing another client's row is a *switch*, not a dismissal.
+          //
+          // Base UI decides "pressed outside" on pointerdown, which lands
+          // before the row's own click, so the two fought and the dismissal
+          // won: `closeClient`'s `router.back()` resolved after `openClient`
+          // had already swapped `?client=…`, so the first press only closed the
+          // panel and the user had to press the same row again to reopen it.
+          //
+          // Refusing the close here leaves the row's click to do the only thing
+          // that should happen — swap the param, and with it the panel's
+          // contents. Pressing anywhere else still dismisses.
+          if (details.reason === "outside-press" && isClientRowPress(details.event)) {
+            details.cancel();
+            return;
+          }
+          closeClient();
         }}
       >
         {panelClient && (
           <ClientDetailPanel
             client={panelClient}
             onViewFull={() => goToProfile(panelClient.id)}
-            onViewCallLog={() => router.push(`/client/${panelClient.id}?tab=call-log`)}
-            onViewReminders={() => router.push(`/client/${panelClient.id}?tab=reminders`)}
-            onViewNotes={() => router.push(`/client/${panelClient.id}?tab=notes`)}
+            onViewCallLog={() => goToProfile(panelClient.id, "call-log")}
+            onViewReminders={() => goToProfile(panelClient.id, "reminders")}
+            onViewNotes={() => goToProfile(panelClient.id, "notes")}
           />
         )}
       </DetailDrawer>
