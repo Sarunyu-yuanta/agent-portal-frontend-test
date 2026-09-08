@@ -15,6 +15,7 @@ export interface ApiClient {
   id: number;
   name: string;
   tier: string;
+  membershipTier: string;
   aum: number;
   cashIdlePct: number;
   plYtd: number;

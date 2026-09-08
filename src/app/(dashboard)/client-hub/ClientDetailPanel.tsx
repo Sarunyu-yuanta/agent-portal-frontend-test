@@ -33,7 +33,7 @@ import { ClientAssetSidebarContent, type AssetListViewMode } from "@/components/
 import { HoldingDetailContent } from "@/components/HoldingDetailContent";
 import { LiabilitiesDetailContent } from "@/components/LiabilitiesDetailModal";
 import type { LiabilitiesDetail } from "@/data/liabilities-details";
-import { NineBoxCellPill } from "./NineBoxTab";
+import { TierBadge } from "@/components/ui/tier-badge";
 import {
   getAssetAccountDetail,
   getAssetProductDetail,
@@ -222,7 +222,7 @@ export function ClientDetailPanel({
               >
                 {maskName(client.name, isPrivate)}
               </p>
-              {!compact && <NineBoxCellPill client={client} />}
+              {!compact && <TierBadge tier={client.membershipTier} />}
             </div>
             <p className="type-caption text-muted-foreground">{client.id}</p>
           </div>

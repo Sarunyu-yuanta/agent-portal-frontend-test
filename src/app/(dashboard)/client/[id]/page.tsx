@@ -21,7 +21,7 @@ import { setQueryState } from "@/lib/query-state";
 import { useSetHeaderSlot } from "../../header-slot-context";
 import { usePageBreadcrumb } from "../../page-breadcrumbs";
 import { ResponsiveBreadcrumb } from "@/components/layout/ResponsiveBreadcrumb";
-import { NineBoxCellPill } from "../../client-hub/NineBoxTab";
+import { TierBadge } from "@/components/ui/tier-badge";
 import { getCallLogs } from "@/data/call-log-data";
 import { getClientProfile } from "@/data/client-profiles";
 import { LiabilitiesDetailModal } from "@/components/LiabilitiesDetailModal";
@@ -175,7 +175,7 @@ function ClientPageInner({ id }: { id: string }) {
                 {/* Name + Tier + Status pill */}
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <h4 className="type-h4 text-foreground leading-none">{maskedClientName}</h4>
-                  <NineBoxCellPill client={client} />
+                  <TierBadge tier={client.membershipTier} />
                 </div>
                 {/* Metadata — collapses when scrolled */}
                 <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${scrolled ? "grid-rows-[0fr]" : "grid-rows-[1fr]"}`}>

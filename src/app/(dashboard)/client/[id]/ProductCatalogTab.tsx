@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { SearchInput, TabGroup } from "@sarunyu/system-one";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Chip, SearchInput, Tag, TabGroup } from "@sarunyu/system-one";
 import { ChartPieSliceIcon } from "@phosphor-icons/react";
 import { FixedIncomeTab } from "./FixedIncomeTab";
 import { FixedIncomeDetail } from "./FixedIncomeDetail";
@@ -10,7 +10,9 @@ import type { FixedIncomeBond } from "./fixed-income-data";
 import { GlobalBondTab } from "./GlobalBondTab";
 import { GlobalBondDetail } from "./GlobalBondDetail";
 import { GlobalBondAllPage } from "./GlobalBondAllPage";
-import type { GlobalBondIssuerId } from "./global-bond-data";
+import { getIssuerIdForBondRow, type GlobalBondIssuerId } from "./global-bond-data";
+import { PRODUCT_SEARCH_INDEX, matchesProductQuery, type ProductSearchItem } from "./product-search-index";
+import { addRecentSearch, clearRecentSearches, getRecentSearches } from "./recent-product-searches";
 import { StructuredProductDetail } from "./StructuredProductDetail";
 import { StructuredProductAllPage } from "./StructuredProductAllPage";
 import { ThaiStructuredProductTable } from "./ThaiStructuredProductTable";
@@ -37,6 +39,40 @@ import {
   TopIdeaStrip,
   TopPickSection,
 } from "./ProductCatalogSections";
+
+const SEARCH_MODAL_PADDING = 12;
+const MAX_SEARCH_RESULTS = 20;
+
+/** "All categories" plus the catalog's own tabs, reused as the search modal's filter chips. */
+const SEARCH_FILTER_CHIPS = [
+  { id: null as string | null, title: "ทั้งหมด" },
+  ...PRODUCT_CATEGORIES,
+];
+
+/** Wraps every occurrence of `query` inside `text` in the brand color, case-insensitively. */
+function highlightMatch(text: string, query: string): ReactNode {
+  const q = query.trim();
+  if (!q) return text;
+  const lowerText = text.toLowerCase();
+  const lowerQuery = q.toLowerCase();
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  let idx = lowerText.indexOf(lowerQuery, cursor);
+  if (idx === -1) return text;
+  let key = 0;
+  while (idx !== -1) {
+    if (idx > cursor) parts.push(text.slice(cursor, idx));
+    parts.push(
+      <span key={key++} className="text-primary-action font-semibold">
+        {text.slice(idx, idx + q.length)}
+      </span>,
+    );
+    cursor = idx + q.length;
+    idx = lowerText.indexOf(lowerQuery, cursor);
+  }
+  if (cursor < text.length) parts.push(text.slice(cursor));
+  return parts;
+}
 
 export type CatalogNavigation = {
   onProductSelect: (product: StructuredProduct) => void;
@@ -83,10 +119,86 @@ export function ProductCatalogTab({
   const [searchValueInternal, setSearchValueInternal] = useState("");
   const searchValue = searchValueProp ?? searchValueInternal;
   const setSearchValue = onSearchChange ?? setSearchValueInternal;
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchCategory, setSearchCategory] = useState<string | null>(null);
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => getRecentSearches());
+
+  const searchResults = useMemo(() => {
+    const byCategory = searchCategory
+      ? PRODUCT_SEARCH_INDEX.filter((item) => item.kind === searchCategory)
+      : PRODUCT_SEARCH_INDEX;
+    const query = searchValue.trim();
+    const byQuery = query ? byCategory.filter((item) => matchesProductQuery(item, query)) : byCategory;
+    return byQuery.slice(0, MAX_SEARCH_RESULTS);
+  }, [searchValue, searchCategory]);
+
+  /**
+   * Closing counts as "having searched" whenever text was actually typed —
+   * whether or not a result got picked. Clearing the field on the way out
+   * means the next open starts fresh, showing the recent-searches row again
+   * instead of picking up wherever the last search left off.
+   */
+  function closeSearch() {
+    if (searchValue.trim()) setRecentSearches(addRecentSearch(searchValue));
+    setSearchValue("");
+    setSearchOpen(false);
+  }
+
+  // Anchors the floating search modal to whichever search bar (mobile or
+  // desktop — only one is ever laid out at a time) the user actually
+  // focused, so it pops up overlapping that bar's real position instead of
+  // a fixed viewport guess.
+  const mobileSearchWrapRef = useRef<HTMLDivElement>(null);
+  const desktopSearchWrapRef = useRef<HTMLDivElement>(null);
+  const modalSearchWrapRef = useRef<HTMLDivElement>(null);
+  const [anchorRect, setAnchorRect] = useState<{ top: number; left: number; width: number } | null>(null);
+
+  useLayoutEffect(() => {
+    if (!searchOpen) return;
+    const measure = () => {
+      const el =
+        [mobileSearchWrapRef.current, desktopSearchWrapRef.current].find(
+          (node) => node && node.offsetParent !== null,
+        ) ?? null;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      setAnchorRect({ top: rect.top, left: rect.left, width: rect.width });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [searchOpen]);
+
+  // Focus the modal's own search field the instant it appears — the DS
+  // `SearchInput` doesn't forward a ref to its native `<input>`, so reach in
+  // through the wrapper instead.
+  useEffect(() => {
+    if (!searchOpen) return;
+    modalSearchWrapRef.current?.querySelector("input")?.focus();
+  }, [searchOpen]);
 
   const mobileScrolled = useScrollThreshold();
   const drag = useDragScroll();
   const isLoading = useSimulatedLoading();
+
+  // The desktop search bar collapses away on scroll — its overlay shouldn't
+  // linger over a search field that's no longer visibly there. Adjusted during
+  // render (not an effect) per https://react.dev/learn/you-might-not-need-an-effect.
+  const [prevMobileScrolled, setPrevMobileScrolled] = useState(mobileScrolled);
+  if (mobileScrolled !== prevMobileScrolled) {
+    setPrevMobileScrolled(mobileScrolled);
+    if (mobileScrolled) setSearchOpen(false);
+  }
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeSearch();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-subscribes on every keystroke so Escape always sees the latest searchValue; closeSearch is a plain function, not stable, so it can't be listed.
+  }, [searchOpen, searchValue]);
 
   const isDetailView = !!(
     showAllGlobalBonds ||
@@ -120,6 +232,26 @@ export function ProductCatalogTab({
     onAllGlobalBondsView: navigation?.onAllGlobalBondsView ?? (() => setShowAllGlobalBonds(true)),
     onThaiProductSelect: navigation?.onThaiProductSelect ?? setSelectedThaiProduct,
   };
+
+  function handleSearchSelect(item: ProductSearchItem) {
+    closeSearch();
+    switch (item.kind) {
+      case "structured":
+        nav.onProductSelect(item.product);
+        break;
+      case "thai-structured":
+        nav.onThaiProductSelect(item.product);
+        break;
+      case "fixed-income":
+        nav.onFixedIncomeBondSelect(item.bond);
+        break;
+      case "global-bond": {
+        const issuerId = getIssuerIdForBondRow(item.bond);
+        if (issuerId) nav.onGlobalBondIssuerSelect(issuerId);
+        break;
+      }
+    }
+  }
 
   const resetFixedIncomeNav = () => {
     setSelectedFixedIncomeBond(null);
@@ -284,13 +416,15 @@ export function ProductCatalogTab({
         className="sticky top-0 z-30 flex flex-col lg:hidden"
         style={{ backgroundColor: "#f3f4f6" }}
       >
-        <div className="px-4 pt-6 pb-4">
-          <SearchInput
-            value={searchValue}
-            onChange={setSearchValue}
-            placeholder="ค้นหาสินทรัพย์"
-            className="w-full"
-          />
+        <div className="px-4 pt-6 pb-4" onFocus={() => setSearchOpen(true)}>
+          <div ref={mobileSearchWrapRef}>
+            <SearchInput
+              value={searchValue}
+              onChange={setSearchValue}
+              placeholder="ค้นหาสินทรัพย์"
+              className="w-full"
+            />
+          </div>
         </div>
         <div
           className="overflow-x-auto"
@@ -318,13 +452,16 @@ export function ProductCatalogTab({
             <div
               className="flex flex-col items-center justify-center px-6"
               style={{ height: 120, paddingTop: 32, paddingBottom: 24 }}
+              onFocus={() => setSearchOpen(true)}
             >
-              <SearchInput
-                value={searchValue}
-                onChange={setSearchValue}
-                placeholder="ค้นหาสินทรัพย์"
-                className="w-full max-w-[792px]"
-              />
+              <div ref={desktopSearchWrapRef} className="w-full max-w-[792px]">
+                <SearchInput
+                  value={searchValue}
+                  onChange={setSearchValue}
+                  placeholder="ค้นหาสินทรัพย์"
+                  className="w-full"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -341,6 +478,113 @@ export function ProductCatalogTab({
           />
         </div>
       </div>
+
+      {/* ── Search overlay: focusing either search bar above pops this open as a floating modal overlapping it ── */}
+      {searchOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          style={{ backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(2px)" }}
+          onClick={closeSearch}
+          role="presentation"
+        />
+      )}
+      {searchOpen && anchorRect && (
+        <div
+          className="fixed z-50 flex flex-col rounded-2xl overflow-hidden shadow-lg"
+          style={{
+            top: anchorRect.top - SEARCH_MODAL_PADDING,
+            left: anchorRect.left - SEARCH_MODAL_PADDING,
+            width: anchorRect.width + SEARCH_MODAL_PADDING * 2,
+            border: "1px solid rgba(0,0,0,0.1)",
+            backgroundColor: "white",
+          }}
+        >
+          <div
+            ref={modalSearchWrapRef}
+            style={{
+              padding: SEARCH_MODAL_PADDING,
+              borderBottom: searchValue.trim() === "" && recentSearches.length > 0 ? undefined : "1px solid rgba(0,0,0,0.08)",
+            }}
+          >
+            <SearchInput
+              value={searchValue}
+              onChange={setSearchValue}
+              placeholder="ค้นหาสินทรัพย์"
+              className="w-full"
+            />
+          </div>
+          {searchValue.trim() === "" && recentSearches.length > 0 && (
+            <div
+              className="flex flex-col gap-2 pt-3 pb-2"
+              style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}
+            >
+              <div className="flex items-center justify-between px-3">
+                <span className="type-caption text-muted-foreground">ค้นหาล่าสุด</span>
+                <button
+                  type="button"
+                  onClick={() => setRecentSearches(clearRecentSearches())}
+                  className="type-caption text-primary-action hover:underline cursor-pointer"
+                >
+                  ล้างประวัติ
+                </button>
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto px-3" style={{ scrollbarWidth: "none" }}>
+                {recentSearches.map((term) => (
+                  <button
+                    key={term}
+                    type="button"
+                    onClick={() => setSearchValue(term)}
+                    className="shrink-0 rounded-full bg-muted px-3 py-1.5 type-caption text-foreground hover:bg-muted/70 transition-colors cursor-pointer"
+                  >
+                    {term}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div
+            className="flex items-center gap-2 overflow-x-auto px-3 py-2"
+            style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", scrollbarWidth: "none" }}
+          >
+            {SEARCH_FILTER_CHIPS.map((chip) => (
+              <Chip
+                key={chip.id ?? "all"}
+                label={chip.title}
+                selected={searchCategory === chip.id}
+                onClick={() => setSearchCategory(chip.id)}
+                size="small"
+                className="shrink-0"
+              />
+            ))}
+          </div>
+          <div className="flex flex-col max-h-[420px] overflow-y-auto py-2">
+            {searchResults.length === 0 ? (
+              <p className="px-4 py-8 text-center type-caption text-muted-foreground">
+                ไม่พบสินทรัพย์{searchValue.trim() ? `ที่ตรงกับ “${searchValue}”` : "ในหมวดนี้"}
+              </p>
+            ) : (
+              searchResults.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => handleSearchSelect(item)}
+                  className="flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-muted/60 transition-colors cursor-pointer"
+                >
+                  <div className="flex flex-col min-w-0">
+                    <span className="type-subtitle-2 text-foreground truncate">
+                      {highlightMatch(item.title, searchValue)}
+                    </span>
+                    <span className="type-caption text-muted-foreground truncate">
+                      {highlightMatch(item.subtitle, searchValue)}
+                    </span>
+                  </div>
+                  <Tag text={item.categoryLabel} variant="gray" size="small" className="shrink-0" />
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Tab content ─────────────────────────────────────────────────────── */}
       <FadeIn key={activeProductTab} className="flex flex-col w-full">

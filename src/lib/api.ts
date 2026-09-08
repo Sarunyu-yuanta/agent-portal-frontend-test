@@ -6,6 +6,7 @@ import type {
   ClientStatus,
   PriorityVariant,
 } from "@/types/api";
+import type { MembershipTier } from "@/components/ui/tier-badge";
 
 /**
  * Relative by default, so requests go to whatever origin the app is actually
@@ -80,6 +81,7 @@ export async function fetchClients() {
     id: String(item.id),
     name: item.name,
     tier: item.tier,
+    membershipTier: item.membershipTier as MembershipTier,
     aum: typeof item.aum === "string" ? item.aum : formatBaht(item.aum),
     cashIdlePct: item.cashIdlePct,
     plYtd: String(item.plYtd),

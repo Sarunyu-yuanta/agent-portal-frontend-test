@@ -1,4 +1,5 @@
 import clientsRaw from "@/data/clients.json";
+import type { MembershipTier } from "@/components/ui/tier-badge";
 import nbaActionsRaw from "@/data/nba-actions.json";
 import pipelineDealsRaw from "@/data/pipeline-deals.json";
 import miniKanbanRaw from "@/data/mini-kanban.json";
@@ -23,7 +24,10 @@ type PerformanceStatus = "Lagging" | "On Track";
 // ── Single source of truth: client name lives only in clients.json ────────────
 
 export const mockClients = clientsRaw as Array<
-  Omit<(typeof clientsRaw)[number], "status"> & { status: ClientStatus }
+  Omit<(typeof clientsRaw)[number], "status" | "membershipTier"> & {
+    status: ClientStatus;
+    membershipTier: MembershipTier;
+  }
 >;
 
 // Lookup map — used below to enrich all other datasets
