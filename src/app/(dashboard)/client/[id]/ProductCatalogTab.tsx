@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { Chip, SearchInput, Tag, TabGroup } from "@sarunyu/system-one";
-import { ChartPieSliceIcon } from "@phosphor-icons/react";
+import { ArrowUpLeftIcon, CaretLeftIcon, CaretRightIcon, ChartPieSliceIcon } from "@phosphor-icons/react";
 import { FixedIncomeTab } from "./FixedIncomeTab";
 import { FixedIncomeDetail } from "./FixedIncomeDetail";
 import { FixedIncomeCompanyDetail } from "./FixedIncomeCompanyDetail";
@@ -25,7 +25,7 @@ import type { TopIdeaSector } from "./top-idea-data";
 import { PRODUCT_CATEGORIES } from "@/lib/product-catalog-routes";
 import { useScrollThreshold } from "./use-scroll-threshold";
 import { useDragScroll } from "./use-drag-scroll";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useProductCatalogLoading } from "@/hooks/use-catalog";
 import { FadeIn } from "@/components/ui/fade-in";
 import { ProductCatalogTabSkeleton } from "./ProductCatalogSkeletons";
 import type { StructuredProduct } from "./structured-product-data";
@@ -74,6 +74,112 @@ function highlightMatch(text: string, query: string): ReactNode {
   return parts;
 }
 
+/**
+ * A horizontal chip strip for the search overlay. It scrolls by swipe on
+ * touch, but a desktop mouse has no horizontal axis to scroll it with — so on
+ * desktop it also gets caret buttons, shown only on the side that still has
+ * something left to reveal.
+ */
+function SearchChipScroller({
+  children,
+  rowClassName = "px-3 py-2",
+  style,
+}: {
+  children: ReactNode;
+  /** Padding for the scrolling row itself; sits inside the scroll area. */
+  rowClassName?: string;
+  /** Applied to the outer wrapper — the arrow buttons position against it. */
+  style?: CSSProperties;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [overflow, setOverflow] = useState({ left: false, right: false });
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    const content = contentRef.current;
+    if (!el || !content) return;
+    // 1px of slack: fractional layout widths mean scrollLeft rarely lands
+    // exactly on 0 or on the maximum, which would leave a dead arrow visible.
+    const update = () =>
+      setOverflow({
+        left: el.scrollLeft > 1,
+        right: el.scrollLeft < el.scrollWidth - el.clientWidth - 1,
+      });
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    // The viewport and the content are measured separately: the recent-search
+    // row's chips come and go, which changes the content width without ever
+    // resizing the scroll container.
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    observer.observe(content);
+    return () => {
+      el.removeEventListener("scroll", update);
+      observer.disconnect();
+    };
+  }, []);
+
+  const step = (direction: 1 | -1) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({
+      left: direction * Math.round(el.clientWidth * 0.7),
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <div className="relative" style={style}>
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto"
+        style={{ scrollbarWidth: "none" }}
+      >
+        <div ref={contentRef} className={`flex items-center gap-2 ${rowClassName}`}>
+          {children}
+        </div>
+      </div>
+      {overflow.left && (
+        <ChipScrollButton side="left" onClick={() => step(-1)} />
+      )}
+      {overflow.right && (
+        <ChipScrollButton side="right" onClick={() => step(1)} />
+      )}
+    </div>
+  );
+}
+
+function ChipScrollButton({
+  side,
+  onClick,
+}: {
+  side: "left" | "right";
+  onClick: () => void;
+}) {
+  const isLeft = side === "left";
+  return (
+    // The wrapper is click-through so it only fades the chips sliding under it;
+    // the button itself takes pointer events back.
+    <div
+      className={`pointer-events-none absolute inset-y-0 hidden lg:flex items-center ${
+        isLeft
+          ? "left-0 pl-1.5 pr-6 bg-gradient-to-r from-white via-white to-transparent"
+          : "right-0 pr-1.5 pl-6 bg-gradient-to-l from-white via-white to-transparent"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={isLeft ? "เลื่อนไปทางซ้าย" : "เลื่อนไปทางขวา"}
+        className="pointer-events-auto flex h-7 w-7 items-center justify-center rounded-full border border-black/10 bg-white shadow-sm transition-colors cursor-pointer hover:bg-muted active:bg-[var(--fill-gray-200)]"
+      >
+        {isLeft ? <CaretLeftIcon size={14} /> : <CaretRightIcon size={14} />}
+      </button>
+    </div>
+  );
+}
+
 export type CatalogNavigation = {
   onProductSelect: (product: StructuredProduct) => void;
   onAllProductsView: () => void;
@@ -89,6 +195,9 @@ export type CatalogNavigation = {
 export function ProductCatalogTab({
   searchValue: searchValueProp,
   onSearchChange,
+  searchOpen: searchOpenProp,
+  onSearchOpenChange,
+  searchAnchorRef,
   onDetailViewChange,
   navigation,
   activeCategory,
@@ -96,6 +205,15 @@ export function ProductCatalogTab({
 }: {
   searchValue?: string;
   onSearchChange?: (v: string) => void;
+  /** Overlay open state when the host owns it (e.g. it hosts its own search bar); uncontrolled otherwise. */
+  searchOpen?: boolean;
+  onSearchOpenChange?: (open: boolean) => void;
+  /**
+   * A search bar rendered outside this component (the sticky header slot) that
+   * the overlay should anchor to. Takes priority over the in-page bars, which
+   * are collapsed away whenever that header bar is the visible one.
+   */
+  searchAnchorRef?: RefObject<HTMLDivElement | null>;
   onDetailViewChange?: (isDetail: boolean) => void;
   navigation?: CatalogNavigation;
   /** Category tab id when the host owns it (URL-driven); uncontrolled otherwise. */
@@ -119,7 +237,9 @@ export function ProductCatalogTab({
   const [searchValueInternal, setSearchValueInternal] = useState("");
   const searchValue = searchValueProp ?? searchValueInternal;
   const setSearchValue = onSearchChange ?? setSearchValueInternal;
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchOpenInternal, setSearchOpenInternal] = useState(false);
+  const searchOpen = searchOpenProp ?? searchOpenInternal;
+  const setSearchOpen = onSearchOpenChange ?? setSearchOpenInternal;
   const [searchCategory, setSearchCategory] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => getRecentSearches());
 
@@ -144,10 +264,11 @@ export function ProductCatalogTab({
     setSearchOpen(false);
   }
 
-  // Anchors the floating search modal to whichever search bar (mobile or
-  // desktop — only one is ever laid out at a time) the user actually
-  // focused, so it pops up overlapping that bar's real position instead of
-  // a fixed viewport guess.
+  // Anchors the floating search modal to whichever search bar the user
+  // actually focused, so it pops up overlapping that bar's real position
+  // instead of a fixed viewport guess. The host's header bar comes first:
+  // when it is on screen the in-page bars are collapsed to zero height but
+  // still laid out, so they'd otherwise win the `offsetParent` check.
   const mobileSearchWrapRef = useRef<HTMLDivElement>(null);
   const desktopSearchWrapRef = useRef<HTMLDivElement>(null);
   const modalSearchWrapRef = useRef<HTMLDivElement>(null);
@@ -157,9 +278,11 @@ export function ProductCatalogTab({
     if (!searchOpen) return;
     const measure = () => {
       const el =
-        [mobileSearchWrapRef.current, desktopSearchWrapRef.current].find(
-          (node) => node && node.offsetParent !== null,
-        ) ?? null;
+        [
+          searchAnchorRef?.current,
+          mobileSearchWrapRef.current,
+          desktopSearchWrapRef.current,
+        ].find((node) => node && node.offsetParent !== null) ?? null;
       if (!el) return;
       const rect = el.getBoundingClientRect();
       setAnchorRect({ top: rect.top, left: rect.left, width: rect.width });
@@ -167,7 +290,7 @@ export function ProductCatalogTab({
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [searchOpen]);
+  }, [searchOpen, searchAnchorRef]);
 
   // Focus the modal's own search field the instant it appears — the DS
   // `SearchInput` doesn't forward a ref to its native `<input>`, so reach in
@@ -179,16 +302,21 @@ export function ProductCatalogTab({
 
   const mobileScrolled = useScrollThreshold();
   const drag = useDragScroll();
-  const isLoading = useSimulatedLoading();
+  const isLoading = useProductCatalogLoading();
 
-  // The desktop search bar collapses away on scroll — its overlay shouldn't
-  // linger over a search field that's no longer visibly there. Adjusted during
-  // render (not an effect) per https://react.dev/learn/you-might-not-need-an-effect.
-  const [prevMobileScrolled, setPrevMobileScrolled] = useState(mobileScrolled);
-  if (mobileScrolled !== prevMobileScrolled) {
-    setPrevMobileScrolled(mobileScrolled);
-    if (mobileScrolled) setSearchOpen(false);
-  }
+  // Scrolling swaps which search bar is on screen (the in-page one collapses
+  // away, the host's sticky header one takes over, and back again) — so the
+  // overlay shouldn't linger, anchored to a field that moved out from under
+  // it. Kept in an effect rather than adjusted during render because
+  // `setSearchOpen` may be the host's setter, and a child can't update another
+  // component's state mid-render.
+  const prevMobileScrolledRef = useRef(mobileScrolled);
+  useEffect(() => {
+    if (prevMobileScrolledRef.current === mobileScrolled) return;
+    prevMobileScrolledRef.current = mobileScrolled;
+    setSearchOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `setSearchOpen` can be an unstable host callback; listing it would close the overlay on every render instead of only on the scroll transition.
+  }, [mobileScrolled]);
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -483,7 +611,7 @@ export function ProductCatalogTab({
       {searchOpen && (
         <div
           className="fixed inset-0 z-40"
-          style={{ backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(2px)" }}
+          style={{ backgroundColor: "rgba(0,0,0,0.25)", backdropFilter: "blur(2px)" }}
           onClick={closeSearch}
           role="presentation"
         />
@@ -492,7 +620,10 @@ export function ProductCatalogTab({
         <div
           className="fixed z-50 flex flex-col rounded-2xl overflow-hidden shadow-lg"
           style={{
-            top: anchorRect.top - SEARCH_MODAL_PADDING,
+            // Clamped so anchoring to the slim header bar — which sits only a
+            // few pixels below the viewport top — doesn't push the modal flush
+            // against the edge.
+            top: Math.max(anchorRect.top - SEARCH_MODAL_PADDING, 8),
             left: anchorRect.left - SEARCH_MODAL_PADDING,
             width: anchorRect.width + SEARCH_MODAL_PADDING * 2,
             border: "1px solid rgba(0,0,0,0.1)",
@@ -528,24 +659,32 @@ export function ProductCatalogTab({
                   ล้างประวัติ
                 </button>
               </div>
-              <div className="flex items-center gap-2 overflow-x-auto px-3" style={{ scrollbarWidth: "none" }}>
+              <SearchChipScroller rowClassName="px-3">
                 {recentSearches.map((term) => (
                   <button
                     key={term}
                     type="button"
                     onClick={() => setSearchValue(term)}
-                    className="shrink-0 rounded-full bg-muted px-3 py-1.5 type-caption text-foreground hover:bg-muted/70 transition-colors cursor-pointer"
+                    // A gray pill on white has to darken on hover, not fade:
+                    // the old `bg-muted/70` went *lighter* and read as
+                    // disabled. Same gray-200/300 pair the notes sidebar
+                    // chips use.
+                    className="group shrink-0 flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 type-caption text-foreground transition-colors cursor-pointer hover:bg-[var(--fill-gray-200)] active:bg-[var(--fill-gray-300)]"
                   >
                     {term}
+                    {/* ↖ is the conventional "put this term back in the search
+                        field" affordance — which is exactly what this does; it
+                        fills the input rather than opening a result. */}
+                    <ArrowUpLeftIcon
+                      size={12}
+                      className="shrink-0 text-[var(--text-default-tertiary)] group-hover:text-[var(--text-default-secondary)] transition-colors"
+                    />
                   </button>
                 ))}
-              </div>
+              </SearchChipScroller>
             </div>
           )}
-          <div
-            className="flex items-center gap-2 overflow-x-auto px-3 py-2"
-            style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", scrollbarWidth: "none" }}
-          >
+          <SearchChipScroller style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
             {SEARCH_FILTER_CHIPS.map((chip) => (
               <Chip
                 key={chip.id ?? "all"}
@@ -556,7 +695,7 @@ export function ProductCatalogTab({
                 className="shrink-0"
               />
             ))}
-          </div>
+          </SearchChipScroller>
           <div className="flex flex-col max-h-[420px] overflow-y-auto py-2">
             {searchResults.length === 0 ? (
               <p className="px-4 py-8 text-center type-caption text-muted-foreground">

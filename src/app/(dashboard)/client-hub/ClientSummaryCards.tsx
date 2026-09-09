@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Avatar, BottomSheet, Button } from "@sarunyu/system-one";
-import { InfoIcon } from "@phosphor-icons/react";
+import { Avatar, BottomSheet } from "@sarunyu/system-one";
+import { ArrowsOutSimpleIcon, InfoIcon } from "@phosphor-icons/react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { useCountUp } from "@/hooks/use-count-up";
@@ -15,8 +16,10 @@ import {
   getClientTotals,
   getSegmentBreakdown,
   getKycDueClients,
+  splitKycByExpiry,
   getTopClientsByAum,
   getClientsByCash,
+  type KycDueEntry,
 } from "./client-hub-data";
 import type { Client } from "@/types/domain";
 
@@ -90,16 +93,11 @@ function SummaryCardSkeleton() {
 const POPOVER_LIST_MAX_H = "max-h-[380px]";
 
 /**
- * Roughly how many rows fit in {@link POPOVER_LIST_MAX_H} — a `ClientListRow`
- * is about 57px (`py-2.5`, an `xs` avatar, two lines of text, a divider), so
- * six and change.
- *
- * Approximate on purpose: it only decides whether "View all" is offered, and
- * being off by one costs nothing either way — a scrolling popover with no
- * button is still readable, and a button over a list that happens to fit still
- * opens a legitimately roomier view of it.
+ * A `ClientListRow`'s height in px: `py-2.5`, an `xs` avatar, two lines of text
+ * and a divider. Approximate, and only ever used to reserve space — nothing is
+ * positioned off it.
  */
-const POPOVER_PEEK_ROWS = 6;
+const LIST_ROW_H = 57;
 
 /**
  * Panel width — a definite size, not `min-w` over the card's own width.
@@ -125,12 +123,14 @@ const POPOVER_PANEL_W = "w-[360px]";
  *   outermost column and the panel comes back with its edge shaved off. The
  *   rule is simply that the row's last card pins right — which card that is
  *   differs between the 3-column and 5-column layouts.
- * @param onViewAll Shown top-right, beside the heading, when the list is longer
- *   than the panel can hold. The height cap is what makes it necessary: without
- *   one the panel grew to fit every row, and since it is `absolute` inside a
- *   scrolling `main`, a few hundred clients both stretched the page's own
- *   scrollbar and put the tail of the list past the fold — reachable only by
- *   scrolling the whole page while keeping the pointer inside a popover that
+ * @param onExpand Opens the same list in the roomier dialog, from an expand
+ *   affordance top-right. Was a "View all" button, which misdescribed it: the
+ *   panel is capped in height but never in content, so every row is already
+ *   here and the label promised something you were looking at. What the control
+ *   actually offers is more room — the panel is `absolute` inside a scrolling
+ *   `main` and can't simply grow, since a few hundred clients would stretch the
+ *   page's own scrollbar and push the tail of the list past the fold, reachable
+ *   only by scrolling the page while keeping the pointer inside a popover that
  *   closes 120ms after it leaves.
  *
  *   Not built on `CompactList`, which is the same idea for dialogs: its rows
@@ -141,34 +141,52 @@ const POPOVER_PANEL_W = "w-[360px]";
 function PopoverList({
   title,
   position = "left-0",
-  onViewAll,
+  onExpand,
   children,
 }: {
   title: string;
   position?: string;
-  onViewAll?: () => void;
+  onExpand?: () => void;
   children: React.ReactNode;
 }) {
   return (
     <div
       className={`absolute top-full mt-1 z-50 bg-white border border-border rounded-xl shadow-xl overflow-hidden ${POPOVER_PANEL_W} ${position}`}
     >
-      {/* `min-h-7` is the `sm` Button's own height, so the heading sits in the
-          same place whether or not there's a button beside it — a panel with
-          "View all" and one without shouldn't start their lists at different
-          heights. `-mr-2` cancels the button's own `pr-2` so its label ends on
-          the same 16px margin the rows' amounts do. */}
+      {/* `min-h-7` keeps the heading in one place whether or not a panel has the
+          expand control beside it. `-mr-1` pulls the icon's own padding back so
+          it optically lines up with the 16px margin the rows' amounts end on. */}
       <div className="flex min-h-7 items-center justify-between gap-2 px-4 pt-2 pb-1">
         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
-        {onViewAll && (
-          <Button variant="plain" size="sm" className="-mr-2 shrink-0" onClick={onViewAll}>
-            View all
-          </Button>
+        {onExpand && (
+          <button
+            type="button"
+            onClick={onExpand}
+            aria-label={`ขยาย${title}`}
+            title="ขยาย"
+            className="-mr-1 shrink-0 cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <ArrowsOutSimpleIcon size={14} weight="bold" />
+          </button>
         )}
       </div>
       <div className={`${POPOVER_LIST_MAX_H} overflow-y-auto`}>{children}</div>
     </div>
   );
+}
+
+/**
+ * Sticky bar above one of these lists — a filter, in the one case there is.
+ *
+ * Placed by each surface rather than folded into `children` because the
+ * horizontal padding is a property of the surface, not of the bar: the bottom
+ * sheet and the modal pad their own content, so a bar that also padded itself
+ * sat indented from the rows' own rules, while the popover panel pads nothing
+ * and needs the bar to supply it. Sticky in all three, so it survives the
+ * scroll that a capped list implies.
+ */
+function ListStickyHeader({ className, children }: { className?: string; children: React.ReactNode }) {
+  return <div className={`sticky top-0 z-10 bg-white pb-2 ${className ?? ""}`}>{children}</div>;
 }
 
 function ClientListRow({ rank, name, sub, right }: { rank?: number; name: string; sub: string; right: React.ReactNode }) {
@@ -186,15 +204,28 @@ function ClientListRow({ rank, name, sub, right }: { rank?: number; name: string
 }
 
 /**
+ * Which half of the KYC list is on screen. `all` leads because the whole list
+ * is the useful default — the split only matters once you're working through
+ * one side of it.
+ */
+type KycFilter = "all" | "expired" | "upcoming";
+
+const KYC_FILTERS: { id: KycFilter; label: string }[] = [
+  { id: "all", label: "ทั้งหมด" },
+  { id: "upcoming", label: "ใกล้หมดอายุ" },
+  { id: "expired", label: "หมดอายุแล้ว" },
+];
+
+/**
  * A KPI card whose ⓘ opens a ranked client list — three of the five are this
  * shape, so they share one component rather than three copies of the same
  * popover / bottom-sheet / modal wiring.
  *
  * Three surfaces, one `children`:
- *  - **desktop popover** — a peek, capped and scrolling, with "View all" out
- *  - **mobile bottom sheet** — the tap target already is the full list, so no
- *    "View all"; it just scrolls inside the sheet's own 80vh
- *  - **full-list dialog** — where "View all" goes
+ *  - **desktop popover** — capped and scrolling, with an expand control
+ *  - **mobile bottom sheet** — nothing to expand into, it already has the
+ *    screen; it just scrolls inside the sheet's own 80vh
+ *  - **dialog** — where the popover's expand control lands
  *
  * The list is passed in as an element, so it renders in whichever surface is
  * mounted without the caller building it more than once.
@@ -205,8 +236,8 @@ function ClientListCard({
   sub,
   valueColorClass,
   title,
-  rowCount,
   position,
+  listHeader,
   children,
 }: {
   label: string;
@@ -215,14 +246,20 @@ function ClientListCard({
   valueColorClass?: string;
   /** Heading over the list, in all three surfaces. */
   title: string;
-  /** Decides whether the popover offers "View all" — see POPOVER_PEEK_ROWS. */
-  rowCount: number;
   /** Where this card's panel hangs from — see `PopoverList`. */
   position?: string;
+  /**
+   * Pinned above the rows in every surface — see `ListStickyHeader`, which each
+   * surface below wraps this in with its own padding.
+   */
+  listHeader?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const isMobile = useMediaQuery("(max-width: 767px)");
-  const { open, setOpen, ref, hoverProps } = usePopover();
+  // Mobile shows the bottom sheet instead of the popover, and the sheet is
+  // portalled: leaving click-outside on would close it on the first tap of
+  // anything inside — which the KYC filter chips made obvious.
+  const { open, setOpen, ref, hoverProps } = usePopover({ dismissOnOutsideClick: !isMobile });
   const [allOpen, setAllOpen] = useState(false);
 
   return (
@@ -240,15 +277,15 @@ function ClientListCard({
           <PopoverList
             title={title}
             position={position}
-            onViewAll={
-              rowCount > POPOVER_PEEK_ROWS
-                ? () => {
-                    setOpen(false);
-                    setAllOpen(true);
-                  }
-                : undefined
-            }
+            onExpand={() => {
+              setOpen(false);
+              setAllOpen(true);
+            }}
           >
+            {/* The one surface with no padding of its own, so the header
+                carries the 16px that lines it up with the panel heading and
+                the rows' text. */}
+            {listHeader && <ListStickyHeader className="px-4 pt-1">{listHeader}</ListStickyHeader>}
             {children}
           </PopoverList>
         )}
@@ -260,12 +297,20 @@ function ClientListCard({
             showHandle
             showHeader
             rightSide="none"
+            // `px-0` so the rows keep their own 16px and their rules run to the
+            // sheet's edges, but `pt-3` rather than a flat `p-0`: the sheet's
+            // own 8px was the only thing between its title and the first row,
+            // and dropping it left the list sitting on the heading.
+            //
             // `min-h-0` so this can shrink below its content inside the sheet's
             // `flex flex-col` / `max-h-[80vh]`, which is what lets the scroll
             // engage. Without it a long list overflowed the sheet upward — the
             // drawer caps its own height but doesn't scroll what's inside.
-            contentClassName="flex flex-col p-0 overflow-y-auto min-h-0"
+            contentClassName="flex flex-col px-0 pt-3 pb-0 overflow-y-auto min-h-0"
           >
+            {/* No padding of its own: the sheet pads horizontally, and the
+                `pt-3` above is the gap under the title. */}
+            {listHeader && <ListStickyHeader>{listHeader}</ListStickyHeader>}
             {children}
           </BottomSheet>
         )}
@@ -278,9 +323,13 @@ function ClientListCard({
         open={allOpen}
         onOpenChange={setAllOpen}
         title={title}
-        mobileContentClassName="flex flex-col p-0 overflow-y-auto min-h-0"
+        mobileContentClassName="flex flex-col px-0 pt-3 pb-0 overflow-y-auto min-h-0"
         desktopContentClassName="flex flex-col min-w-[420px] max-w-[520px] max-h-[70vh] overflow-y-auto"
       >
+        {/* No `px` in either variant: the modal and the sheet both pad their
+            own content, and this is the surface where the extra 16px was most
+            obvious — a filter bar visibly narrower than the rows it filters. */}
+        {listHeader && <ListStickyHeader className="pt-1">{listHeader}</ListStickyHeader>}
         {children}
       </ResponsiveDialog>
     </>
@@ -295,14 +344,21 @@ export function ClientSummaryCards({ clients, isLoading }: { clients: Client[]; 
     setOpen: setSegmentOpen,
     ref: segmentRef,
     hoverProps: segmentHoverProps,
-  } = usePopover();
+  } = usePopover({ dismissOnOutsideClick: !isMobile });
   // The three list cards own their own popover state inside `ClientListCard`;
   // only Total Clients still needs it here, since its panel is a segment bar
   // rather than a client list.
 
+  // Lives here rather than beside the chips so the popover, the bottom sheet
+  // and the expanded dialog share one filter: `kycListContent` is handed to
+  // all three, and a filter that reset on the way into the full list would
+  // undo the narrowing the user just did.
+  const [kycFilter, setKycFilter] = useState<KycFilter>("all");
+
   const { totalAum, totalCash } = useMemo(() => getClientTotals(clients), [clients]);
   const segmentBreakdown = useMemo(() => getSegmentBreakdown(clients), [clients]);
   const kycDueClients = useMemo(() => getKycDueClients(clients), [clients]);
+  const kycSections = useMemo(() => splitKycByExpiry(kycDueClients), [kycDueClients]);
   const topClients = useMemo(() => getTopClientsByAum(clients), [clients]);
   const cashClients = useMemo(() => getClientsByCash(clients), [clients]);
 
@@ -376,26 +432,72 @@ export function ClientSummaryCards({ clients, isLoading }: { clients: Client[]; 
     </>
   );
 
+  /* The day count keeps its sign. With the two halves interleaved under
+     "ทั้งหมด" nothing else on the row says which side of the expiry line it
+     falls on, so `-10d` is doing real work — it's only redundant when a header
+     or chip has already declared the group. */
+  const renderKycRow = (k: KycDueEntry) => (
+    <ClientListRow
+      key={k.id}
+      name={maskName(k.client.name, isPrivate)}
+      sub={`${k.client.tier} · ${k.nextReview}`}
+      right={
+        <span className={`text-[12px] font-bold shrink-0 ${k.daysUntilExpiry <= 7 ? "text-[var(--text-danger-primary)]" : "text-[var(--text-warning-primary)]"}`}>
+          {k.daysUntilExpiry}d
+        </span>
+      }
+    />
+  );
+
+  /* Offered only when both halves have rows: with every client on one side of
+     the expiry line there is nothing to narrow down, and a segment reading
+     "(0)" invites a click that empties the panel. */
+  const kycFilterable = kycSections.expired.length > 0 && kycSections.upcoming.length > 0;
+  const kycFilterCounts: Record<KycFilter, number> = {
+    all: kycDueClients.length,
+    expired: kycSections.expired.length,
+    upcoming: kycSections.upcoming.length,
+  };
+  const kycRows = !kycFilterable || kycFilter === "all" ? kycDueClients : kycSections[kycFilter];
+
+  /**
+   * shadcn `Tabs` as a segmented control, same as the notes sidebar's filter —
+   * no `TabsContent`, the list below just reads `kycFilter`. `w-full` overrides
+   * the list's `w-fit` so the three segments split whatever width they're
+   * given, and `text-xs` overrides the trigger's `text-sm`, which in a 360px
+   * popover couldn't fit a Thai label plus its count in a third of the width.
+   *
+   * Handed to `ClientListCard` as its `listHeader` rather than sitting at the
+   * top of `kycListContent`, so each surface can pad it to its own edges.
+   */
+  const kycFilterBar = kycFilterable ? (
+    <Tabs value={kycFilter} onValueChange={(v) => setKycFilter(v as KycFilter)}>
+      <TabsList aria-label="กรองรายการ KYC" className="w-full">
+        {KYC_FILTERS.map(({ id, label }) => (
+          <TabsTrigger key={id} value={id} className="text-xs">
+            {label} ({kycFilterCounts[id]})
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
+  ) : undefined;
+
   const kycListContent = (
     <>
-      {kycDueClients.length === 0
-        ? <p className="text-[13px] text-muted-foreground px-4 py-3">ไม่มีลูกค้าที่ KYC ใกล้ครบกำหนด</p>
-        : kycDueClients.map((k) => {
-            const name = maskName(k.client.name, isPrivate);
-            return (
-              <ClientListRow
-                key={k.id}
-                name={name}
-                sub={`${k.client.tier} · ${k.nextReview}`}
-                right={
-                  <span className={`text-[12px] font-bold shrink-0 ${k.daysUntilExpiry <= 7 ? "text-[var(--text-danger-primary)]" : "text-[var(--text-warning-primary)]"}`}>
-                    {k.daysUntilExpiry}d
-                  </span>
-                }
-              />
-            );
-          })
-      }
+      {/* Space held for the unfiltered list, so picking a segment narrows the
+          rows without resizing the surface around them — the bottom sheet sizes
+          to its content, and a sheet that shrank from six rows to one bounced
+          the control you were aiming at up the screen. Reserved rather than
+          fixed: every surface still caps its own height (80vh in the sheet,
+          `POPOVER_LIST_MAX_H` in the popover), so a long list scrolls as
+          before instead of forcing a tall panel. */}
+      <div style={{ minHeight: kycDueClients.length * LIST_ROW_H }}>
+        {kycRows.length === 0 ? (
+          <p className="text-[13px] text-muted-foreground px-4 py-3">ไม่มีลูกค้าที่ KYC ใกล้ครบกำหนด</p>
+        ) : (
+          kycRows.map(renderKycRow)
+        )}
+      </div>
     </>
   );
 
@@ -453,7 +555,6 @@ export function ClientSummaryCards({ clients, isLoading }: { clients: Client[]; 
         value={formatMillionThb(animatedAssetValue)}
         sub="ไม่รวม cash"
         title="ลูกค้าเรียงตามมูลค่าทรัพย์สิน"
-        rowCount={topClients.length}
         position="right-0 lg:right-auto lg:left-0"
       >
         {assetListContent}
@@ -468,7 +569,7 @@ export function ClientSummaryCards({ clients, isLoading }: { clients: Client[]; 
         sub="ภายใน 30 วัน"
         valueColorClass={kycDueClients.length > 0 ? "text-[var(--text-warning-primary)]" : "text-foreground"}
         title="ลูกค้าที่ KYC ใกล้หมดอายุ"
-        rowCount={kycDueClients.length}
+        listHeader={kycFilterBar}
       >
         {kycListContent}
       </ClientListCard>
@@ -481,7 +582,6 @@ export function ClientSummaryCards({ clients, isLoading }: { clients: Client[]; 
         value={formatMillionThb(animatedTotalCash)}
         sub="เงินรอลงทุน"
         title="ลูกค้าเรียงตามเงินรอลงทุน"
-        rowCount={cashClients.length}
         position="right-0"
       >
         {cashListContent}

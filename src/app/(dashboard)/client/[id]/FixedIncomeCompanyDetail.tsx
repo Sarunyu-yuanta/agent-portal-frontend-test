@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { Button } from "@sarunyu/system-one";
 import {
   ArrowLeftIcon,
 } from "@phosphor-icons/react";
 import {
   BOND_LOGOS,
-  getCompanyPrimaryBonds,
-  getCompanySecondaryBonds,
-  resolveFixedIncomeCompany,
   type FixedIncomeBond,
 } from "./fixed-income-data";
 import {
@@ -21,7 +19,7 @@ import {
   StatusTag,
   BondLogo,
 } from "./fixed-income-shared";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useFixedIncomeCompanyDetail } from "@/hooks/use-catalog";
 import { FixedIncomeCompanyDetailSkeleton } from "./ProductDetailSkeletons";
 
 const GRADIENT_TITLE =
@@ -292,6 +290,7 @@ const ASSET_TAG_ICONS = {
 function AssetTag({ iconSrc, label }: { iconSrc: string; label: string }) {
   return (
     <span className="inline-flex items-center gap-0.5 px-2 py-1 rounded bg-[#f9fafb] text-sm leading-5 text-[#4a5565]">
+      {/* eslint-disable-next-line @next/next/no-img-element -- 14px SVG tag icon; the image optimizer rejects SVG */}
       <img alt="" src={iconSrc} className="size-3.5 shrink-0" />
       {label}
     </span>
@@ -342,10 +341,11 @@ export function FixedIncomeCompanyDetail({
   onBack: () => void;
   onBondSelect: (bond: FixedIncomeBond) => void;
 }) {
-  const isLoading = useSimulatedLoading();
-  const company = resolveFixedIncomeCompany(companyId);
-  const primaryBonds = getCompanyPrimaryBonds(companyId);
-  const secondaryBonds = getCompanySecondaryBonds(companyId);
+  // The `if (isLoading)` return below stays *above* the `!company` branch: once
+  // this resource is fetched, a not-yet-arrived company must read as loading,
+  // not as "ไม่พบข้อมูลบริษัท".
+  const { data: detail, isLoading } = useFixedIncomeCompanyDetail(companyId);
+  const { company, primaryBonds, secondaryBonds } = detail;
 
   useEffect(() => {
     const main = document.querySelector("main");
@@ -389,10 +389,13 @@ export function FixedIncomeCompanyDetail({
 
       <div className="flex flex-col gap-8 w-full max-w-[1280px] mx-auto">
         <div className="relative flex flex-col gap-6 p-8 rounded-xl overflow-hidden">
-          <img
+          <Image
             alt=""
             src="/fixed-income-company-hero.png"
-            className="absolute inset-0 size-full object-cover pointer-events-none rounded-xl"
+            fill
+            priority
+            sizes="(max-width: 1280px) 100vw, 1280px"
+            className="object-cover pointer-events-none rounded-xl"
           />
           <div className="relative flex flex-col gap-4 w-full">
             <div className="flex gap-4 items-center w-full">
@@ -400,7 +403,7 @@ export function FixedIncomeCompanyDetail({
                 className="relative shrink-0 size-14 rounded-xl overflow-hidden"
                 style={{ border: "1px solid rgba(0,0,0,0.08)" }}
               >
-                <img alt="" className="absolute inset-0 size-full object-cover pointer-events-none" src={logoSrc} />
+                <Image alt="" fill sizes="56px" className="object-cover pointer-events-none" src={logoSrc} />
               </div>
               <h2 className="flex-1 min-w-0 text-[32px] font-bold leading-[1.5] text-[rgba(0,0,0,0.9)]">
                 {company.fullName}

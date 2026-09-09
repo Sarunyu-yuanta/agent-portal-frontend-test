@@ -118,6 +118,19 @@
 }
 
 @theme inline {
+    /* Slow scale loop used in place of a spinner on the auth pending splash,
+       so the brand lockup itself carries the "working" signal. */
+    --animate-breathe: breathe 2.4s ease-in-out infinite;
+
+    @keyframes breathe {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.06);
+        }
+    }
+
     --font-heading: var(--font-sans);
     --font-sans: var(--font-sans);
     --color-sidebar-ring: var(--sidebar-ring);
@@ -313,25 +326,4 @@ body > .bg-popover.overflow-clip.p-\[8px\] {
   pointer-events: auto;
 }
 
-/* `Notification` / `NavHeaderNotification` in `@sarunyu/system-one` render
-   each row as a plain `role="button"` div with no hover state at all (checked
-   the compiled source — no `hover:` class anywhere on the row, and the
-   component takes no `rowClassName` to add one). The only prop that reaches
-   any of this is `panelClassName`, which lands on the popover's outer
-   wrapper — an ancestor of every row, not the rows themselves — so a
-   descendant rule is the only way in.
 
-   A Tailwind arbitrary-variant descendant selector
-   (`[&_[role='button']:hover]:bg-...`) was tried first and produced no CSS at
-   all: the class reached the DOM (confirmed in devtools) but the nested
-   bracket-in-bracket selector never made it into the generated stylesheet, so
-   this is a plain rule instead. Deliberately outside every @layer, for the
-   same reason the two rules above are: a Tailwind utility can't reach a
-   node this component doesn't expose a class prop for regardless. */
-.notification-bell-panel [role="button"] {
-  cursor: pointer;
-  transition: background-color 150ms ease;
-}
-.notification-bell-panel [role="button"]:hover {
-  background-color: var(--bg-default-secondary);
-}

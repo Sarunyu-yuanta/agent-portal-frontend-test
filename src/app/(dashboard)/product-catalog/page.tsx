@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { SearchInput } from "@sarunyu/system-one";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -26,6 +26,11 @@ export default function ProductCatalogPage() {
 
 function ProductCatalogPageInner() {
   const [searchValue, setSearchValue] = useState("");
+  // The header search bar lives up in the dashboard chrome, but the overlay it
+  // opens belongs to the catalog below — so both the open state and the anchor
+  // element are owned here and handed down.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const headerSearchWrapRef = useRef<HTMLDivElement>(null);
   const scrolled = useScrollThreshold();
   const setHeaderSlot = useSetHeaderSlot();
   const router = useRouter();
@@ -43,13 +48,19 @@ function ProductCatalogPageInner() {
   useEffect(() => {
     if (scrolled) {
       setHeaderSlot(
-        <SearchInput
-          value={searchValue}
-          onChange={setSearchValue}
-          placeholder="ค้นหาสินทรัพย์"
-          size="sm"
+        <div
+          ref={headerSearchWrapRef}
           className="w-full"
-        />,
+          onFocus={() => setSearchOpen(true)}
+        >
+          <SearchInput
+            value={searchValue}
+            onChange={setSearchValue}
+            placeholder="ค้นหาสินทรัพย์"
+            size="sm"
+            className="w-full"
+          />
+        </div>,
       );
     } else {
       setHeaderSlot(null);
@@ -80,6 +91,9 @@ function ProductCatalogPageInner() {
     <ProductCatalogTab
       searchValue={searchValue}
       onSearchChange={setSearchValue}
+      searchOpen={searchOpen}
+      onSearchOpenChange={setSearchOpen}
+      searchAnchorRef={headerSearchWrapRef}
       activeCategory={category}
       onCategoryChange={(id) =>
         setQueryState(catalogListHref(id), "push")

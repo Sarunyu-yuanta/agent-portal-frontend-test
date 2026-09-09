@@ -13,76 +13,13 @@ import {
   PhoneIncomingIcon,
   PhoneOutgoingIcon,
 } from "@phosphor-icons/react";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
-import { ALLOCATION_COLORS, type SortDir } from "./client-detail-data";
-import { displayAssetLabel } from "@/lib/client-utils";
+import { type SortDir } from "./client-detail-data";
+import { AllocationDonutWithTiles } from "@/components/allocation-donut";
 import { EmptyState } from "@/components/ui/empty-state";
 
-function AllocationTooltip({
-  active,
-  payload,
-}: {
-  active?: boolean;
-  payload?: { name: string; value: number }[];
-}) {
-  if (!active || !payload?.length) return null;
-  const { name, value } = payload[0];
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-sm">
-      <p className="text-[11px] font-semibold text-muted-foreground">{name}</p>
-      <p className="type-subtitle-2 font-bold text-foreground">{value}%</p>
-    </div>
-  );
-}
-
 export function CurrentAllocationSection({ slices }: { slices: { label: string; percent: number }[] }) {
-  const data = slices.map((s, i) => ({ name: displayAssetLabel(s.label), value: s.percent, color: ALLOCATION_COLORS[i] }));
-  // Keyed on the actual values so the chart remounts — and replays its entry
-  // animation — whenever the allocation itself changes, not just on first mount.
-  const chartKey = slices.map((s) => `${s.label}:${s.percent}`).join("|");
-
-  return (
-    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-center">
-      {/* Pie chart */}
-      <div key={chartKey} className="h-[180px] shrink-0 mx-auto sm:mx-0" style={{ width: 180 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={1}
-              stroke="none"
-              animationDuration={350}
-              animationEasing="ease-out"
-            >
-              {data.map((d) => (
-                <Cell key={d.name} fill={d.color} />
-              ))}
-            </Pie>
-            <Tooltip content={<AllocationTooltip />} />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-      {/* KPI tiles */}
-      <div className="grid grid-cols-2 lg:grid-cols-2 gap-2 flex-1 min-w-0">
-        {slices.map((s, i) => (
-          <div key={s.label} className="flex flex-col gap-1 rounded-xl p-3 bg-[var(--bg-default-secondary)]">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ALLOCATION_COLORS[i] }} />
-              <p className="text-[11px] font-semibold text-muted-foreground truncate">{displayAssetLabel(s.label)}</p>
-            </div>
-            <p className="type-subtitle-1 font-bold leading-none text-foreground">{s.percent}%</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <AllocationDonutWithTiles slices={slices} donutSize={180} />;
 }
 
 export function TopHoldingsSection({

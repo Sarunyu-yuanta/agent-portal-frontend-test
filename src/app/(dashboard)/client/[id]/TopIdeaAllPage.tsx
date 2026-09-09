@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { Button } from "@sarunyu/system-one";
 import { ArrowLeftIcon } from "@phosphor-icons/react";
 import { TopIdeaCard } from "./TopIdeaCard";
-import { ALL_TOP_IDEAS, type TopIdeaSector } from "./top-idea-data";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { type TopIdeaSector } from "./top-idea-data";
+import { useTopIdeas } from "@/hooks/use-catalog";
 import { TopIdeaAllPageSkeleton } from "./ProductDetailSkeletons";
 
 export function TopIdeaAllPage({
@@ -15,7 +15,7 @@ export function TopIdeaAllPage({
   onBack: () => void;
   onSelect: (sector: TopIdeaSector) => void;
 }) {
-  const isLoading = useSimulatedLoading();
+  const { data: topIdeas, isLoading } = useTopIdeas();
 
   useEffect(() => {
     const main = document.querySelector("main");
@@ -40,7 +40,7 @@ export function TopIdeaAllPage({
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-[1280px] px-4 md:px-8 lg:px-20">
-        {ALL_TOP_IDEAS.map((item, i) => (
+        {topIdeas.map((item, i) => (
           <TopIdeaCard
             key={`${item.sector}-${i}`}
             sector={item.sector}

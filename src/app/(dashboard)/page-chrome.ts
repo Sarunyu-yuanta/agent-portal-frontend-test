@@ -17,7 +17,6 @@ export type PageChrome = {
   title: string | null;
   breadcrumb: Crumb[] | null;
   isCommandCenter: boolean;
-  isHouseView: boolean;
   isPerformance: boolean;
   /** Page paints its own padding and bleeds to the edges. */
   isFullWidth: boolean;
@@ -47,7 +46,6 @@ const PAGE_TITLES: Record<string, string> = {
   "/ai-insights": "AI Insights",
   "/performance": "Performance & Targets",
   "/compliance": "Compliance & Risk",
-  "/house-view": "House View & Strategy",
   "/insights": "Insights",
   "/product-catalog": "Product Catalog",
   "/notes": "Notes",
@@ -89,7 +87,6 @@ export function usePageChrome(): PageChrome {
     title: breadcrumb ? null : titleKey ? PAGE_TITLES[titleKey] : "",
     breadcrumb,
     isCommandCenter: pathname.startsWith("/command-center"),
-    isHouseView: pathname.startsWith("/house-view"),
     isPerformance: pathname.startsWith("/performance"),
     isFullWidth:
       pathname.startsWith("/product-catalog") ||

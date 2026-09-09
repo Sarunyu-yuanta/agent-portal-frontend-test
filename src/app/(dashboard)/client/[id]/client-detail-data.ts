@@ -15,10 +15,9 @@ export const clientDetailById = Object.fromEntries(
   mockClients.map((c) => [c.id, mockClientDetails[c.id]]),
 );
 
-export const ALLOCATION_COLORS = [
-  "#f59e0b", "#3b82f6", "#10b981", "#8b5cf6",
-  "#06b6d4", "#6366f1", "#f97316", "#ec4899",
-] as const;
+/** Re-exported so this stays the one import for Client 360 detail data; the
+ *  palette itself lives with the donut that draws it. */
+export { ALLOCATION_COLORS } from "@/components/allocation-donut";
 
 export type SortDir = "none" | "asc" | "desc";
 export type HoldingsSortKey = "value" | "pnlPct" | "pct" | null;
@@ -56,17 +55,13 @@ export function lastContactFromCallLogs(logs: CallLogEntry[]): string {
  * every client has a record.
  *
  * `daysLeft` is derived from `nextReview` rather than read from the record's own
- * `daysUntilExpiry`, because in the mock data the two disagree: `nextReview`
- * `2026-06-11` sits alongside `daysUntilExpiry: 14`, which as a date and a
- * countdown printed side by side would contradict each other on screen. Deriving
- * keeps the tab self-consistent, and is what a real `nextReview` needs anyway.
+ * `daysUntilExpiry`: a stored day count is stale the moment it's serialised, and
+ * a date printed next to a contradicting countdown is what the mock used to do
+ * before `mockKYCData` started stamping the date from the offset (see the note
+ * there). Deriving keeps every KYC surface saying the same number, whatever the
+ * backend ends up sending.
  *
- * The cost is that `getKycDueClients` — which Client 360's "KYC ครบกำหนด" card
- * counts with — still reads the stored field, so the two surfaces disagree until
- * `kyc-data.json` has the countdown and the date agreeing.
- *
- * Backend: return `nextReview` and let this do the arithmetic; a stored day count
- * is stale the moment it's serialised.
+ * Backend: return `nextReview` and let this do the arithmetic.
  */
 export function kycExpiry(clientId: string): {
   /** `nextReview` formatted for display — e.g. `15 Dec 2026`. */
@@ -102,6 +97,29 @@ export function kycExpiry(clientId: string): {
     dueSoon: daysLeft < 30,
     urgent: daysLeft <= 7,
   };
+}
+
+/**
+ * The KYC expiry as one Thai sentence, for the profile's identity bar.
+ *
+ * `null` when the client has no KYC record — the caller drops the whole line
+ * rather than printing a countdown to nothing.
+ *
+ * Always counted in days, at every horizon. Thai has no plural form, so there
+ * is no singular case to special-case the way the English `countdownLabel` in
+ * `KycTab` needs.
+ */
+export function kycExpiryLabelTh(clientId: string): string | null {
+  const expiry = kycExpiry(clientId);
+  if (!expiry) return null;
+
+  const { date, daysLeft } = expiry;
+  // Unparseable `nextReview` — show the date as sent rather than a countdown
+  // derived from a value we couldn't read.
+  if (daysLeft === null) return `KYC หมดอายุ ${date}`;
+  if (daysLeft < 0) return `KYC หมดอายุแล้ว ${Math.abs(daysLeft)} วัน`;
+  if (daysLeft === 0) return "KYC หมดอายุวันนี้";
+  return `KYC จะหมดอายุในอีก ${daysLeft} วัน`;
 }
 
 export type FormStatus = "done" | "pending" | "not-done" | "oncoming" | null;

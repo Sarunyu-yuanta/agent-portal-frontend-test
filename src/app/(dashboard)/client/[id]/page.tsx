@@ -28,7 +28,7 @@ import { LiabilitiesDetailModal } from "@/components/LiabilitiesDetailModal";
 import type { LiabilitiesDetail } from "@/data/liabilities-details";
 import {
   clientDetailById,
-  lastContactFromCallLogs,
+  kycExpiryLabelTh,
   type SortDir,
   type HoldingsSortKey,
 } from "./client-detail-data";
@@ -84,6 +84,7 @@ function ClientPageInner({ id }: { id: string }) {
 
   const callLogs = getCallLogs(client.id);
   const profile = getClientProfile(client.id);
+  const kycExpiryLabel = kycExpiryLabelTh(client.id);
   const [liabilitiesOpen, setLiabilitiesOpen] = useState(false);
   const [liabilitiesData, setLiabilitiesData] = useState<{ amount: string; detail: LiabilitiesDetail } | null>(null);
 
@@ -182,8 +183,16 @@ function ClientPageInner({ id }: { id: string }) {
                   <div className="overflow-hidden min-h-0">
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="type-caption text-muted-foreground">{client.id}</span>
-                      <span className="type-caption text-muted-foreground/40">·</span>
-                      <span className="type-caption text-muted-foreground">Last Contact: {lastContactFromCallLogs(callLogs)}</span>
+                      {/* Last Contact sat here until the call log is in scope
+                          (see `CALL_LOG_ENABLED`); the KYC countdown is the
+                          thing an RM acts on. Dropped when the client has no
+                          KYC record — the pill's own outline is the separator,
+                          so the middot went with it. */}
+                      {kycExpiryLabel && (
+                        <span className="type-caption text-muted-foreground rounded-md bg-muted px-2 py-0.5">
+                          {kycExpiryLabel}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -197,30 +206,29 @@ function ClientPageInner({ id }: { id: string }) {
                   ref={quickContactRef}
                   className="flex items-center gap-2 overflow-x-auto snap-x snap-mandatory px-4 xl:px-6 py-0.5 [scroll-padding-inline:1rem] xl:[scroll-padding-inline:1.5rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 >
-                  <a
-                    href={`tel:${profile.phone}`}
-                    className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground hover:text-primary-action hover:bg-primary-action-light transition-colors shrink-0 whitespace-nowrap snap-start"
-                  >
-                    <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0">
+                  {/* Plain spans, not `tel:`/`mailto:` links — an RM copies these
+                      into a phone or CRM rather than dialing from the desktop,
+                      and an anchor hijacks the drag as a link-drag so the text
+                      can't be selected. The icon bubble is `select-none` to keep
+                      the copied string down to the value itself. */}
+                  <span className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground shrink-0 whitespace-nowrap snap-start">
+                    <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0 select-none">
                       <PhoneIcon size={13} className="text-muted-foreground" />
                     </span>
-                    <span className="type-caption font-medium">{profile.phone}</span>
-                  </a>
-                  <a
-                    href={`mailto:${profile.email}`}
-                    className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground hover:text-primary-action hover:bg-primary-action-light transition-colors shrink-0 whitespace-nowrap snap-start"
-                  >
-                    <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0">
+                    <span className="type-caption font-medium select-text cursor-text">{profile.phone}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground shrink-0 whitespace-nowrap snap-start">
+                    <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0 select-none">
                       <EnvelopeSimpleIcon size={13} className="text-muted-foreground" />
                     </span>
-                    <span className="type-caption font-medium">{profile.email}</span>
-                  </a>
+                    <span className="type-caption font-medium select-text cursor-text">{profile.email}</span>
+                  </span>
                   {profile.lineId && (
                     <span className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-muted/70 text-foreground shrink-0 whitespace-nowrap snap-start">
-                      <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0">
+                      <span className="flex items-center justify-center size-6 rounded-full bg-card shadow-sm shrink-0 select-none">
                         <ChatCircleIcon size={13} className="text-muted-foreground" />
                       </span>
-                      <span className="type-caption font-medium">{profile.lineId}</span>
+                      <span className="type-caption font-medium select-text cursor-text">{profile.lineId}</span>
                     </span>
                   )}
                 </div>

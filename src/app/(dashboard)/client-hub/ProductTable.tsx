@@ -96,6 +96,7 @@ export function ProductTable({
               <TableCell>
                 <div className="flex items-center gap-2">
                   <span className="relative shrink-0 size-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- SVG status dot; the image optimizer rejects SVG */}
                     <img alt="" className="block size-full max-w-none" src={row.statusIcon} />
                   </span>
                   <p className="text-[14px] font-semibold text-foreground truncate">{displayAssetLabel(row.label)}</p>

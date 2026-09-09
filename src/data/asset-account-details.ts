@@ -1,3 +1,5 @@
+import { formatThbDecimal, parseAmount } from "@/lib/client-utils";
+
 export type AssetAccountItem = {
   name: string;
   accountNo: string;
@@ -463,14 +465,6 @@ export function getAssetProductDetail(productName: string): AssetAccountDetail {
   return enrichDetailWithPositions(detail);
 }
 
-function parseAmount(value: string): number {
-  return parseFloat(value.replace(/,/g, "")) || 0;
-}
-
-function formatAmount(n: number): string {
-  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 function computePosition(item: HoldingItem): PositionSummary | undefined {
   if (item.quantity == null) return undefined;
 
@@ -482,10 +476,10 @@ function computePosition(item: HoldingItem): PositionSummary | undefined {
 
   return {
     fields: [
-      { label: "Average Cost (THB)", value: formatAmount(avgCost) },
-      { label: "Current Price (THB)", value: formatAmount(currentPrice) },
-      { label: "Cost Amount (THB)", value: formatAmount(costAmount) },
-      { label: "Market Value (THB)", value: formatAmount(marketValue) },
+      { label: "Average Cost (THB)", value: formatThbDecimal(avgCost) },
+      { label: "Current Price (THB)", value: formatThbDecimal(currentPrice) },
+      { label: "Cost Amount (THB)", value: formatThbDecimal(costAmount) },
+      { label: "Market Value (THB)", value: formatThbDecimal(marketValue) },
       { label: "Quantity", value: item.quantity.toLocaleString("en-US") },
     ],
   };

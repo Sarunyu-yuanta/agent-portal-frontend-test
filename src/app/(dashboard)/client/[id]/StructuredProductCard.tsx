@@ -19,6 +19,7 @@ function LogoRow({ logos, tags }: { logos: string[]; tags: string[] }) {
             className="relative shrink-0 size-8 rounded overflow-hidden"
             style={{ border: "1px solid rgba(0,0,0,0.08)" }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element -- swaps in a placeholder by reassigning `currentTarget.src` on error; `next/image` owns that attribute, so the fallback cannot work through it */}
             <img alt="" className="absolute inset-0 size-full object-cover" src={src} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/logo-placeholder.svg"; }} />
           </div>
         ))}

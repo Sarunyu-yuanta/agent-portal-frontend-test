@@ -11,7 +11,7 @@
  * mini-kanbans).
  */
 
-import type { mockClients, mockClientDetails, mockKYCData } from "@/lib/mock-data";
+import type { mockClients, mockClientDetails } from "@/lib/mock-data";
 import type { AssetAllocationSlice, AssetHeroSummary } from "@/components/AssetSummarySection";
 
 /** A wealth-management client row as consumed by the UI. */
@@ -19,9 +19,6 @@ export type Client = (typeof mockClients)[number];
 
 /** Per-client detail record (asset summary, allocations, holdings, tasks…). */
 export type ClientDetail = (typeof mockClientDetails)[string];
-
-/** KYC compliance record for a client. */
-export type KYCRecord = (typeof mockKYCData)[number];
 
 /** One asset-class slice of a portfolio ({ label, percent, statusIcon }). */
 export type { AssetAllocationSlice, AssetHeroSummary };

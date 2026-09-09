@@ -131,13 +131,6 @@ export function getGlobalBondIssuer(id: string): GlobalBondIssuer | undefined {
   return GLOBAL_BOND_ISSUERS[id as GlobalBondIssuerId];
 }
 
-export function resolveGlobalBondIssuer(id: string): GlobalBondIssuer | undefined {
-  const direct = getGlobalBondIssuer(id);
-  if (direct) return direct;
-  const normalized = id.toLowerCase().replace(/\s+/g, "-");
-  return getGlobalBondIssuer(normalized);
-}
-
 export function filterGlobalBonds(
   bonds: GlobalBondRow[],
   yieldFilter: YieldFilter,

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type {
   GlobalBondIssuer,
   MaturityFilter,
@@ -46,6 +47,7 @@ function AssetTag({
           : "px-2 py-1 text-xs leading-[18px] gap-0.5"
       }`}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element -- 14px SVG tag icon; the image optimizer rejects SVG */}
       <img alt="" src={iconSrc} className="size-3.5 shrink-0" />
       {label}
     </span>
@@ -122,10 +124,13 @@ export function GlobalBondDetailHero({
   const heroImage = issuer.heroImage ?? "/global-bond-apple-hero.png";
   return (
     <div className="relative flex flex-col gap-6 px-4 py-6 md:p-8 rounded-xl overflow-hidden">
-      <img
+      <Image
         alt=""
         src={heroImage}
-        className="absolute inset-0 size-full object-cover pointer-events-none opacity-80"
+        fill
+        priority
+        sizes="(max-width: 1280px) 100vw, 1280px"
+        className="object-cover pointer-events-none opacity-80"
       />
       <div
         className="absolute inset-0 rounded-xl"
@@ -141,9 +146,15 @@ export function GlobalBondDetailHero({
                 className="flex items-center justify-center shrink-0 size-7 md:size-8 rounded-lg bg-white overflow-hidden"
                 style={{ boxShadow: "0px 0px 0px 1px #e5e7eb" }}
               >
-                <img
+                {/* Sized by `size-full` against the fixed 28/32px box, not by
+                    these attributes — they only give the optimizer an intrinsic
+                    ratio, so the parent needs no positioning context. */}
+                <Image
                   alt=""
                   src={issuer.logo}
+                  width={32}
+                  height={32}
+                  sizes="32px"
                   className="size-full object-cover"
                 />
               </div>

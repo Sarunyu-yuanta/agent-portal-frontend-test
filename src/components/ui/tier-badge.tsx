@@ -8,9 +8,6 @@ export type MembershipTier =
   | "prestige"
   | "signature";
 
-export const REWARDS_TIERS: MembershipTier[] = ["bronze", "silver", "gold", "platinum"];
-export const ULTIMATE_TIERS: MembershipTier[] = ["elite", "prestige", "signature"];
-
 type TierStyle = { label: string; bg: string; text: string; border?: string };
 
 /** Colors and icons lifted directly from the Figma "Tier" badge components. */
@@ -36,8 +33,13 @@ export function TierBadge({ tier, className }: { tier: MembershipTier; className
         boxShadow: style.border ? `inset 0 0 0 1px ${style.border}` : undefined,
       }}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element -- 18px SVG tier icon; the image optimizer rejects SVG */}
       <img src={`/icons/tier/tier-${tier}.svg`} alt="" className="size-[18px] shrink-0" />
-      <span className="type-caption font-bold leading-none" style={{ color: style.text }}>
+      {/* `font-bold!`, not `font-bold`: `.type-caption` in
+          `@sarunyu/system-one` sets `font-weight` itself and its stylesheet
+          loads after `globals.css`, so a plain Tailwind weight ties on
+          specificity and loses — the label rendered at 400. */}
+      <span className="type-caption font-bold! leading-none" style={{ color: style.text }}>
         {style.label}
       </span>
     </span>

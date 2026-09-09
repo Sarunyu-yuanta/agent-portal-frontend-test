@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Toaster } from "@sarunyu/system-one";
 import { useClients } from "@/hooks/use-api";
@@ -45,7 +45,10 @@ export function ClientNotesTab({ clientId }: { clientId: string }) {
     reminderDone: boolean;
   }>({ clientIds: [clientId], reminderAt: null, reminderDone: false });
   // Stable timestamp so the displayed date doesn't jump when attributes change.
-  const draftCreatedAt = useRef(new Date().toISOString());
+  // State rather than a ref because the draft note below is built during render:
+  // a ref read at render time is what `react-hooks/refs` flags, and `handleAdd`
+  // already re-renders (it calls `setDraftAttrs`) whenever it restamps this.
+  const [draftCreatedAt, setDraftCreatedAt] = useState(() => new Date().toISOString());
 
   const draftNoteForPane = useMemo<Note>(
     () => ({
@@ -53,11 +56,11 @@ export function ClientNotesTab({ clientId }: { clientId: string }) {
       title: null,
       body: "",
       author: NOTE_AUTHOR,
-      createdAt: draftCreatedAt.current,
-      updatedAt: draftCreatedAt.current,
+      createdAt: draftCreatedAt,
+      updatedAt: draftCreatedAt,
       ...draftAttrs,
     }),
-    [draftAttrs],
+    [draftAttrs, draftCreatedAt],
   );
 
   // --- Edit flow: existing note opened via URL param ---
@@ -74,8 +77,15 @@ export function ClientNotesTab({ clientId }: { clientId: string }) {
   const [panelNote, setPanelNote] = useState<Note | null>(openNote);
   if (openNote && openNote !== panelNote) {
     setPanelNote(openNote);
-    if (openNote.id !== panelNote?.id) attributesOpenRef.current = false;
   }
+
+  // Opening a *different* note collapses its attributes section. In an effect
+  // rather than the render-phase branch above (where it used to live, tripping
+  // `react-hooks/refs`) — the flag is only ever read from event handlers, which
+  // cannot fire before effects have flushed, so the reset still lands in time.
+  useEffect(() => {
+    attributesOpenRef.current = false;
+  }, [openNote?.id]);
 
   const pushedPanelRef = useRef(false);
 
@@ -118,7 +128,7 @@ export function ClientNotesTab({ clientId }: { clientId: string }) {
 
   // --- "New note" tile: open create modal without touching the DB ---
   const handleAdd = () => {
-    draftCreatedAt.current = new Date().toISOString();
+    setDraftCreatedAt(new Date().toISOString());
     setDraftAttrs({ clientIds: [clientId], reminderAt: null, reminderDone: false });
     modalValuesRef.current = { title: "", body: "" };
     setCreateOpen(true);

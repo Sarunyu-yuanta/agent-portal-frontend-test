@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, Button } from "@sarunyu/system-one";
+import { ResponsiveBottomSheetModal } from "@/components/ResponsiveBottomSheetModal";
 import {
   CalendarCheckIcon,
   CalendarBlankIcon,
@@ -21,6 +22,36 @@ import type { ClientDetail } from "@/types/domain";
 /** How far out the Reminders card looks — past this, a reminder only shows
  *  up once you open the full Reminders tab. */
 const REMINDER_WINDOW_DAYS = 15;
+
+/**
+ * How many entries the Recent Activity card shows before "ดูทั้งหมด" is the
+ * only way to see the rest. Every client in the mock data happens to have
+ * exactly this many, so the card looks unchanged today — the cap is what keeps
+ * it from growing without bound once the real feed has a client's whole
+ * history in it.
+ */
+const RECENT_ACTIVITY_PREVIEW = 4;
+
+/** The dot-and-line activity list, shared by the card and its "see all" modal. */
+function ActivityTimeline({ items }: { items: ClientDetail["recentActivity"] }) {
+  return (
+    <div className="flex flex-col">
+      {items.map((item, i) => (
+        <div key={i} className="flex gap-4">
+          <div className="flex flex-col items-center shrink-0 w-3">
+            <span className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1 ${item.dotColor}`} />
+            {i < items.length - 1 && <div className="w-px flex-1 bg-border my-1.5" />}
+          </div>
+          <div className={`flex flex-col gap-0.5 ${i < items.length - 1 ? "pb-5" : ""}`}>
+            <p className="type-subtitle-2 text-foreground leading-snug">{item.label}</p>
+            <p className="type-body-2 text-muted-foreground leading-snug">{item.description}</p>
+            <p className="type-caption text-muted-foreground mt-0.5">{item.date}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function OverviewTab({
   clientId,
@@ -50,6 +81,8 @@ export function OverviewTab({
   const allocationSlices =
     detail.assetSummary?.allocationSlices ??
     detail.allocationData.map((s) => ({ label: s.name, percent: s.value }));
+
+  const [activityModalOpen, setActivityModalOpen] = useState(false);
 
   // `todayKey` rather than the `Date`: a fresh object every render would make
   // the memo useless, and only the day is what either source is measured
@@ -208,25 +241,11 @@ export function OverviewTab({
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-2">
               <h6 className="type-h6 text-foreground">Recent Activity</h6>
+              <Button variant="plain" size="sm" onClick={() => setActivityModalOpen(true)}>
+                ดูทั้งหมด
+              </Button>
             </div>
-            <div className="flex flex-col">
-              {detail.recentActivity.map((item, i) => (
-                <div key={i} className="flex gap-4">
-                  <div className="flex flex-col items-center shrink-0 w-3">
-                    <span className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1 ${item.dotColor}`} />
-                    {i < detail.recentActivity.length - 1 && <div className="w-px flex-1 bg-border my-1.5" />}
-                  </div>
-                  <div className={`flex flex-col gap-0.5 ${i < detail.recentActivity.length - 1 ? "pb-5" : ""}`}>
-                    <p className="type-subtitle-2 text-foreground leading-snug">{item.label}</p>
-                    <p className="type-body-2 text-muted-foreground leading-snug">{item.description}</p>
-                    <p className="type-caption text-muted-foreground mt-0.5">{item.date}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="pt-2 border-t border-border">
-              <Button variant="plain" size="sm" leftIcon={<CalendarCheckIcon size={14} />}>View all activity</Button>
-            </div>
+            <ActivityTimeline items={detail.recentActivity.slice(0, RECENT_ACTIVITY_PREVIEW)} />
           </div>
         </Card>
 
@@ -235,6 +254,20 @@ export function OverviewTab({
     </div>
 
     {REMINDERS_ENABLED && reminderModals}
+
+    <ResponsiveBottomSheetModal
+      open={activityModalOpen}
+      onClose={() => setActivityModalOpen(false)}
+      title="Recent Activity"
+      titleId="client-activity-modal-title"
+    >
+      {/* The timeline scrolls inside the modal rather than the modal growing:
+          a client's full history is unbounded, and the sheet already caps its
+          own height on both mobile and desktop. */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <ActivityTimeline items={detail.recentActivity} />
+      </div>
+    </ResponsiveBottomSheetModal>
     </>
   );
 }

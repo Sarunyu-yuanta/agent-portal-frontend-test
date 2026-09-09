@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Button, Chip } from "@sarunyu/system-one";
 import { ArrowLeftIcon, CircleNotchIcon } from "@phosphor-icons/react";
 import { StructuredProductCard } from "./StructuredProductCard";
 import {
-  ALL_STRUCTURED_PRODUCTS,
   ALL_STRUCTURED_PRODUCTS_COUNT,
   ALL_STRUCTURED_PRODUCTS_UPDATED_AT,
   ALL_STRUCTURED_PRODUCTS_UPDATED_AT_TABLET,
   type StructuredProduct,
 } from "./structured-product-data";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useStructuredProducts } from "@/hooks/use-catalog";
 import { StructuredProductAllPageSkeleton } from "./ProductDetailSkeletons";
 
 const COUPON_FILTERS = [
@@ -31,7 +31,7 @@ export function StructuredProductAllPage({
   onBack: () => void;
   onProductSelect: (product: StructuredProduct) => void;
 }) {
-  const isLoading = useSimulatedLoading();
+  const { data: allProducts, isLoading } = useStructuredProducts();
   const [couponFilter, setCouponFilter] = useState<CouponFilter>("all");
   const [isLoadingMore, setIsLoadingMore] = useState(true);
 
@@ -51,7 +51,7 @@ export function StructuredProductAllPage({
 
   if (isLoading) return <StructuredProductAllPageSkeleton />;
 
-  const filteredProducts = ALL_STRUCTURED_PRODUCTS.filter((p) => {
+  const filteredProducts = allProducts.filter((p) => {
     if (couponFilter === "all") return true;
     const pct = parseFloat(p.coupon.replace("%", ""));
     if (couponFilter === "low") return pct < 15;
@@ -75,10 +75,13 @@ export function StructuredProductAllPage({
 
         {/* Hero banner — tablet: H4 24px / Subtitle2 14px; desktop: H3 32px / Subtitle1 16px */}
         <div className="relative flex w-full flex-col gap-2 items-start overflow-hidden rounded-xl p-4 lg:h-[144px] lg:p-8">
-          <img
+          <Image
             alt=""
             aria-hidden
-            className="absolute inset-0 size-full max-w-none object-cover pointer-events-none rounded-xl"
+            fill
+            priority
+            sizes="(max-width: 1280px) 100vw, 1280px"
+            className="max-w-none object-cover pointer-events-none rounded-xl"
             src="/structured-products-all-banner-bg.png"
           />
           <div className="relative z-[1] flex max-w-[220px] flex-col gap-2 md:max-w-none">

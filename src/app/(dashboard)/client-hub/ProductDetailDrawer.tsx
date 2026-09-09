@@ -41,6 +41,7 @@ export function ProductDetailDrawer({
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border-default)] shrink-0">
         <span className="relative shrink-0 size-3">
+          {/* eslint-disable-next-line @next/next/no-img-element -- SVG status dot; the image optimizer rejects SVG */}
           <img alt="" className="block size-full max-w-none" src={product.statusIcon} />
         </span>
         <div className="flex-1 min-w-0">

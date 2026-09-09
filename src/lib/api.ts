@@ -1,5 +1,6 @@
 import type {
   ApiClient,
+  ApiCollectionResponse,
   ApiMiniKanban,
   ApiNBAAction,
   ApiPipelineDeal,
@@ -32,7 +33,7 @@ async function apiGet<T>(path: string): Promise<T[]> {
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`API /${path}: ${res.status}`);
-  const { data } = (await res.json()) as { data: T[] };
+  const { data } = (await res.json()) as ApiCollectionResponse<T>;
   return data;
 }
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   LightningIcon,
   WallIcon,
@@ -99,6 +100,7 @@ export function TopIdeaCard({
               className="absolute"
               style={{ top: "-25.07%", right: "-12.46%", bottom: "-35.1%", left: "-12.46%" }}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element -- SVG art layer; the image optimizer rejects SVG */}
               <img alt="" className="block max-w-none w-full h-full" src={ASSETS.vector} />
             </div>
           </div>
@@ -110,7 +112,7 @@ export function TopIdeaCard({
           className="absolute pointer-events-none mix-blend-screen"
           style={{ left: 107.19, top: -23.23, width: 60.284, height: 61.408 }}
         >
-          <img alt="" className="absolute inset-0 w-full h-full object-cover" src={ASSETS.energy1} />
+          <Image alt="" fill sizes="61px" className="object-cover" src={ASSETS.energy1} />
         </div>
       )}
       {sector === "Material" && (
@@ -118,6 +120,7 @@ export function TopIdeaCard({
           className="absolute pointer-events-none"
           style={{ left: 114.08, top: -0.75, width: 63.103, height: 23.21 }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element -- SVG art layer; the image optimizer rejects SVG */}
           <img alt="" className="absolute inset-0 w-full h-full" src={ASSETS.wall1} />
         </div>
       )}
@@ -128,6 +131,7 @@ export function TopIdeaCard({
             className="absolute pointer-events-none"
             style={{ left: c.l, top: c.t, width: c.w, height: c.h }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element -- SVG cloud art; the image optimizer rejects SVG */}
             <img alt="" className="absolute inset-0 max-w-none w-full h-full" src={c.src} />
           </div>
         ))}
@@ -137,6 +141,7 @@ export function TopIdeaCard({
           style={{ left: 106, top: -3.97, width: 68.696, height: 41.109 }}
         >
           <div className="absolute inset-0 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element -- Figma effect layer, offset by percentages of this wrapper; `fill` (inset-0 + 100%/100%) cannot express it. Optimizing this one would mean moving the offsets onto an intermediate box, which is a DOM change rather than a swap. */}
             <img
               alt=""
               className="absolute max-w-none"
@@ -158,9 +163,11 @@ export function TopIdeaCard({
         >
           <div style={{ transform: "rotate(-15deg)", flexShrink: 0 }}>
             <div style={{ width: 37.525, height: 18.481, position: "relative" }}>
-              <img
+              <Image
                 alt=""
-                className="absolute inset-0 max-w-none w-full h-full pointer-events-none"
+                fill
+                sizes="38px"
+                className="max-w-none pointer-events-none"
                 style={{ objectPosition: "bottom", opacity: 0.8 }}
                 src={ASSETS.graphic}
               />

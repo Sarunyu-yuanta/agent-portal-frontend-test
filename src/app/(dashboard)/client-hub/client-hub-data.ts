@@ -5,31 +5,22 @@
  * Everything here is computed on the client TODAY from the mock data. Each
  * function's doc notes which API field should supply the value once a real
  * backend exists, so this file doubles as the spec for what the Client Hub
- * endpoints must return. Two ratios below are placeholders with no real source:
- *   • LINE_AVAILABLE_RATIO  (see @/lib/client-utils) — margin line available
+ * endpoints must return. The liabilities figure below is a placeholder with no
+ * real source:
  *   • LIABILITIES_MULTIPLIER (see @/lib/client-utils) — total liabilities
- * Replace both with real per-client figures from the backend.
+ * Replace it with a real per-client figure from the backend.
  */
 
 import { mockClientDetails, mockKYCData } from "@/lib/mock-data";
 import { ALLOCATION_SLICES } from "@/components/AssetSummarySection";
 import {
-  LINE_AVAILABLE_RATIO,
   LIABILITIES_MULTIPLIER,
   parseAumToThb,
-  parsePlYtdPct,
-  formatThbAmount,
-  formatThaiUpdatedAt,
   displayAssetLabel,
 } from "@/lib/client-utils";
 import { getNineBoxCell } from "./NineBoxTab";
 import type { ProductSortKey, SortKey } from "./types";
-import type {
-  Client,
-  ProductRow,
-  ProductHolder,
-  AssetHeroSummary,
-} from "@/types/domain";
+import type { Client, ProductRow, ProductHolder } from "@/types/domain";
 
 /** Allocation slices for a client, falling back to the default mix. */
 function slicesFor(client: Client) {
@@ -121,56 +112,6 @@ export function buildProductRows(clients: Client[]): ProductRow[] {
     .sort((a, b) => b.totalAmountThb - a.totalAmountThb);
 }
 
-/**
- * Hero summary (net value / P&L / cash / line) aggregated over a set of clients.
- * Backend: these totals should be returned pre-computed for the current page.
- */
-export function buildHeroSummaryFromClients(clients: Client[]): AssetHeroSummary {
-  const updatedAt = formatThaiUpdatedAt(new Date());
-
-  if (clients.length === 0) {
-    return {
-      netValue: "0.00",
-      changeAmount: "+0.00",
-      changePercent: "0.00",
-      changePositive: true,
-      lineAvailable: "0.00",
-      cash: "0.00",
-      lastUpdatedDate: updatedAt.date,
-      lastUpdatedTime: updatedAt.time,
-    };
-  }
-
-  let netValue = 0;
-  let cash = 0;
-  let lineAvailable = 0;
-  let plChange = 0;
-
-  for (const client of clients) {
-    const aumThb = parseAumToThb(client.aum);
-    netValue += aumThb;
-    cash += aumThb * (client.cashIdlePct / 100);
-    lineAvailable += aumThb * LINE_AVAILABLE_RATIO;
-
-    const pct = parsePlYtdPct(client.plYtd);
-    const sign = client.plPositive ? 1 : -1;
-    plChange += aumThb * (pct / 100) * sign;
-  }
-
-  const changePercent = netValue > 0 ? (plChange / netValue) * 100 : 0;
-
-  return {
-    netValue: formatThbAmount(netValue),
-    changeAmount: formatThbAmount(plChange, true),
-    changePercent: Math.abs(changePercent).toFixed(2),
-    changePositive: plChange >= 0,
-    lineAvailable: formatThbAmount(lineAvailable),
-    cash: formatThbAmount(cash),
-    lastUpdatedDate: updatedAt.date,
-    lastUpdatedTime: updatedAt.time,
-  };
-}
-
 /** Total AUM and idle cash across a set of clients. */
 export function getClientTotals(clients: Client[]): { totalAum: number; totalCash: number } {
   let totalAum = 0;
@@ -199,6 +140,25 @@ export function getKycDueClients(clients: Client[]) {
       return client ? [{ ...k, client }] : [];
     })
     .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
+}
+
+/** One row of {@link getKycDueClients} — a KYC record with its client attached. */
+export type KycDueEntry = ReturnType<typeof getKycDueClients>[number];
+
+/**
+ * {@link getKycDueClients} split at the expiry line, because the two halves are
+ * different jobs: a lapsed review is remediation, an upcoming one is
+ * scheduling. Presented as one flat list they only differed by the sign on the
+ * day count, which is easy to miss.
+ *
+ * `daysUntilExpiry === 0` counts as upcoming — due today, not yet missed. Both
+ * halves inherit the ascending sort, so each still reads most-urgent-first.
+ */
+export function splitKycByExpiry(due: KycDueEntry[]): { expired: KycDueEntry[]; upcoming: KycDueEntry[] } {
+  return {
+    expired: due.filter((k) => k.daysUntilExpiry < 0),
+    upcoming: due.filter((k) => k.daysUntilExpiry >= 0),
+  };
 }
 
 /** Clients sorted by AUM, largest first. */

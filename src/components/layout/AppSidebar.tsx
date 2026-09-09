@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Avatar } from "@sarunyu/system-one";
 import {
   UsersIcon,
-  CaretUpDownIcon,
   SquaresFourIcon,
   SidebarSimpleIcon,
   ChartBarIcon,
@@ -14,6 +12,7 @@ import {
   NotePencilIcon,
   CalendarBlankIcon,
 } from "@phosphor-icons/react";
+import { SidebarUserMenu } from "@/components/layout/SidebarUserMenu";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { CALENDAR_ENABLED, NOTES_ENABLED } from "@/lib/feature-flags";
 import {
@@ -41,7 +40,6 @@ const workspaceItems: NavItem[] = [
     icon: SquaresFourIcon,
     badge: null,
   },
-  // { href: "/house-view", label: "House View", icon: ChartBarIcon, badge: null },
   {
     href: "/insights",
     section: "insights",
@@ -228,19 +226,25 @@ export function AppSidebar({
         </div>
       )}
 
-      {/* Logo — YA square lives in the same icon zone */}
-      <div className="flex items-center gap-2.5 py-4 shrink-0 px-2">
-        <div className={ICON_ZONE}>
+      {/* Logo — the collapsed rail shows the YA square in the same icon zone
+          the nav icons line up on; expanded, the full white lockup replaces it
+          rather than sitting beside it. `logo-ic-portal-white.svg` carries the
+          YA mark itself (the wordmark-only asset it replaced did not), so
+          keeping both on screen would draw the mark twice. */}
+      <div className="flex items-center py-4 shrink-0 px-2 h-[62px]">
+        <div
+          className={`${ICON_ZONE} transition-opacity duration-300 ease-in-out ${collapsed ? "opacity-100" : "opacity-0 w-0"}`}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size icon, no responsive sizes needed */}
           <img src="/yuanta-icon-logo.svg" alt="Yuanta" className="w-auto h-7.5" />
         </div>
         <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out pb-0.5 ${collapsed ? "max-w-0 opacity-0" : "max-w-[180px] opacity-100"
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${collapsed ? "max-w-0 opacity-0" : "max-w-[200px] opacity-100"
             }`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- small fixed-size wordmark, no responsive sizes needed */}
           <img
-            src="/yuanta-ic-portal-logo-white.svg"
+            src="/logo-ic-portal-white.svg"
             alt="Yuanta IC Portal"
             className="w-auto h-8"
           />
@@ -294,27 +298,17 @@ export function AppSidebar({
         </button>
       </div>
 
-      {/* User profile — avatar in icon zone */}
-      <div className="shrink-0 border-t border-slate-700/60 py-4 px-2">
-        <div className="flex items-center gap-3">
-          <div className={ICON_ZONE}>
-            <Avatar type="text" initials="RM" size="m" />
-          </div>
-          <div
-            className={`flex items-center gap-2 overflow-hidden transition-all duration-300 ease-in-out ${collapsed ? "max-w-0 opacity-0" : "max-w-[180px] opacity-100 flex-1"
-              }`}
-          >
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium text-white truncate leading-tight whitespace-nowrap">
-                Relation Manager
-              </p>
-              <p className="text-[11px] text-slate-400 truncate leading-tight whitespace-nowrap">
-                Senior RM
-              </p>
-            </div>
-            <CaretUpDownIcon size={15} className="text-slate-500 shrink-0" />
-          </div>
-        </div>
+      {/* User profile — avatar in icon zone. Deliberately unpadded: the trigger
+          carries all of its own spacing so its hover highlight fills the footer
+          edge to edge, from the divider down to the foot of the rail. Any
+          padding here would show up as a dead margin around the highlight. */}
+      <div className="shrink-0 border-t border-slate-700/60">
+        <SidebarUserMenu
+          name="Relation Manager"
+          role="Senior RM"
+          initials="RM"
+          collapsed={collapsed}
+        />
       </div>
     </div>
   );

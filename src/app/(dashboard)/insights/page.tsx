@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { TabGroup } from "@sarunyu/system-one";
 import { setQueryState, withQuery } from "@/lib/query-state";
 import { navRead, navWrite } from "@/lib/nav-session";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useInsightStrategies } from "@/hooks/use-catalog";
 import { FadeIn } from "@/components/ui/fade-in";
 import { StrategyPlaybooksSkeleton, AIRecommendCardSkeleton } from "./InsightsSkeletons";
 import {
@@ -58,7 +58,7 @@ const FILTER_KEY = "nav:insights-filter";
 
 function InsightsPageInner() {
   const searchParams = useSearchParams();
-  const isLoading = useSimulatedLoading();
+  const { isLoading } = useInsightStrategies();
 
   // The tab stays in the URL — it's a destination, not a refinement.
   const activeTab =

@@ -12,14 +12,22 @@ import {
 import { RelatedProductsCard } from "../RelatedProductsCard";
 import { PlaybookCardCompact } from "../PlaybookCardCompact";
 import { useSectionBack } from "@/hooks/use-section-back";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useInsightStrategy } from "@/hooks/use-catalog";
 import { InsightDetailSkeleton } from "./InsightDetailSkeleton";
 
 export function InsightDetail({ id }: { id: string }) {
-  const isLoading = useSimulatedLoading();
+  const { data: strategy, isLoading } = useInsightStrategy(id);
   // Called before the early return below — a missing strategy must not skip a hook.
   const goBack = useSectionBack();
-  const strategy = mockHouseViewStrategies.find((s) => s.id === id);
+
+  // Ahead of the `!strategy` branch, not after it as it used to be: an insight
+  // that simply has not arrived yet is loading, not missing. While this
+  // resource is bundled the distinction is invisible (`isLoading` is never
+  // true), but the moment it is fetched the old order would have flashed
+  // "ไม่พบบทวิเคราะห์นี้" on every visit before the data landed.
+  if (isLoading) {
+    return <InsightDetailSkeleton />;
+  }
 
   if (!strategy) {
     return (
@@ -135,10 +143,6 @@ export function InsightDetail({ id }: { id: string }) {
       </div>
     </div>
   );
-
-  if (isLoading) {
-    return <InsightDetailSkeleton />;
-  }
 
   return (
     <div

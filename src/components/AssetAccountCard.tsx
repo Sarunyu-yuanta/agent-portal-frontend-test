@@ -57,6 +57,7 @@ export function AssetAccountCard({
       >
         <div className="flex flex-1 gap-2 items-center min-w-0">
           <span className="relative shrink-0 size-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- 8px SVG status dot; the image optimizer rejects SVG and a vector has nothing to gain from it */}
             <img
               alt=""
               className="block size-full max-w-none"
@@ -118,6 +119,7 @@ export function AssetDetailDrawerHeader({ item, onClose }: { item: AssetAccountI
   return (
     <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border-default)] shrink-0">
       <span className="relative shrink-0 size-2">
+        {/* eslint-disable-next-line @next/next/no-img-element -- 8px SVG status dot, see above */}
         <img alt="" className="block size-full max-w-none" src={item.statusIcon} />
       </span>
       <div className="flex-1 min-w-0">

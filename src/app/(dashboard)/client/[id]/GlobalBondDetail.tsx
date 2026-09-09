@@ -5,7 +5,6 @@ import { Button } from "@sarunyu/system-one";
 import { ArrowLeftIcon } from "@phosphor-icons/react";
 import {
   filterGlobalBonds,
-  getGlobalBondIssuer,
   type GlobalBondIssuerId,
   type MaturityFilter,
   type YieldFilter,
@@ -16,7 +15,7 @@ import {
   GlobalBondDetailTable,
 } from "./GlobalBondDetailBondList";
 import { GlobalBondDetailRecommended } from "./GlobalBondDetailRecommended";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useGlobalBondIssuer } from "@/hooks/use-catalog";
 import { GlobalBondDetailSkeleton } from "./ProductDetailSkeletons";
 
 export function GlobalBondDetail({
@@ -28,8 +27,10 @@ export function GlobalBondDetail({
   onBack: () => void;
   onIssuerSelect?: (issuerId: GlobalBondIssuerId) => void;
 }) {
-  const isLoading = useSimulatedLoading();
-  const issuer = getGlobalBondIssuer(issuerId);
+  // The `if (isLoading)` return below stays *above* the `!issuer` branch: once
+  // this resource is fetched, a not-yet-arrived issuer must read as loading,
+  // not as "ไม่พบข้อมูล".
+  const { data: issuer, isLoading } = useGlobalBondIssuer(issuerId);
   const [yieldFilter, setYieldFilter] = useState<YieldFilter>("all");
   const [maturityFilter, setMaturityFilter] = useState<MaturityFilter>("all");
 

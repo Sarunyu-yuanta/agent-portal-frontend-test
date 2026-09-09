@@ -14,8 +14,6 @@ import {
 import type { StructuredProduct } from "./structured-product-data";
 import { FCNPresentationModal } from "./FCNPresentationModal";
 import { PackageFilesModal } from "./PackageFilesModal";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
-import { StructuredProductDetailSkeleton } from "./ProductDetailSkeletons";
 
 const BORDER_COLOR = "rgba(0,0,0,0.1)";
 
@@ -94,7 +92,6 @@ export function StructuredProductDetail({
   product: StructuredProduct;
   onBack: () => void;
 }) {
-  const isLoading = useSimulatedLoading();
   const showPrincipalTag =
     product.tags.includes("รับประกันเงินต้น") || product.id === "aapl-amzn-nflx";
 
@@ -110,8 +107,6 @@ export function StructuredProductDetail({
       window.scrollTo(0, 0);
     }
   }, [product.id]);
-
-  if (isLoading) return <StructuredProductDetailSkeleton />;
 
   const detailRows: DetailRow[] = [
     { label: "อัตราดอกเบี้ย (Coupon)", value: product.coupon },
@@ -164,6 +159,7 @@ export function StructuredProductDetail({
                     className="relative shrink-0 size-8 rounded overflow-hidden"
                     style={{ border: "1px solid rgba(0,0,0,0.08)" }}
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- 32px underlying-asset logo, already ~2KB */}
                     <img alt="" className="absolute inset-0 size-full object-cover" src={src} />
                   </div>
                 ))}

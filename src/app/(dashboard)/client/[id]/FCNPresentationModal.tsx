@@ -33,6 +33,7 @@ function parseTickers(underlying: string): string[] {
 }
 
 function YuantaLogoMark() {
+  // eslint-disable-next-line @next/next/no-img-element -- SVG wordmark; the image optimizer rejects SVG
   return <img src="/yuanta-logo.svg" alt="Yuanta Securities" className="h-10 w-auto shrink-0" />;
 }
 
@@ -86,6 +87,7 @@ function FCNCard({ product }: { product: StructuredProduct }) {
               return (
                 <div key={`${ticker}-${i}`} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ backgroundColor: "rgba(255,255,255,0.72)" }}>
                   <div className="relative shrink-0 size-9 rounded-lg overflow-hidden" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- placeholder fallback reassigns `currentTarget.src`, which `next/image` controls; also rendered into a jsPDF snapshot */}
                     <img alt={name} className="absolute inset-0 size-full object-cover" src={logoSrc}
                       onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/logo-placeholder.svg"; }} />
                   </div>

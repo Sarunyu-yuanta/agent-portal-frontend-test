@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type CSSProperties } from "react";
+import Image from "next/image";
 import { Button } from "@sarunyu/system-one";
 import { ArrowLeftIcon, FunnelSimpleIcon } from "@phosphor-icons/react";
 import { StructuredProductCard } from "./StructuredProductCard";
@@ -13,8 +14,6 @@ import {
   INVESTMENT_SOLUTION_DETAIL_PRODUCTS,
   type StructuredProduct,
 } from "./structured-product-data";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
-import { InvestmentSolutionDetailSkeleton } from "./ProductDetailSkeletons";
 
 function HeroImageContent({
   src,
@@ -34,14 +33,23 @@ function HeroImageContent({
   rotation?: number;
 }) {
   const inner = objectCover ? (
-    <img
+    // `fill` is exactly this layer's old `absolute inset-0 size-full`, and the
+    // solution artwork is the heaviest asset in the app — worth optimizing.
+    <Image
       alt=""
-      className="absolute inset-0 max-w-none object-cover pointer-events-none size-full"
+      fill
+      priority
+      sizes="(max-width: 1280px) 100vw, 1280px"
+      className="max-w-none object-cover pointer-events-none"
       style={{ mixBlendMode: "screen" }}
       src={src}
     />
   ) : (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Stays a plain <img>: this layer is a Figma crop, positioned by a
+          computed `left`/`width` pair against its own intrinsic size. `fill`
+          hard-codes inset-0 + 100%/100% and cannot express that offset. */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- percentage-cropped art layer, see above */}
       <img
         alt=""
         className="absolute h-full max-w-none top-0"
@@ -340,7 +348,6 @@ export function InvestmentSolutionDetail({
   onBack: () => void;
   onProductSelect: (product: StructuredProduct) => void;
 }) {
-  const isLoading = useSimulatedLoading();
   const products = INVESTMENT_SOLUTION_DETAIL_PRODUCTS;
 
   useEffect(() => {
@@ -351,8 +358,6 @@ export function InvestmentSolutionDetail({
       window.scrollTo(0, 0);
     }
   }, [solution.id]);
-
-  if (isLoading) return <InvestmentSolutionDetailSkeleton />;
 
   return (
     <div className="flex flex-col gap-2 w-full bg-white pt-4 md:pt-6">

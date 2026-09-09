@@ -3,10 +3,12 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { FixedIncomeDetail } from "../../../../client/[id]/FixedIncomeDetail";
-import { getFixedIncomeBond } from "../../../../client/[id]/fixed-income-data";
+import { FixedIncomeDetailSkeleton } from "../../../../client/[id]/ProductDetailSkeletons";
+import { useFixedIncomeBond } from "@/hooks/use-catalog";
 import { useSectionBack } from "@/hooks/use-section-back";
 import { CatalogNotFound } from "../../../CatalogNotFound";
 
+/** Loading lives with the lookup — see the note in `product/[id]/page.tsx`. */
 export default function FixedIncomeBondDetailPage({
   params,
 }: {
@@ -14,9 +16,13 @@ export default function FixedIncomeBondDetailPage({
 }) {
   const { bondId } = use(params);
   const router = useRouter();
-  const bond = getFixedIncomeBond(decodeURIComponent(bondId));
-  // Called unconditionally — the early return below must not skip a hook.
+  const { data: bond, isLoading } = useFixedIncomeBond(decodeURIComponent(bondId));
+  // Called unconditionally — the early returns below must not skip a hook.
   const goBack = useSectionBack();
+
+  if (isLoading) {
+    return <FixedIncomeDetailSkeleton />;
+  }
 
   if (!bond) {
     return <CatalogNotFound message="ไม่พบตราสารหนี้นี้" onBack={goBack} />;

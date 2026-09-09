@@ -13,12 +13,14 @@ function CardLogo({ card }: { card: DetailRecommendedCard }) {
   return (
     <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[rgba(0,0,0,0.08)]">
       {card.logoVariant === "meta-infinity" ? (
+        // eslint-disable-next-line @next/next/no-img-element -- 32px issuer logo, already ~2KB
         <img
           alt=""
           src={card.logoSrc}
           className="h-[15.5px] w-8 object-contain"
         />
       ) : (
+        // eslint-disable-next-line @next/next/no-img-element -- 30px issuer logo, already ~2KB
         <img
           alt=""
           src={card.logoSrc}
@@ -106,6 +108,7 @@ export function GlobalBondDetailRecommended({
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex gap-2 items-center">
+        {/* eslint-disable-next-line @next/next/no-img-element -- 20px SVG icon; the image optimizer rejects SVG */}
         <img
           alt=""
           src="/global-bond-sparkle.svg"

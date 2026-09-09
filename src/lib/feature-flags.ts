@@ -12,8 +12,9 @@
  * - **Notes** — the `/notes` hub, the floating composer, Client 360's Notes tab
  *   and the Notes dialog in the client-hub side panel.
  * - **Calendar** — the `/calendar` month view.
- * - **Reminders** — the header notification bell, Client 360's Reminders tab and
+ * - **Reminders** — the bell's reminder rows, Client 360's Reminders tab and
  *   its Overview card, and the Reminders dialog in the client-hub side panel.
+ *   The bell itself is no longer gated on this — see `KYC_ALERTS_ENABLED`.
  * - **Call log** — Client 360's Call Log tab and the Call log dialog in the
  *   client-hub side panel.
  *
@@ -49,8 +50,20 @@ export const NOTES_ENABLED: boolean = false;
 /** The `/calendar` month view. */
 export const CALENDAR_ENABLED: boolean = false;
 
-/** The header notification bell and every reminder list, card, and dialog. */
+/** Every reminder list, card, and dialog, and the bell's reminder rows. */
 export const REMINDERS_ENABLED: boolean = false;
+
+/**
+ * KYC expiry alerts in the header bell.
+ *
+ * Deliberately its own flag rather than part of `REMINDERS_ENABLED`: a KYC
+ * expiry isn't a reminder anyone wrote, it's derived from the client's own KYC
+ * record, so it stands on data that is already in phase. This is what puts the
+ * bell in the header while Reminders is still switched off — the two feeds are
+ * merged, so turning Reminders back on adds its rows alongside these rather
+ * than replacing them.
+ */
+export const KYC_ALERTS_ENABLED: boolean = true;
 
 /**
  * Client 360's Call Log tab and the Call log dialog in its side panel.

@@ -1,36 +1,29 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   NavHeaderIconButton,
-  NavHeaderNotification,
   Tag,
   type NotificationItem,
 } from "@sarunyu/system-one";
 import { ListIcon } from "@phosphor-icons/react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 import { FadeIn } from "@/components/ui/fade-in";
 import { NavStateMemory } from "@/components/layout/NavStateMemory";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
 import { PrivacyProvider } from "@/contexts/privacy-context";
 import { NotesProvider, useNotes } from "@/contexts/notes-context";
-import { NOTES_ENABLED, REMINDERS_ENABLED } from "@/lib/feature-flags";
+import { KYC_ALERTS_ENABLED, NOTES_ENABLED, REMINDERS_ENABLED } from "@/lib/feature-flags";
 import { useClients } from "@/hooks/use-api";
 import { ResponsiveBreadcrumb } from "@/components/layout/ResponsiveBreadcrumb";
 import { FloatingNoteButton } from "./notes/FloatingNoteButton";
 import { usePageChrome } from "./page-chrome";
 import { useNotificationFeed } from "./calendar/use-notification-feed";
+import { useKycNotificationFeed } from "./use-kyc-notification-feed";
 import { useDayItemModals } from "./calendar/use-day-item-modals";
-
-/** Hover state for the bell's rows — the library's own `NotificationRow` has
- *  none (checked its compiled source), and exposes no className prop to add
- *  one. The rule lives in `globals.css`, keyed off this class: a Tailwind
- *  arbitrary descendant selector was tried first and generated no CSS at all
- *  for the nested-bracket selector it needed, so this is a plain hand-written
- *  rule instead — see the comment there. */
-const NOTIFICATION_ROW_HOVER = "notification-bell-panel";
 
 function MarketOpenBadge() {
   return (
@@ -46,13 +39,13 @@ function MarketOpenBadge() {
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const {
     title: pageTitle,
     breadcrumb,
     isCommandCenter,
-    isHouseView,
     isPerformance,
     isFullWidth,
     isMobileFullBleed,
@@ -73,10 +66,30 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   // this modal doesn't already know whose page you're on.
   const { open: openReminder, modals: reminderModals } = useDayItemModals({ clients });
 
-  const { notificationGroups, notificationBadgeCount, notificationTargets } =
+  const { notificationGroups, notificationTargets } =
     useNotificationFeed(notes, clients);
+  const { kycNotificationGroups, kycNotificationTargets } =
+    useKycNotificationFeed(clients);
+
+  // Both feeds run unconditionally — they're memoised derivations, and gating
+  // the hook calls themselves on a flag isn't allowed. The flags pick what
+  // reaches the bell. Reminders lead when they're in phase: they're dated to a
+  // specific day, where a KYC expiry is a window. No badge total here — the
+  // bell counts the rows the user hasn't seen, whichever feed raised them.
+  const bellGroups = [
+    ...(REMINDERS_ENABLED ? notificationGroups : []),
+    ...(KYC_ALERTS_ENABLED ? kycNotificationGroups : []),
+  ];
 
   const handleNotificationClick = (notifItem: NotificationItem) => {
+    // A KYC row's only useful destination is that client's own KYC tab, which
+    // is where the record and its forms are — there's no modal for it the way
+    // a reminder has one.
+    const kycClientId = kycNotificationTargets.get(notifItem.id);
+    if (kycClientId) {
+      router.push(`/client/${kycClientId}?tab=kyc`);
+      return;
+    }
     const target = notificationTargets.get(notifItem.id);
     if (!target) return;
     openReminder(target.item, target.day);
@@ -118,7 +131,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-2.5 xl:hidden shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size icon, no responsive sizes needed */}
                 <img
-                  src="/yuanta-ic-portal-logo-primary.svg"
+                  src="/logo-ic-portal-blue.svg"
                   alt="Yuanta"
                   className="w-auto h-8 shrink-0"
                 />
@@ -150,17 +163,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             )}
 
             <div className={`flex items-center gap-4 ${headerSlot ? "xl:justify-self-end" : ""}`}>
-              {/* The bell is a reminder surface and nothing else — with
-                  Reminders out of phase (see `lib/feature-flags`) there is
-                  nothing for it to hold, so it goes rather than sitting there
+              {/* The bell carries whichever feeds are in phase — KYC expiries
+                  today, reminders alongside them once that flag flips. It only
+                  disappears if every feed is off, rather than sitting there
                   permanently empty. */}
-              {REMINDERS_ENABLED && (
-                <NavHeaderNotification
-                  groups={notificationGroups}
-                  badgeCount={notificationBadgeCount}
-                  emptyText="No reminders"
+              {bellGroups.length > 0 && (
+                <NotificationBell
+                  groups={bellGroups}
+                  emptyText={REMINDERS_ENABLED ? "No reminders" : "ไม่มีการแจ้งเตือน"}
                   onItemClick={handleNotificationClick}
-                  panelClassName={NOTIFICATION_ROW_HOVER}
                 />
               )}
 
@@ -211,7 +222,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               {!breadcrumb &&
                 !isFullWidth &&
                 !isMobileFullBleed &&
-                (pageTitle || isCommandCenter || isHouseView) && (
+                (pageTitle || isCommandCenter) && (
                   <div className="flex items-center justify-between gap-3 xl:hidden">
                     <div className="flex items-center gap-3">
                       {pageTitle && (

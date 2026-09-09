@@ -13,6 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import { getCallLogs, relativeCallDate, type CallLogEntry } from "@/data/call-log-data";
 import { ClientRemindersTab } from "../client/[id]/ClientRemindersTab";
+import { kycExpiryLabelTh } from "../client/[id]/client-detail-data";
 import { useClients } from "@/hooks/use-api";
 import { useNotes } from "@/contexts/notes-context";
 import { useNoteEditModal } from "../calendar/use-note-edit-modal";
@@ -67,6 +68,7 @@ export function ClientDetailPanel({
   const [remindersOpen, setRemindersOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const callLogs = getCallLogs(client.id);
+  const kycExpiryLabel = kycExpiryLabelTh(client.id);
   const clients = useClients();
   const { notes } = useNotes();
   const { openNote, modal: noteModal } = useNoteEditModal({ clients, pinnedClientId: client.id });
@@ -211,7 +213,7 @@ export function ClientDetailPanel({
           <Avatar
             type="text"
             initials={getInitials(maskName(client.name, isPrivate))}
-            size={compact ? "s" : "m"}
+            size={compact ? "s" : "l"}
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -224,7 +226,21 @@ export function ClientDetailPanel({
               </p>
               {!compact && <TierBadge tier={client.membershipTier} />}
             </div>
-            <p className="type-caption text-muted-foreground">{client.id}</p>
+            {/* Same pairing as the full profile's identity bar — client id
+                plus the KYC countdown, dropped when the client has no KYC
+                record. Hidden while compact: that row also has to hold the
+                "View Full Profile" button. */}
+            {/* Tighter once compact: at full size the name row carries the
+                tier badge, so the id needs clearance from it — collapsed it's
+                two plain lines of text and `mt-2` reads as a gap. */}
+            <div className={`flex items-center gap-2 ${compact ? "mt-0.5" : "mt-2"}`}>
+              <p className="type-caption text-muted-foreground">{client.id}</p>
+              {!compact && kycExpiryLabel && (
+                <span className="type-caption text-muted-foreground rounded-md bg-muted px-2 py-0.5">
+                  {kycExpiryLabel}
+                </span>
+              )}
+            </div>
           </div>
           {compact ? (
             <Button

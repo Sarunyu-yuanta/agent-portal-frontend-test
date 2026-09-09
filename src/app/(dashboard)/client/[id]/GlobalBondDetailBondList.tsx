@@ -31,6 +31,7 @@ function IssuerLogo({ src }: { src: string }) {
       className="relative shrink-0 size-8 rounded overflow-hidden"
       style={{ border: `1px solid ${BORDER_COLOR}` }}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element -- 32px issuer logo, already ~2KB; matches the fixed-size-logo convention used across the catalog */}
       <img
         alt=""
         className="absolute inset-0 size-full object-cover rounded pointer-events-none"

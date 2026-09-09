@@ -7,8 +7,6 @@ import type { ThaiStructuredProduct } from "./thai-structured-data";
 import type { StructuredProduct } from "./structured-product-data";
 import { FCNPresentationModal } from "./FCNPresentationModal";
 import { PackageFilesModal } from "./PackageFilesModal";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
-import { ThaiStructuredProductDetailSkeleton } from "./ProductDetailSkeletons";
 
 const BORDER_COLOR = "rgba(0,0,0,0.1)";
 const INVEST_URL = "https://placeholder.example.com/create-order";
@@ -63,7 +61,6 @@ export function ThaiStructuredProductDetail({
   product: ThaiStructuredProduct;
   onBack: () => void;
 }) {
-  const isLoading = useSimulatedLoading();
   const [fcnModalOpen, setFcnModalOpen] = useState(false);
   const [packageModalOpen, setPackageModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -73,8 +70,6 @@ export function ThaiStructuredProductDetail({
     if (main) main.scrollTop = 0;
     else window.scrollTo(0, 0);
   }, [product.theme]);
-
-  if (isLoading) return <ThaiStructuredProductDetailSkeleton />;
 
   const underlying = [product.bbg1, product.bbg2, product.bbg3].filter(Boolean).join(" - ");
   const adapted = toStructuredProduct(product);

@@ -52,7 +52,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <AuthShell withIllustration={false}>
+    <AuthShell>
       {submitted ? (
         <>
           <div className="flex flex-col items-center gap-3 py-6 text-center">

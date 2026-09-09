@@ -101,7 +101,12 @@ export function BondLogo({
       className={`relative shrink-0 overflow-hidden ${className}`}
       style={{ border: `1px solid ${BORDER_COLOR}` }}
     >
+      {/* Both stay plain <img>: `handleLogoError` swaps in a placeholder by
+          reassigning `currentTarget.src`, an attribute `next/image` owns. The
+          cropped variant additionally sits at percentage offsets against its
+          own intrinsic size, which `fill` (inset-0 + 100%/100%) cannot express. */}
       {logoCrop ? (
+        // eslint-disable-next-line @next/next/no-img-element -- see above
         <img
           alt=""
           className="absolute h-[149.62%] left-[-92.5%] max-w-none top-[-24.81%] w-[285%]"
@@ -109,6 +114,7 @@ export function BondLogo({
           onError={handleLogoError}
         />
       ) : (
+        // eslint-disable-next-line @next/next/no-img-element -- see above
         <img
           alt=""
           className="absolute inset-0 size-full object-cover rounded pointer-events-none"

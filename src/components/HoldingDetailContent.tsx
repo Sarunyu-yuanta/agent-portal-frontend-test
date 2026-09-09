@@ -10,11 +10,7 @@ import type {
   HoldingSection,
   PositionSummary,
 } from "@/data/asset-account-details";
-import { displayAssetLabel, parseAmount } from "@/lib/client-utils";
-
-function formatNum(n: number): string {
-  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+import { displayAssetLabel, formatThbDecimal, parseAmount } from "@/lib/client-utils";
 
 function HoldingSummary({ sections }: { sections: HoldingSection[] }) {
   const allItems = sections.flatMap((s) => s.items);
@@ -32,7 +28,7 @@ function HoldingSummary({ sections }: { sections: HoldingSection[] }) {
           label: "มูลค่ารวม",
           value: (
             <>
-              {formatNum(totalValue)}{" "}
+              {formatThbDecimal(totalValue)}{" "}
               <span className="type-body-2 font-normal text-muted-foreground">THB</span>
             </>
           ),
@@ -41,7 +37,7 @@ function HoldingSummary({ sections }: { sections: HoldingSection[] }) {
           label: "กำไร/ขาดทุน",
           value: (
             <span className={isPositive ? "text-[var(--text-success-primary)]" : "text-destructive"}>
-              {isPositive ? "+" : ""}{formatNum(totalChange)}
+              {isPositive ? "+" : ""}{formatThbDecimal(totalChange)}
             </span>
           ),
         },

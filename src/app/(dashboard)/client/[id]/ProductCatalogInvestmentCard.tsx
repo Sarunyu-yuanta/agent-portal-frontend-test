@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Button } from "@sarunyu/system-one";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 
@@ -72,6 +73,7 @@ export function InvestmentCard({
           className="relative shrink-0 overflow-hidden"
           style={{ width: 72, height: imgH }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element -- Figma crop layer: `left`/`width` are computed from the crop transform against the image's own intrinsic size, which `fill` (inset-0 + 100%/100%) cannot express */}
           <img
             alt=""
             className="absolute h-full max-w-none top-0 pointer-events-none"
@@ -98,9 +100,15 @@ export function InvestmentCard({
           style={{ left: imgLeft, top: 0, width: imgW, height: imgH }}
         >
           <div style={{ transform: "rotate(180deg)", flexShrink: 0 }}>
-            <img
+            {/* Explicitly sized, so `width`/`height` reproduce the old box exactly
+                while letting the optimizer serve a card-sized file instead of the
+                full-resolution solution artwork. */}
+            <Image
               alt=""
               className="object-cover"
+              width={imgW}
+              height={imgH}
+              sizes={`${imgW}px`}
               style={{ width: imgW, height: imgH }}
               src={imgSrc}
             />

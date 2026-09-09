@@ -1,18 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Button } from "@sarunyu/system-one";
-import { ArrowLeftIcon, HouseIcon } from "@phosphor-icons/react";
+import { HouseIcon } from "@phosphor-icons/react";
 
 export default function NotFound() {
-  const router = useRouter();
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-10 bg-[var(--bg-default-secondary)] px-4">
       {/* Logo */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/yuanta-ic-portal-logo-primary.svg"
+        src="/logo-ic-portal-blue.svg"
         alt="Yuanta"
         className="w-auto h-9 opacity-70"
       />
@@ -35,19 +32,11 @@ export default function NotFound() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 mt-1">
-          <Button
-            variant="plain"
-            size="sm"
-            leftIcon={<ArrowLeftIcon size={16} />}
-            onClick={() => router.back()}
-          >
-            ย้อนกลับ
-          </Button>
+        <div className="flex items-center justify-center mt-1">
           <Button
             variant="outline"
-            size="sm"
-            leftIcon={<HouseIcon size={16} />}
+            size="lg"
+            leftIcon={<HouseIcon size={20} />}
             onClick={() => { window.location.href = "/"; }}
           >
             หน้าแรก

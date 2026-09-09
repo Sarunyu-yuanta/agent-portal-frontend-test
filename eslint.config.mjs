@@ -27,6 +27,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored Swagger UI dist bundle, served as a static asset by
+    // `/api-docs` (see `src/app/api-docs/page.tsx`). It is third-party build
+    // output, not project source — linting it drowned the real findings under
+    // ~2,800 warnings from minified code.
+    "public/**",
   ]),
 ]);
 

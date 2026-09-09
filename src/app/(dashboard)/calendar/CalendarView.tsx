@@ -57,7 +57,11 @@ export function CalendarView({
     reminderDone: boolean;
   }>({ clientIds: [], reminderAt: null, reminderDone: false });
   const [saving, setSaving] = useState(false);
-  const draftCreatedAt = useRef(new Date().toISOString());
+  // State rather than a ref because the draft note below is built during render:
+  // a ref read at render time is what `react-hooks/refs` flags, and
+  // `handleNewReminder` already re-renders (it calls `setDraftAttrs`) whenever
+  // it restamps this.
+  const [draftCreatedAt, setDraftCreatedAt] = useState(() => new Date().toISOString());
 
   const draftNoteForPane = useMemo<Note>(
     () => ({
@@ -65,15 +69,15 @@ export function CalendarView({
       title: null,
       body: "",
       author: NOTE_AUTHOR,
-      createdAt: draftCreatedAt.current,
-      updatedAt: draftCreatedAt.current,
+      createdAt: draftCreatedAt,
+      updatedAt: draftCreatedAt,
       ...draftAttrs,
     }),
-    [draftAttrs],
+    [draftAttrs, draftCreatedAt],
   );
 
   const handleNewReminder = (day: Date) => {
-    draftCreatedAt.current = new Date().toISOString();
+    setDraftCreatedAt(new Date().toISOString());
     setDraftAttrs({ clientIds: [], reminderAt: reminderAtFromDate(day), reminderDone: false });
     modalValuesRef.current = { title: "", body: "" };
     setCreateOpen(true);

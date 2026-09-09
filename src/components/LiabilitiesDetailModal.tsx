@@ -5,34 +5,26 @@ import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
 import { useIsMobile } from "@sarunyu/system-one";
 import { ResponsiveBottomSheetModal } from "@/components/ResponsiveBottomSheetModal";
 import { DashedDivider } from "@/components/ui/finance-ui";
+import { AllocationDonut } from "@/components/allocation-donut";
 import type { LiabilitiesDetail, LiabilityCategory } from "@/data/liabilities-details";
 import { getCategoryAmount } from "@/data/liabilities-details";
 
+/**
+ * Same donut as the allocation cards — it was a `conic-gradient` with a white
+ * disc punched through the middle, which meant no hover value, no entry
+ * animation, and a hole that only stays a hole over a white background. Each
+ * category brings its own `color`, so the shared palette stands aside here.
+ */
 function LiabilitiesDonutChart({
   categories,
 }: {
   categories: LiabilityCategory[];
 }) {
-  const { stops } = categories.reduce<{ offset: number; stops: string[] }>(
-    (acc, category) => {
-      const start = acc.offset;
-      const end = start + category.percent;
-      acc.stops.push(`${category.color} ${start}% ${end}%`);
-      return { offset: end, stops: acc.stops };
-    },
-    { offset: 0, stops: [] },
-  );
-  const gradientStops = stops.join(", ");
-
   return (
-    <div
-      className="relative shrink-0 size-24 rounded-full"
-      style={{
-        background: `conic-gradient(${gradientStops})`,
-      }}
-    >
-      <div className="absolute inset-[18px] rounded-full bg-white" />
-    </div>
+    <AllocationDonut
+      slices={categories.map((c) => ({ label: c.label, percent: c.percent, color: c.color }))}
+      size={96}
+    />
   );
 }
 

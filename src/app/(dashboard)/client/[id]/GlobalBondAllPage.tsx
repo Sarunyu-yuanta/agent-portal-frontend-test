@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { Button, Pagination } from "@sarunyu/system-one";
 import { ArrowLeftIcon, FunnelSimpleIcon } from "@phosphor-icons/react";
 import {
-  ALL_OVERSEAS_BONDS,
-  ALL_OVERSEAS_BONDS_COUNT,
   ALL_OVERSEAS_BONDS_UPDATED_AT,
   filterAllOverseasBonds,
   type CouponFilter,
@@ -23,7 +22,7 @@ import {
   TICKER_OPTIONS,
   YIELD_OPTIONS,
 } from "./GlobalBondAllFilterPanel";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useOverseasBonds } from "@/hooks/use-catalog";
 import { GlobalBondAllPageSkeleton } from "./ProductDetailSkeletons";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
@@ -56,7 +55,7 @@ function formatUpdatedAtTablet(dateStr: string): string {
 }
 
 export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
-  const isLoading = useSimulatedLoading();
+  const { data: allBonds, isLoading } = useOverseasBonds();
   const [tickerFilter, setTickerFilter] = useState<TickerFilter>("all");
   const [couponFilter, setCouponFilter] = useState<CouponFilter>("all");
   const [yieldFilter, setYieldFilter] = useState<YieldFilter>("all");
@@ -71,13 +70,13 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
   const filteredBonds = useMemo(
     () =>
       filterAllOverseasBonds(
-        ALL_OVERSEAS_BONDS,
+        allBonds,
         tickerFilter,
         couponFilter,
         yieldFilter,
         maturityFilter,
       ),
-    [tickerFilter, couponFilter, yieldFilter, maturityFilter],
+    [allBonds, tickerFilter, couponFilter, yieldFilter, maturityFilter],
   );
 
   const hasActiveFilters =
@@ -86,7 +85,10 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
     yieldFilter !== "all" ||
     maturityFilter !== "all";
 
-  const displayCount = hasActiveFilters ? filteredBonds.length : ALL_OVERSEAS_BONDS_COUNT;
+  // `allBonds.length` rather than the `ALL_OVERSEAS_BONDS_COUNT` constant: the
+  // two are equal today (the mock list is generated to that length) but only
+  // the former stays right once this list comes from an endpoint.
+  const displayCount = hasActiveFilters ? filteredBonds.length : allBonds.length;
   const totalPages = Math.max(1, Math.ceil(filteredBonds.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
 
@@ -154,10 +156,16 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
 
       <div className="flex flex-col gap-4 md:gap-8 lg:gap-8 w-full max-w-[1280px] mx-auto">
         <div className="relative flex w-full flex-col gap-4 overflow-hidden rounded-xl px-4 py-6 md:gap-6 md:p-8">
-          <img
+          {/* `fill` renders exactly the `absolute inset-0 size-full` this used
+              to set by hand; `priority` keeps it eager, the way a plain <img>
+              loaded it, since the banner is above the fold. */}
+          <Image
             alt=""
             aria-hidden
-            className="absolute inset-0 size-full max-w-none object-cover pointer-events-none rounded-xl"
+            fill
+            priority
+            sizes="(max-width: 1280px) 100vw, 1280px"
+            className="max-w-none object-cover pointer-events-none rounded-xl"
             src="/global-bond-all-hero.png"
           />
           <div className="relative z-[1] flex w-full flex-col gap-4 md:gap-6">

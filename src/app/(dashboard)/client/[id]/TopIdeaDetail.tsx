@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { Button } from "@sarunyu/system-one";
 import {
   ArrowLeftIcon,
@@ -12,7 +13,7 @@ import {
   FunnelSimpleIcon,
 } from "@phosphor-icons/react";
 import { StructuredProductCard } from "./StructuredProductCard";
-import { TOP_IDEA_DETAIL_PRODUCTS, type StructuredProduct } from "./structured-product-data";
+import { type StructuredProduct } from "./structured-product-data";
 import {
   TOP_IDEA_THEMES,
   TOP_IDEA_SUBTITLES,
@@ -21,12 +22,12 @@ import {
   TOP_IDEA_UPDATED_AT_MOBILE,
   type TopIdeaSector,
 } from "./top-idea-data";
-import { useSimulatedLoading } from "@/hooks/use-simulated-loading";
+import { useTopIdeaProducts } from "@/hooks/use-catalog";
 import { TopIdeaDetailSkeleton } from "./ProductDetailSkeletons";
 
 const ASSETS = {
   detailWave: "/top-idea-detail-wave.svg",
-  detailEnergy: "/top-idea-detail-energy.png",
+  detailEnergy: "/top-idea-energy.png",
   heroLightning: "/top-idea-hero-lightning.svg",
   wall1: "/top-idea-wall-img.svg",
   effect: "/top-idea-effect.png",
@@ -59,6 +60,7 @@ function SectorHeroIcon({ sector }: { sector: TopIdeaSector }) {
   if (sector === "Energy") {
     return (
       <div className="relative shrink-0 size-6 md:size-8 lg:size-10">
+        {/* eslint-disable-next-line @next/next/no-img-element -- SVG hero icon; the image optimizer rejects SVG */}
         <img alt="" className="block max-w-none size-full" src={ASSETS.heroLightning} />
       </div>
     );
@@ -103,6 +105,7 @@ function EnergyHeroGlow() {
       aria-hidden
     >
       <div className="absolute inset-0 overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element -- Figma glow layer at percentage offsets under `mix-blend-mode: screen`; `fill` cannot express the offset and moving it to a wrapper would change the blend's stacking context */}
         <img
           alt=""
           className="absolute h-full max-w-none top-0 w-[100.62%]"
@@ -125,6 +128,7 @@ function DetailHeroWave() {
         <div className="flex-none rotate-[178.69deg]">
           <div className="relative h-[71.33px] w-[379.886px]">
             <div className="absolute inset-[-28.04%_-6.32%_-39.25%_-6.32%]">
+              {/* eslint-disable-next-line @next/next/no-img-element -- SVG wave art; the image optimizer rejects SVG */}
               <img alt="" className="block max-w-none size-full" src={ASSETS.detailWave} />
             </div>
           </div>
@@ -138,6 +142,7 @@ function DetailHeroWave() {
         <div className="flex-none rotate-[178.69deg]">
           <div className="relative h-[81.39px] w-[550.994px]">
             <div className="absolute inset-[-24.57%_-4.36%_-34.4%_-4.36%]">
+              {/* eslint-disable-next-line @next/next/no-img-element -- SVG wave art; the image optimizer rejects SVG */}
               <img alt="" className="block max-w-none size-full" src={ASSETS.detailWave} />
             </div>
           </div>
@@ -164,6 +169,7 @@ function TopIdeaHeroBanner({ sector }: { sector: TopIdeaSector }) {
             className="absolute pointer-events-none max-md:right-4 max-md:top-4 md:right-20 md:top-5"
             style={{ width: 180, height: 66 }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element -- SVG art layer; the image optimizer rejects SVG */}
             <img alt="" className="absolute inset-0 w-full h-full" src={ASSETS.wall1} />
           </div>
         )}
@@ -179,6 +185,7 @@ function TopIdeaHeroBanner({ sector }: { sector: TopIdeaSector }) {
                 height: c.h * 1.5,
               }}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element -- SVG cloud art; the image optimizer rejects SVG */}
               <img alt="" className="absolute inset-0 max-w-none w-full h-full" src={c.src} />
             </div>
           ))}
@@ -187,6 +194,7 @@ function TopIdeaHeroBanner({ sector }: { sector: TopIdeaSector }) {
             className="absolute pointer-events-none overflow-hidden max-md:right-0 max-md:top-2 md:right-16 md:top-2"
             style={{ width: 140, height: 84 }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element -- Figma effect layer at percentage offsets under `mix-blend-mode: screen`; `fill` cannot express the offset and hoisting it to a wrapper would change the blend's stacking context */}
             <img
               alt=""
               className="absolute max-w-none"
@@ -201,7 +209,7 @@ function TopIdeaHeroBanner({ sector }: { sector: TopIdeaSector }) {
             style={{ top: 16, width: 80, height: 54, mixBlendMode: "luminosity" }}
           >
             <div style={{ transform: "rotate(-15deg)", flexShrink: 0 }}>
-              <img alt="" className="max-w-none opacity-80" style={{ width: 75, height: 37 }} src={ASSETS.graphic} />
+              <Image alt="" width={75} height={37} sizes="75px" className="max-w-none opacity-80" style={{ width: 75, height: 37 }} src={ASSETS.graphic} />
             </div>
           </div>
         )}
@@ -241,9 +249,8 @@ export function TopIdeaDetail({
   onBack: () => void;
   onProductSelect: (product: StructuredProduct) => void;
 }) {
-  const isLoading = useSimulatedLoading();
+  const { data: products, isLoading } = useTopIdeaProducts(sector);
   const theme = TOP_IDEA_THEMES[sector];
-  const products = TOP_IDEA_DETAIL_PRODUCTS;
 
   useEffect(() => {
     const main = document.querySelector("main");

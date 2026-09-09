@@ -63,16 +63,65 @@ export const mockInsights = insightsRaw.map((i) => ({
   clientName: nameById[i.clientId] ?? i.clientId,
 }));
 
-export const mockKYCData = kycDataRaw.map((k) => ({
-  ...k,
-  client: nameById[k.clientId] ?? k.clientId,
-  kycStatus: k.kycStatus as KYCStatus,
-}));
+/**
+ * KYC records, with `nextReview` stamped from today rather than authored.
+ *
+ * `kyc-data.json` carries `daysUntilExpiry` — an offset from "now" — and this
+ * turns it into the `nextReview` date every consumer reads. Two reasons:
+ *
+ * 1. Hard-coded review dates rot. The file previously held literal dates
+ *    alongside a stored countdown, and by the time anyone looked, all seven
+ *    rows disagreed with their own dates (`nextReview` months in the past next
+ *    to `daysUntilExpiry: 14`) — so the "KYC ครบกำหนด" card called a client due
+ *    soon while the countdown on their profile said long overdue. Deriving one
+ *    from the other makes that disagreement impossible to author.
+ * 2. The expiry checkpoints (30 / 15 / 7 / 1 / 0 days) can only be demonstrated
+ *    if some client is actually sitting in each band. Anchored to today, the
+ *    spread in the JSON keeps demonstrating them next month too.
+ *
+ * Only the mock inverts the relationship. `nextReview` stays the field of
+ * record, so consumers — and `kycExpiry`, which does the arithmetic — behave
+ * exactly as they will against a real backend that returns a date.
+ */
+export const mockKYCData = kycDataRaw.map((k) => {
+  const now = new Date();
+  // UTC midnight, matching how `kycExpiry` reads the date back out, so the
+  // round-trip lands on exactly the offset authored here.
+  const review = new Date(
+    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + k.daysUntilExpiry),
+  );
+  return {
+    ...k,
+    nextReview: review.toISOString().slice(0, 10),
+    client: nameById[k.clientId] ?? k.clientId,
+    kycStatus: k.kycStatus as KYCStatus,
+  };
+});
+
+/**
+ * A compliance alert may quote the client's KYC review date and countdown, so
+ * those are written as `{kycNextReview}` / `{kycDaysUntilExpiry}` placeholders
+ * and filled from the record here.
+ *
+ * Spelling them out in the JSON is how the KYC alert came to say "14 Days" and
+ * "due 2026-06-11" about a client whose record says neither — the same drift
+ * `mockKYCData` fixes by stamping the date rather than authoring it.
+ */
+function fillKycPlaceholders(text: string, clientId: string | null): string {
+  if (!text.includes("{kyc")) return text;
+  const record = clientId ? mockKYCData.find((k) => k.clientId === clientId) : undefined;
+  if (!record) return text;
+  return text
+    .replace("{kycNextReview}", record.nextReview)
+    .replace("{kycDaysUntilExpiry}", String(record.daysUntilExpiry));
+}
 
 export const mockComplianceAlerts = complianceAlertsRaw.map((a) => ({
   ...a,
   // "Unknown" entries have no clientId — fall back to the literal "client" field
   client: a.clientId ? (nameById[a.clientId] ?? a.clientId) : (a.client ?? "Unknown"),
+  title: fillKycPlaceholders(a.title, a.clientId),
+  message: fillKycPlaceholders(a.message, a.clientId),
   type: a.type as ComplianceType,
 }));
 

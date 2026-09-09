@@ -29,11 +29,24 @@ export function parsePlYtdPct(plYtd: string): number {
   return match ? Math.abs(parseFloat(match[1])) : 0;
 }
 
-export function formatThbAmount(amount: number, withSign = false): string {
-  const formatted = Math.abs(amount).toLocaleString("en-US", {
+/**
+ * A THB amount at exactly two decimals, grouped — 1234.5 → "1,234.50".
+ *
+ * Renders the value as given, so a negative amount keeps its own minus sign.
+ * That is what separates it from {@link formatThbAmount}, which takes the
+ * absolute value and puts the sign back on itself: use this one wherever the
+ * caller composes the sign (or knows the value is non-negative), and that one
+ * where a leading "+"/"−" is part of the format.
+ */
+export function formatThbDecimal(amount: number): string {
+  return amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+export function formatThbAmount(amount: number, withSign = false): string {
+  const formatted = formatThbDecimal(Math.abs(amount));
   if (!withSign) return formatted;
   return `${amount >= 0 ? "+" : "-"}${formatted}`;
 }
