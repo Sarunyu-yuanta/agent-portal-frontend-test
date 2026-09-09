@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card } from "@sarunyu/system-one";
-import { useClients, useNBAActions } from "@/hooks/use-api";
+import { useNBAActions } from "@/hooks/use-api";
 import { DetailDrawer } from "@/components/ui/detail-drawer";
 import { KpiBar } from "./KpiBar";
 import { NbaActionQueue } from "./NbaActionQueue";
@@ -12,8 +12,7 @@ import { MiniKanban } from "./MiniKanban";
 import { AutomationLog } from "./AutomationLog";
 
 export default function CommandCenterPage() {
-  const clients = useClients();
-  const strapiNBA = useNBAActions(clients);
+  const strapiNBA = useNBAActions();
   const [nbaActions, setNbaActions] = useState(strapiNBA);
   const [nbaSource, setNbaSource] = useState(strapiNBA);
   if (nbaSource !== strapiNBA) {

@@ -32,9 +32,9 @@ export function formatListStamp(iso: string): string {
 /**
  * A reminder is a day, not a moment — the UI only ever asks for a date.
  *
- * `reminderAt` stays a full ISO timestamp because that is what `types/domain`
- * and the `NoteInput` schema in `public/openapi.yaml` declare, so rather than
- * carry whatever hour the picker happened to open at, the time is pinned here.
+ * `reminderAt` stays a full ISO timestamp because that is what the `Note` type
+ * in `types/domain` declares, so rather than carry whatever hour the picker
+ * happened to open at, the time is pinned here.
  * Morning rather than midnight: a reminder for the 27th means "on the 27th", and
  * midnight would land it in the previous evening for anyone reading a raw
  * timestamp in another timezone.

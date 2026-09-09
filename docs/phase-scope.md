@@ -71,10 +71,10 @@ written around a fixed number of things:
 
 ## What is deliberately left alone
 
-- **The `notes` API seam** — `lib/notes-api.ts`, `contexts/notes-context.tsx`,
-  the `/api/mock/notes` route, and the `Note` types. `NotesProvider` still
-  mounts, because surfaces that survived the cut read from it. Nothing is
-  visible, so nothing needs unwiring.
+- **The `notes` seam** — `contexts/notes-context.tsx` and the `Note` types.
+  `NotesProvider` still mounts, because surfaces that survived the cut read from
+  it. Nothing is visible, so nothing needs unwiring. (`lib/notes-api.ts` and the
+  `/api/mock/notes` route it called are gone — notes are React state now.)
 - **`data/call-log-data.ts` and `CallLogTable`** — same reasoning. The table is
   still imported by `page.tsx` for a tab branch that can no longer be reached,
   which is what keeps it compiling against the rest of the page.

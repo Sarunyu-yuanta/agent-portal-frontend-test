@@ -2,7 +2,7 @@
 
 import { Button } from "@sarunyu/system-one";
 import { usePrivacy } from "@/contexts/privacy-context";
-import { useClients, useMiniKanban } from "@/hooks/use-api";
+import { useMiniKanban } from "@/hooks/use-api";
 import { maskName } from "@/lib/mask-name";
 import { KANBAN_STAGES, type KanbanStage } from "./command-center-data";
 
@@ -30,8 +30,7 @@ const STAGE_CONFIG: Record<
 
 export function MiniKanban() {
   const { isPrivate } = usePrivacy();
-  const clients = useClients();
-  const miniKanban = useMiniKanban(clients);
+  const miniKanban = useMiniKanban();
   const stageStats = KANBAN_STAGES.map((stage) => {
     const deals = miniKanban.filter((d) => d.stage === stage);
     const aum = deals.reduce((sum, d) => {

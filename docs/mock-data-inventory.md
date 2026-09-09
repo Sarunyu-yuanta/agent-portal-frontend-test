@@ -2,7 +2,7 @@
 
 This app currently runs entirely on hardcoded/mock data — there is no real backend behind almost any of it. This doc catalogs every distinct piece of mock data in the codebase so whoever builds the real API knows what data models to design endpoints around.
 
-Scope note: this intentionally does **not** reference `public/openapi.yaml` — that spec was written informally early on and only covers a handful of these domains. Treat this doc as the actual ground truth of what data exists; the API design is a separate exercise.
+Scope note: this doc is the ground truth of what data exists; the API design is a separate exercise. (There was once an `public/openapi.yaml` sketch and a Swagger page at `/api-docs`, plus a `/admin` data studio and a mock `/api/mock/*` route. All four have been removed — they only ever covered a handful of these domains, and the app now runs purely off the JSON described below.)
 
 **Prefer plain JSON?** Every domain below also exists as a standalone `.json` file in [`mock-json/`](mock-json/) — see [`mock-json/README.md`](mock-json/README.md) for the full file list and which section each one corresponds to.
 
@@ -213,27 +213,22 @@ These never made it into `src/data/` — they're inline arrays/objects living in
 
 ---
 
-## 5. Notes — the one real (if ephemeral) mock backend
+## 5. Notes — the one writable dataset
 
-Everything above is static and read-only. Notes is the exception — an actual in-memory (or Vercel KV, if configured) mini-database with real CRUD.
+Everything above is static and read-only. Notes is the exception: it is created by the user at runtime, so it is the one dataset with no JSON file behind it.
 
 - **What**: A free-text note an RM/IC writes, optionally tagged to one or more clients (or none, for a general note), with an optional reminder date.
-- **Lives in**: route `src/app/api/mock/[...slug]/route.ts`; client wrapper `src/lib/notes-api.ts`; context hook `useNotes()` in `src/contexts/notes-context.tsx`
-- **Shape** (`ApiNote` in `src/types/api.ts`):
+- **Lives in**: `useNotes()` / `NotesProvider` in `src/contexts/notes-context.tsx` — React state, and nothing else.
+- **Shape**: the `Note` type in `src/types/domain.ts`:
   ```
-  { id: number, clientIds: string[], clientId?: string|null (legacy, still read on the way in),
+  { id: string, clientIds: string[],
     title: string|null, body: string, author: string,
     createdAt: string, updatedAt: string,
     reminderAt: string|null, reminderDone: boolean }
   ```
-- **Records**: **0 seeded** — this is the one genuinely dynamic resource. Starts empty; populated only by whatever gets created during a session. In-memory storage resets on dev-server restart; persists via Vercel KV only if `KV_REST_API_URL`/`KV_REST_API_TOKEN` env vars are set.
-- **How the mock route actually behaves** (worth understanding before designing the real endpoint):
-  - `GET /api/mock/:resource` → `{ data: T[], meta: { pagination } }`; `GET /api/mock/:resource/:id` → `{ data: T }` or 404
-  - `POST /api/mock/:resource` → assigns next numeric id, appends, 201
-  - `PUT /api/mock/:resource/:id` → replaces the record; if the id doesn't exist (e.g. dev-server hot-reload wiped memory) it **upserts** rather than 404ing
-  - `DELETE /api/mock/:resource/:id` → removes it, always 204 (even if nothing matched)
-  - `PATCH /api/mock/_seed` (special-cased) → wholesale-replaces the entire DB from the request body; used by test/seed scripts, not the app UI
-  - Only `clients` has boot-time seed data (from `clients.json`) baked into this route. `nba-actions`, `pipeline-deals`, `mini-kanbans` are technically routable through it too, but since nothing seeds them, hitting them fresh just returns an empty list rather than an error — worth confirming with whoever built the frontend before assuming those three are "live" anywhere.
+- **Records**: **0 seeded.** Starts empty and holds only what gets created during the session; a page reload clears it.
+- **Designing the real endpoint**: `NotesProvider` exposes `addNote` / `editNote` / `removeNote`, all `async` and all awaited by their callers, so they can become HTTP calls without touching a single screen. Its `isLoading` is currently hardcoded `false`; making it true during a fetch is what brings the notes skeletons back (see `useStatic` in `src/hooks/use-api.ts` for the same seam on the read-only datasets).
+- **History worth knowing**: this used to run against a mock `/api/mock/*` route backed by an in-process store (or Vercel KV if configured). That route also technically served `nba-actions`, `pipeline-deals` and `mini-kanbans`, but nothing ever seeded them, so it answered those three with an **empty list** — which the frontend then rendered over the JSON it had started from. Removing the route fixed that: those screens now show the JSON in this doc.
 
 ---
 

@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { Card, Tag, Button, Modal, Input, Dropdown, DropdownMultiple } from "@sarunyu/system-one";
 import { PlusIcon } from "@phosphor-icons/react";
-import { useClients, usePipelineDeals } from "@/hooks/use-api";
+import { usePipelineDeals } from "@/hooks/use-api";
 import { StageAdvanceModal } from "./StageAdvanceModal";
 import { KanbanColumn } from "./KanbanColumn";
 import type { Deal, Stage } from "./pipeline-data";
 
 export default function PipelinePage() {
-  const clients = useClients();
-  const strapiDeals = usePipelineDeals(clients);
+  const strapiDeals = usePipelineDeals();
   const [showModal, setShowModal] = useState(false);
   const [newProposal, setNewProposal] = useState({ clientName: "", productType: "", dealSize: "" });
   const [deals, setDeals] = useState<Deal[]>(() => strapiDeals.map(d => ({ ...d })));

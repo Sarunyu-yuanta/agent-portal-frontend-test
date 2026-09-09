@@ -1,20 +1,29 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+/**
+ * The app's data-access seam.
+ *
+ * ─── Backend handoff ─────────────────────────────────────────────────────────
+ * Nothing here talks to a network today. Every dataset is JSON that ships in the
+ * bundle (`src/data/*.json`, assembled in `@/lib/mock-data`), so each hook below
+ * hands it straight back through {@link useStatic}.
+ *
+ * What the indirection buys is the swap: screens consume a {@link Resource},
+ * never a bare array, and they already render skeletons against its
+ * `isLoading`. Giving a dataset a real endpoint is a change *here* — see
+ * {@link useStatic} for the diff — and the loading states light up on their own.
+ *
+ * The Product Catalog and Insights datasets have their own module,
+ * `@/hooks/use-catalog`. This file holds the ones the dashboard shell needs.
+ */
+
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   mockClients,
   mockNBAActions,
   mockPipelineDeals,
   mockMiniKanban,
 } from "@/lib/mock-data";
-import {
-  fetchClients,
-  fetchNBAActions,
-  fetchPipelineDeals,
-  fetchMiniKanban,
-} from "@/lib/api";
-
-const POLL_MS = 300_000;
 
 /**
  * What every screen in this app reads data through: the value, plus whether it
@@ -36,10 +45,12 @@ export type Resource<T> = { data: T; isLoading: boolean };
  * one an endpoint is a change *here* rather than in the view:
  *
  * ```diff
- * - export function useTopIdeas() { return useStatic(ALL_TOP_IDEAS); }
- * + export function useTopIdeas() {
- * +   const fetcher = useCallback(() => fetchTopIdeas(), []);
- * +   return useResource("useTopIdeas", fetcher, ALL_TOP_IDEAS);
+ * - export function useClientsResource() {
+ * -   return useStatic(mockClients);
+ * - }
+ * + export function useClientsResource() {
+ * +   const fetcher = useCallback(() => fetchClients(), []);
+ * +   return useResource("useClients", fetcher, mockClients);
  * + }
  * ```
  *
@@ -48,12 +59,17 @@ export type Resource<T> = { data: T; isLoading: boolean };
  * switch to remember to flip. That is the whole reason this returns a resource
  * instead of the bare value: it costs one line of indirection now and saves
  * having to re-plumb every screen later.
- *
- * See `@/hooks/use-catalog`, which is where these live.
  */
 export function useStatic<T>(data: T): Resource<T> {
   return { data, isLoading: false };
 }
+
+/** How often {@link useResource} re-fetches once it is given a real fetcher. */
+const POLL_MS = 300_000;
+
+/** A stalled request must not outlive the UI's patience — every caller passes a
+ *  fallback, so giving up beats hanging. */
+export const REQUEST_TIMEOUT_MS = 8_000;
 
 /**
  * Polls `fetcher` every {@link POLL_MS} and returns the latest value,
@@ -64,6 +80,10 @@ export function useStatic<T>(data: T): Resource<T> {
  * background polls swap `data` in silently rather than re-triggering a
  * loading state. A rejection still clears it: `fallback` is already valid
  * data to show, so there's nothing left to block the skeleton on.
+ *
+ * Unused for now — it is the other half of the seam described on
+ * {@link useStatic}, kept ready (and generic over its `fetcher`, so it needs no
+ * particular API client) for whoever wires the first endpoint up.
  */
 export function useResource<T>(
   label: string,
@@ -102,10 +122,9 @@ export function useResource<T>(
   return { data, isLoading };
 }
 
-/** The client list, plus whether the first real fetch has resolved. */
+/** The client list, plus whether it is still loading. */
 export function useClientsResource() {
-  const fetcher = useCallback(() => fetchClients(), []);
-  return useResource("useClients", fetcher, mockClients);
+  return useStatic(mockClients);
 }
 
 /** Just the client list — use {@link useClientsResource} when you also need `isLoading`. */
@@ -113,17 +132,14 @@ export function useClients() {
   return useClientsResource().data;
 }
 
-export function useNBAActions(clients = mockClients) {
-  const fetcher = useCallback(() => fetchNBAActions(clients), [clients]);
-  return useResource("useNBAActions", fetcher, mockNBAActions).data;
+export function useNBAActions() {
+  return useStatic(mockNBAActions).data;
 }
 
-export function usePipelineDeals(clients = mockClients) {
-  const fetcher = useCallback(() => fetchPipelineDeals(clients), [clients]);
-  return useResource("usePipelineDeals", fetcher, mockPipelineDeals).data;
+export function usePipelineDeals() {
+  return useStatic(mockPipelineDeals).data;
 }
 
-export function useMiniKanban(clients = mockClients) {
-  const fetcher = useCallback(() => fetchMiniKanban(clients), [clients]);
-  return useResource("useMiniKanban", fetcher, mockMiniKanban).data;
+export function useMiniKanban() {
+  return useStatic(mockMiniKanban).data;
 }

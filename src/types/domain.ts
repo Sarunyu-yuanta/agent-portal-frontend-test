@@ -3,12 +3,14 @@
  * (currently mocked) backend.
  *
  * ─── Backend handoff ─────────────────────────────────────────────────────────
- * Every type below is what a screen consumes. The canonical shapes are still
- * derived from the mock data in `@/lib/mock-data`; when real endpoints land,
- * point these aliases at the API response types instead and the UI keeps
- * compiling. See `public/openapi.yaml` for the wire contract of the four core
- * resources already specified (clients, nba-actions, pipeline-deals,
- * mini-kanbans).
+ * Every type below is what a screen consumes, and each is derived from the JSON
+ * in `src/data` via `@/lib/mock-data` — that JSON is the only source of data in
+ * the app. When real endpoints land, point these aliases at the API response
+ * types instead and the UI keeps compiling.
+ *
+ * There is no separate wire contract to reconcile against: the shapes here
+ * *are* the contract. `docs/mock-data-inventory.md` catalogues every dataset
+ * and is the reference for designing those endpoints.
  */
 
 import type { mockClients, mockClientDetails } from "@/lib/mock-data";
