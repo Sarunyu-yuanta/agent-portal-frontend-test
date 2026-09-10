@@ -9,19 +9,27 @@
  *
  * ## Currently out of phase
  *
+ * Nothing. **Phase 2 turned every gate on** — Notes, Calendar, Reminders and
+ * Call log are all live again, alongside the KYC alerts that were already on in
+ * Phase 1. What each covers:
+ *
  * - **Notes** — the `/notes` hub, the floating composer, Client 360's Notes tab
  *   and the Notes dialog in the client-hub side panel.
  * - **Calendar** — the `/calendar` month view.
  * - **Reminders** — the bell's reminder rows, Client 360's Reminders tab and
  *   its Overview card, and the Reminders dialog in the client-hub side panel.
- *   The bell itself is no longer gated on this — see `KYC_ALERTS_ENABLED`.
+ *   The bell itself is not gated on this — see `KYC_ALERTS_ENABLED`.
  * - **Call log** — Client 360's Call Log tab and the Call log dialog in the
  *   client-hub side panel.
  *
- * ## Turning one back on
+ * The file stays because the mechanism is worth keeping: it is how a finished
+ * feature gets held back from a release without being deleted, and the next
+ * phase boundary will want it again.
  *
- * Flip the flag to `true`. Everything gated on it renders again — nothing else
- * to wire up. Two dependencies to respect if they are enabled separately:
+ * ## Turning one off again
+ *
+ * Flip the flag to `false`. Everything gated on it disappears — nothing else
+ * to unwire. Two dependencies to respect if they are toggled separately:
  *
  * - A reminder **is** a date attached to a note, so `REMINDERS_ENABLED` without
  *   `NOTES_ENABLED` leaves the reminder surfaces read-only: they still show
@@ -45,13 +53,13 @@
  */
 
 /** `/notes`, the floating note composer, and every per-client Notes surface. */
-export const NOTES_ENABLED: boolean = false;
+export const NOTES_ENABLED: boolean = true;
 
 /** The `/calendar` month view. */
-export const CALENDAR_ENABLED: boolean = false;
+export const CALENDAR_ENABLED: boolean = true;
 
 /** Every reminder list, card, and dialog, and the bell's reminder rows. */
-export const REMINDERS_ENABLED: boolean = false;
+export const REMINDERS_ENABLED: boolean = true;
 
 /**
  * KYC expiry alerts in the header bell.
@@ -82,4 +90,4 @@ export const KYC_ALERTS_ENABLED: boolean = true;
  * this comment, which is exactly how they look right before someone removes
  * them by mistake.
  */
-export const CALL_LOG_ENABLED: boolean = false;
+export const CALL_LOG_ENABLED: boolean = true;
