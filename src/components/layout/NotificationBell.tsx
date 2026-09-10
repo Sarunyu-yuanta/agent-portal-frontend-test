@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BellIcon, CaretLeftIcon, CaretRightIcon, ClockIcon } from "@phosphor-icons/react";
+import {
+  BellIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+  ClockIcon,
+  WarningCircleIcon,
+} from "@phosphor-icons/react";
 import type { NotificationGroup, NotificationItem } from "@sarunyu/system-one";
 import { useStoredIds } from "@/hooks/use-stored-ids";
 
@@ -20,31 +26,35 @@ import { useStoredIds } from "@/hooks/use-stored-ids";
  * title over `text-sm` description — so this reads as the same component with
  * the group headings the type always promised.
  *
- * ## Two screens, not one list
+ * ## Three screens, one body
  *
- * `dueGroups` are what is already due — overdue and today. `upcomingGroups` is
- * everything still ahead, and it does **not** render on open: it sits behind a
- * single row showing its count, which swaps the panel to a second screen.
+ * The panel opens on **today** and nothing else. What is overdue and what is
+ * coming each sit behind a counted row above the list, and each opens a screen
+ * of its own.
  *
- * The panel used to show one long list, and because upcoming items outnumber
- * due ones several times over (a KYC rings from 30 days out, so most rows in
- * it are future), the two or three things actually due today were pushed below
- * the fold. Collapsing the future to one row makes that structurally
- * impossible — no matter how many are queued, what is due stays at the top.
+ * It used to be one long list, and because a KYC starts ringing 30 days out,
+ * most rows in it were future — so the two or three things actually due today
+ * were pushed below the fold. Collapsing both of the other directions to a
+ * single row each makes that impossible: today's work is always the whole body,
+ * whatever is queued on either side of it.
  *
  * Chosen over a tab strip for the empty day: with tabs, a day with nothing due
  * opens on a tab reading "no items" while a badge advertises seven, which reads
- * as a bug. Here the same day shows "วันนี้ไม่มีอะไรครบกำหนด" *and* the count
+ * as a bug. Here the same day shows "วันนี้ไม่มีอะไรครบกำหนด" *and* both counts
  * still waiting, in one view.
  */
+type Screen = "today" | "overdue" | "upcoming";
+
 export function NotificationBell({
-  dueGroups,
+  todayGroups,
+  overdueGroups,
   upcomingGroups,
   emptyText,
   onItemClick,
   onOpenCalendar,
 }: {
-  dueGroups: NotificationGroup[];
+  todayGroups: NotificationGroup[];
+  overdueGroups: NotificationGroup[];
   upcomingGroups: NotificationGroup[];
   emptyText: string;
   onItemClick?: (item: NotificationItem) => void;
@@ -52,18 +62,23 @@ export function NotificationBell({
   onOpenCalendar?: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  /** Which screen the panel is on. Resets to "due" every time it closes. */
-  const [screen, setScreen] = useState<"due" | "upcoming">("due");
+  /** Which screen the panel is on. Resets to "today" every time it closes. */
+  const [screen, setScreen] = useState<Screen>("today");
   const rootRef = useRef<HTMLDivElement>(null);
 
+  const idsOf = (groups: NotificationGroup[]) =>
+    groups.flatMap((g) => g.items.map((i) => i.id));
+
+  /** Overdue and today both count as due — see the badge note below. */
   const dueIds = useMemo(
-    () => dueGroups.flatMap((g) => g.items.map((i) => i.id)),
-    [dueGroups],
+    () => [...idsOf(overdueGroups), ...idsOf(todayGroups)],
+    [overdueGroups, todayGroups],
   );
   const liveIds = useMemo(
-    () => [...dueIds, ...upcomingGroups.flatMap((g) => g.items.map((i) => i.id))],
+    () => [...dueIds, ...idsOf(upcomingGroups)],
     [dueIds, upcomingGroups],
   );
+  const overdueCount = overdueGroups.reduce((n, g) => n + g.items.length, 0);
   const upcomingCount = liveIds.length - dueIds.length;
 
   /**
@@ -111,10 +126,64 @@ export function NotificationBell({
     };
   }, [open]);
 
-  const hasDue = dueGroups.some((g) => g.items.length > 0);
+  const hasToday = todayGroups.some((g) => g.items.length > 0);
   const closePanel = () => {
     setOpen(false);
-    setScreen("due");
+    setScreen("today");
+  };
+
+  /**
+   * One of the two counted rows above the list — overdue and upcoming both use
+   * it, so the only thing separating them is the tone and the glyph.
+   *
+   * Doubles as its own back button: on the screen it leads to it keeps the same
+   * position and label and just turns its caret around, so the two states read
+   * as one control flipping rather than as two different rows.
+   */
+  const doorRow = (target: Exclude<Screen, "today">, count: number) => {
+    if (count === 0 && screen !== target) return null;
+    const here = screen === target;
+    const overdue = target === "overdue";
+    return (
+      <button
+        type="button"
+        onClick={() => setScreen(here ? "today" : target)}
+        aria-label={`${overdue ? "เลยกำหนด" : "กำลังจะถึง"} ${count} รายการ`}
+        className={`flex w-full cursor-pointer items-center gap-3 border-b border-border px-4 py-3 text-left transition-colors hover:bg-[var(--bg-default-secondary)] ${
+          overdue ? "text-destructive" : "text-foreground"
+        }`}
+      >
+        <span
+          className={`flex w-10 shrink-0 items-center justify-center ${
+            overdue ? "text-destructive" : "text-muted-foreground"
+          }`}
+        >
+          {here ? (
+            <CaretLeftIcon size={18} />
+          ) : overdue ? (
+            <WarningCircleIcon size={18} weight="fill" />
+          ) : (
+            <ClockIcon size={18} />
+          )}
+        </span>
+        <span className="flex-1 text-sm leading-5 font-medium">
+          {overdue ? "เลยกำหนด" : "กำลังจะถึง"}
+        </span>
+        <span
+          className={`text-sm leading-5 tabular-nums ${
+            overdue ? "text-destructive" : "text-muted-foreground"
+          }`}
+        >
+          {count}
+        </span>
+        {!here && (
+          <CaretRightIcon
+            size={16}
+            className={`shrink-0 ${overdue ? "text-destructive" : "text-muted-foreground"}`}
+          />
+        )}
+      </button>
+    );
   };
 
   /**
@@ -212,60 +281,41 @@ export function NotificationBell({
           aria-label="Notifications"
           className="absolute right-0 top-full z-50 mt-2 w-[375px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border bg-card shadow-lg"
         >
-          {screen === "upcoming" && (
-            <button
-              type="button"
-              onClick={() => setScreen("due")}
-              className="flex w-full cursor-pointer items-center gap-2 border-b border-border px-3 py-2.5 text-left transition-colors hover:bg-[var(--bg-default-secondary)]"
-            >
-              <CaretLeftIcon size={16} className="shrink-0 text-muted-foreground" />
-              <span className="flex-1 text-sm leading-5 font-semibold text-foreground">
-                กำลังจะถึง
-              </span>
-              <span className="text-xs leading-4 text-muted-foreground tabular-nums">
-                {upcomingCount}
-              </span>
-            </button>
-          )}
+          {/* One control, one position, both screens — it opens the upcoming
+              list and it comes back. Above the rows rather than below them so
+              it can't be scrolled away, and so the caret is the only thing
+              that changes between the two states: a row that moved would read
+              as two separate buttons instead of one that flips. */}
+          {/* Upcoming first, then overdue. Not urgency order — the two are a
+              fixed pair of controls, and keeping them in one place means the
+              row a reader reached for last time is where they left it. On the
+              screen either one leads to, only that row renders. */}
+          {(screen === "today" || screen === "upcoming") &&
+            doorRow("upcoming", upcomingCount)}
+          {(screen === "today" || screen === "overdue") &&
+            doorRow("overdue", overdueCount)}
 
           <div className="max-h-[480px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {screen === "due" ? (
+            {screen === "today" && (
               <>
                 {/* Not the same thing as an empty bell. There may be nothing
-                    due while several things are still queued, so this line
-                    reports the clear day and the "กำลังจะถึง" row below still
-                    shows what is waiting — rather than the panel reading as
-                    though it had failed to load. */}
-                {!hasDue && (
+                    due today while both other directions hold items, so this
+                    line reports the clear day and the rows above still show
+                    what is waiting — rather than the panel reading as though
+                    it had failed to load. */}
+                {!hasToday && (
                   <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                    {upcomingCount > 0 ? "วันนี้ไม่มีอะไรครบกำหนด" : emptyText}
+                    {overdueCount + upcomingCount > 0
+                      ? "วันนี้ไม่มีอะไรครบกำหนด"
+                      : emptyText}
                   </p>
                 )}
-                {renderGroups(dueGroups, false)}
+                {renderGroups(todayGroups, false)}
               </>
-            ) : (
-              renderGroups(upcomingGroups, true)
             )}
+            {screen === "overdue" && renderGroups(overdueGroups, true)}
+            {screen === "upcoming" && renderGroups(upcomingGroups, true)}
           </div>
-
-          {screen === "due" && upcomingCount > 0 && (
-            <button
-              type="button"
-              onClick={() => setScreen("upcoming")}
-              className="flex w-full cursor-pointer items-center gap-3 border-t border-border px-4 py-3 text-left transition-colors hover:bg-[var(--bg-default-secondary)]"
-            >
-              <span className="flex w-10 shrink-0 items-center justify-center text-muted-foreground">
-                <ClockIcon size={18} />
-              </span>
-              <span className="flex-1 text-sm leading-5 font-medium text-foreground">
-                กำลังจะถึง
-              </span>
-              <span className="text-sm leading-5 text-muted-foreground tabular-nums">
-                {upcomingCount}
-              </span>
-              <CaretRightIcon size={16} className="shrink-0 text-muted-foreground" />
-            </button>
-          )}
 
           {screen === "upcoming" && onOpenCalendar && (
             <button

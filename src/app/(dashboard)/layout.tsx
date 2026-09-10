@@ -93,11 +93,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
    * instead of under two headings in two languages, one of them below "Next 2
    * weeks".
    *
-   * Split into what is already due and what is still ahead: the bell shows the
-   * first on open and puts the second behind a single row, so a queue of
-   * upcoming items can't push today's below the fold.
+   * Split three ways, one per screen the bell can show. Today is the screen it
+   * opens on; overdue and upcoming each sit behind a counted row, so neither a
+   * backlog nor a queue can push today's work below the fold.
    */
-  const [dueGroups, upcomingGroups] = useMemo(() => {
+  const { todayGroups, overdueGroups, upcomingGroups } = useMemo(() => {
     const rows = [
       ...(REMINDERS_ENABLED ? notificationRows : []),
       ...(KYC_ALERTS_ENABLED ? kycNotificationRows : []),
@@ -113,10 +113,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             .map((r) => r.item),
         }))
         .filter((g) => g.items.length > 0);
-    return [
-      build(ZONE_ORDER.filter(isDue)),
-      build(ZONE_ORDER.filter((z) => !isDue(z))),
-    ];
+    return {
+      todayGroups: build(["today"]),
+      overdueGroups: build(["overdue"]),
+      upcomingGroups: build(ZONE_ORDER.filter((z) => !isDue(z))),
+    };
   }, [notificationRows, kycNotificationRows]);
 
   const handleNotificationClick = (notifItem: NotificationItem) => {
@@ -205,9 +206,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   today, reminders alongside them once that flag flips. It only
                   disappears if every feed is off, rather than sitting there
                   permanently empty. */}
-              {(dueGroups.length > 0 || upcomingGroups.length > 0) && (
+              {(todayGroups.length > 0 ||
+                overdueGroups.length > 0 ||
+                upcomingGroups.length > 0) && (
                 <NotificationBell
-                  dueGroups={dueGroups}
+                  todayGroups={todayGroups}
+                  overdueGroups={overdueGroups}
                   upcomingGroups={upcomingGroups}
                   emptyText="ไม่มีการแจ้งเตือน"
                   onItemClick={handleNotificationClick}

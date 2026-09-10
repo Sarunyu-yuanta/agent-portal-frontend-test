@@ -230,16 +230,39 @@ function GlobalBondTabSkeleton() {
   );
 }
 
-/** Matches the "Mutual Fund" tab's centered icon + two lines of text. */
-function MutualFundComingSoonSkeleton() {
+/** Matches MutualFundTab: two-column hero + theme carousel. */
+function MutualFundTabSkeleton() {
   return (
-    <div
-      className="flex flex-col items-center justify-center gap-3 w-full"
-      style={{ backgroundColor: "white", paddingTop: 96, paddingBottom: 96 }}
-    >
-      <Skeleton className="size-10 rounded-full" />
-      <Skeleton className="h-5 w-40" />
-      <Skeleton className="h-3 w-56" />
+    <div className="flex flex-col w-full bg-white pt-6 pb-10">
+      <div className="w-full max-w-[1280px] mx-auto px-4 md:px-8 lg:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-7 w-48" />
+            <div className="flex gap-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-7 w-20 rounded-full shrink-0" />
+              ))}
+            </div>
+            <Skeleton className="h-80 w-full rounded-xl" />
+          </div>
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-7 w-56" />
+            <Skeleton className="h-48 w-full rounded-lg" />
+            <div className="flex gap-8">
+              <Skeleton className="h-[100px] flex-1 rounded-lg" />
+              <Skeleton className="h-[100px] flex-1 rounded-lg" />
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 mt-8">
+          <Skeleton className="h-7 w-40" />
+          <div className="flex gap-3 overflow-hidden">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-80 w-[308px] shrink-0 rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -280,7 +303,7 @@ export function ProductGridDetailSkeleton({ hero }: { hero: ReactNode }) {
 export function ProductCatalogTabSkeleton({ tab }: { tab: string }) {
   if (tab === "fixed-income") return <FixedIncomeTabSkeleton />;
   if (tab === "global-bond") return <GlobalBondTabSkeleton />;
-  if (tab === "mutual-fund") return <MutualFundComingSoonSkeleton />;
+  if (tab === "mutual-fund") return <MutualFundTabSkeleton />;
 
   return (
     <div className="flex flex-col gap-6 items-center w-full">
