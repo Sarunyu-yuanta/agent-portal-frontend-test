@@ -74,6 +74,10 @@ import {
   type InvestmentSolution,
   type InvestmentSolutionId,
 } from "@/app/(dashboard)/client/[id]/investment-solution-data";
+import {
+  MUTUAL_FUND_CATALOG,
+  type MutualFundCatalog,
+} from "@/app/(dashboard)/client/[id]/mutual-fund-data";
 
 type HouseViewStrategy = (typeof mockHouseViewStrategies)[number];
 
@@ -212,4 +216,11 @@ export function useProductCatalogLoading(): boolean {
  */
 export function useInvestmentSolution(id: InvestmentSolutionId): Resource<InvestmentSolution> {
   return useStatic(getInvestmentSolution(id));
+}
+
+// ── Mutual funds ──────────────────────────────────────────────────────────────
+
+/** Mutual fund catalog — top performers, insights, and theme cards. */
+export function useMutualFundCatalog(): Resource<MutualFundCatalog> {
+  return useStatic(MUTUAL_FUND_CATALOG);
 }

@@ -1,0 +1,350 @@
+{
+  "categories": [
+    { "id": "global-equity", "label": "หุ้นทั่วโลก" },
+    { "id": "thai-equity", "label": "หุ้นไทย" },
+    { "id": "us-equity", "label": "หุ้นสหรัฐฯ" },
+    { "id": "japan-equity", "label": "หุ้นญี่ปุ่น" },
+    { "id": "europe-equity", "label": "หุ้นยุโรป" },
+    { "id": "emerging-equity", "label": "หุ้นตลาดเกิดใหม่" },
+    { "id": "fixed-income", "label": "ตราสารหนี้" },
+    { "id": "global-fixed-income", "label": "ตราสารหนี้ต่างประเทศ" },
+    { "id": "reits", "label": "อสังหาริมทรัพย์" },
+    { "id": "commodities", "label": "สินค้าโภคภัณฑ์" },
+    { "id": "gold", "label": "ทองคำ" }
+  ],
+  "topPerformers": {
+    "global-equity": [
+      {
+        "id": "mf-scbkeqtg",
+        "symbol": "SCBKEQTG",
+        "name": "กองทุนเปิดไทยพาณิชย์หุ้นเกาหลี ชนิดสะสมมูลค่า",
+        "risk": 6,
+        "price": "22.0131",
+        "currency": "THB",
+        "changeAbs": "+0.0430",
+        "changePct": "+61.85%",
+        "isPick": false
+      },
+      {
+        "id": "mf-ugisfx-n",
+        "symbol": "UGISFX-N",
+        "name": "กองทุนเปิด ยูไนเต็ด โกลบอล อินคัม สตราทีจิค บอนด์ เอฟเอ็กซ์ ฟันด์ - ชนิดรับซื้อคืนหน่วยลงทุนแบบปกติ",
+        "risk": 4,
+        "price": "10.1527",
+        "currency": "THB",
+        "changeAbs": "+0.6000",
+        "changePct": "+4.74%",
+        "isPick": true
+      },
+      {
+        "id": "mf-daol-defense",
+        "symbol": "DAOL-DEFENSE",
+        "name": "กองทุนเปิด ดาโอ ดีเฟนส์",
+        "risk": 7,
+        "price": "11.2540",
+        "currency": "THB",
+        "changeAbs": "+0.1250",
+        "changePct": "+0.71%",
+        "isPick": false
+      }
+    ],
+    "thai-equity": [
+      {
+        "id": "mf-scbthai",
+        "symbol": "SCBTHAI",
+        "name": "กองทุนเปิดไทยพาณิชย์หุ้นทุนไทย",
+        "risk": 6,
+        "price": "18.4520",
+        "currency": "THB",
+        "changeAbs": "+0.2100",
+        "changePct": "+12.40%",
+        "isPick": true
+      },
+      {
+        "id": "mf-kasset",
+        "symbol": "K-SET50",
+        "name": "กองทุนเปิดกรุงศรี SET50",
+        "risk": 5,
+        "price": "14.8821",
+        "currency": "THB",
+        "changeAbs": "+0.0850",
+        "changePct": "+8.22%",
+        "isPick": false
+      },
+      {
+        "id": "mf-bbl",
+        "symbol": "BBLEQ",
+        "name": "กองทุนเปิดกรุงเทพหุ้นทุน",
+        "risk": 6,
+        "price": "9.3310",
+        "currency": "THB",
+        "changeAbs": "+0.0420",
+        "changePct": "+5.15%",
+        "isPick": false
+      }
+    ],
+    "us-equity": [
+      {
+        "id": "mf-es-gqg",
+        "symbol": "ES-GQG-UH",
+        "name": "บริษัท หลักทรัพย์จัดการกองทุนอีสท์สปริง (ประเทศไทย) จำกัด",
+        "risk": 6,
+        "price": "11.2540",
+        "currency": "THB",
+        "changeAbs": "+0.0548",
+        "changePct": "+0.71%",
+        "isPick": true
+      },
+      {
+        "id": "mf-uinc-n",
+        "symbol": "UINC-N",
+        "name": "กองทุนเปิด ยูไนเต็ด โกลบอล อินคัม สตราทีจิค บอนด์ เอฟเอ็กซ์ ฟันด์ - ชนิดรับซื้อคืนหน่วยลงทุนแบบปกติ",
+        "risk": 4,
+        "price": "11.2540",
+        "currency": "THB",
+        "changeAbs": "+0.0548",
+        "changePct": "+0.71%",
+        "isPick": true
+      },
+      {
+        "id": "mf-scb-us",
+        "symbol": "SCBUSEQ",
+        "name": "กองทุนเปิดไทยพาณิชย์ US Equity",
+        "risk": 6,
+        "price": "15.8820",
+        "currency": "THB",
+        "changeAbs": "+0.3200",
+        "changePct": "+18.50%",
+        "isPick": false
+      }
+    ]
+  },
+  "insights": [
+    {
+      "id": "ins-1",
+      "title": "Buy List ประจำสัปดาห์: อาศัยจังหวะตลาด ผันผวนทยอยลงทุน Core และ Satellite Portfolio",
+      "date": "2 สิงหาคม 2569",
+      "recommendedFunds": ["ES-GQG-UH"]
+    },
+    {
+      "id": "ins-2",
+      "title": "Buy List ประจำสัปดาห์: อาศัยจังหวะตลาด ผันผวนทยอยลงทุน Core และ Satellite Portfolio",
+      "date": "2 สิงหาคม 2569",
+      "recommendedFunds": ["ES-GQG-UH"]
+    },
+    {
+      "id": "ins-3",
+      "title": "Buy List ประจำสัปดาห์: อาศัยจังหวะตลาด ผันผวนทยอยลงทุน Core และ Satellite Portfolio",
+      "date": "2 สิงหาคม 2569",
+      "recommendedFunds": ["ES-GQG-UH"]
+    },
+    {
+      "id": "ins-4",
+      "title": "Buy List ประจำสัปดาห์: เน้นลงทุนในหุ้นเติบโตและเทคโนโลยี",
+      "date": "2 สิงหาคม 2569",
+      "recommendedFunds": ["SCB-TECH-XY"]
+    }
+  ],
+  "themes": [
+    {
+      "id": "ai",
+      "title": "กลุ่ม AI",
+      "icon": "head-circuit",
+      "funds": [
+        {
+          "id": "mf-uinc-n",
+          "symbol": "UINC-N",
+          "name": "กองทุนเปิด ยูไนเต็ด โกลบอล อินคัม สตราทีจิค บอนด์ เอฟเอ็กซ์ ฟันด์ - ชนิดรับซื้อคืนหน่วยลงทุนแบบปกติ",
+          "risk": 4,
+          "price": "11.2540",
+          "currency": "THB",
+          "changeAbs": "+0.0548",
+          "changePct": "+0.71%",
+          "isPick": true
+        },
+        {
+          "id": "mf-es-gqg",
+          "symbol": "ES-GQG-UH",
+          "name": "บริษัท หลักทรัพย์จัดการกองทุนอีสท์สปริง (ประเทศไทย) จำกัด",
+          "risk": 2,
+          "price": "11.2540",
+          "currency": "THB",
+          "changeAbs": "0.0000",
+          "changePct": "+0.71%",
+          "isPick": false
+        },
+        {
+          "id": "mf-scbkeqtg",
+          "symbol": "SCBKEQTG",
+          "name": "กองทุนเปิดไทยพาณิชย์หุ้นเกาหลี ชนิดสะสมมูลค่า",
+          "risk": 6,
+          "price": "11.2540",
+          "currency": "THB",
+          "changeAbs": "+0.0052",
+          "changePct": "+0.71%",
+          "isPick": true
+        }
+      ]
+    },
+    {
+      "id": "finance",
+      "title": "การเงิน",
+      "icon": "bank",
+      "funds": [
+        {
+          "id": "mf-kfin",
+          "symbol": "K-FIN",
+          "name": "กองทุนเปิดกรุงศรี Financial Sector",
+          "risk": 5,
+          "price": "12.4500",
+          "currency": "THB",
+          "changeAbs": "+0.1200",
+          "changePct": "+3.20%",
+          "isPick": false
+        },
+        {
+          "id": "mf-scbfin",
+          "symbol": "SCBFIN",
+          "name": "กองทุนเปิดไทยพาณิชย์ Financial Services",
+          "risk": 5,
+          "price": "10.8820",
+          "currency": "THB",
+          "changeAbs": "+0.0850",
+          "changePct": "+2.10%",
+          "isPick": true
+        },
+        {
+          "id": "mf-bblfin",
+          "symbol": "BBLFIN",
+          "name": "กองทุนเปิดกรุงเทพ Banking Sector",
+          "risk": 4,
+          "price": "9.1200",
+          "currency": "THB",
+          "changeAbs": "+0.0420",
+          "changePct": "+1.85%",
+          "isPick": false
+        }
+      ]
+    },
+    {
+      "id": "tech",
+      "title": "เทคโนโลยี",
+      "icon": "cpu",
+      "funds": [
+        {
+          "id": "mf-scb-tech",
+          "symbol": "SCB-TECH-XY",
+          "name": "กองทุนเปิดไทยพาณิชย์ Technology",
+          "risk": 7,
+          "price": "16.5500",
+          "currency": "THB",
+          "changeAbs": "+0.4500",
+          "changePct": "+22.10%",
+          "isPick": true
+        },
+        {
+          "id": "mf-ktech",
+          "symbol": "K-TECH",
+          "name": "กองทุนเปิดกรุงศรี Global Technology",
+          "risk": 6,
+          "price": "14.2200",
+          "currency": "THB",
+          "changeAbs": "+0.2800",
+          "changePct": "+15.40%",
+          "isPick": false
+        },
+        {
+          "id": "mf-es-tech",
+          "symbol": "ES-TECH",
+          "name": "กองทุนเปิดอีสท์สปริง Global Tech",
+          "risk": 6,
+          "price": "11.8800",
+          "currency": "THB",
+          "changeAbs": "+0.1900",
+          "changePct": "+9.80%",
+          "isPick": false
+        }
+      ]
+    },
+    {
+      "id": "energy",
+      "title": "พลังงาน",
+      "icon": "plant",
+      "funds": [
+        {
+          "id": "mf-kenergy",
+          "symbol": "K-ENERGY",
+          "name": "กองทุนเปิดกรุงศรี Energy Sector",
+          "risk": 6,
+          "price": "13.4500",
+          "currency": "THB",
+          "changeAbs": "+0.2100",
+          "changePct": "+8.50%",
+          "isPick": false
+        },
+        {
+          "id": "mf-scbenergy",
+          "symbol": "SCBENERGY",
+          "name": "กองทุนเปิดไทยพาณิชย์ Global Energy",
+          "risk": 5,
+          "price": "11.2200",
+          "currency": "THB",
+          "changeAbs": "+0.1500",
+          "changePct": "+5.20%",
+          "isPick": true
+        },
+        {
+          "id": "mf-bblenergy",
+          "symbol": "BBLENERGY",
+          "name": "กองทุนเปิดกรุงเทพ Clean Energy",
+          "risk": 5,
+          "price": "10.5500",
+          "currency": "THB",
+          "changeAbs": "+0.1200",
+          "changePct": "+4.10%",
+          "isPick": false
+        }
+      ]
+    },
+    {
+      "id": "health",
+      "title": "สุขภาพ",
+      "icon": "health",
+      "funds": [
+        {
+          "id": "mf-khealth",
+          "symbol": "K-HEALTH",
+          "name": "กองทุนเปิดกรุงศรี Healthcare",
+          "risk": 5,
+          "price": "12.8800",
+          "currency": "THB",
+          "changeAbs": "+0.1800",
+          "changePct": "+6.80%",
+          "isPick": true
+        },
+        {
+          "id": "mf-scbhealth",
+          "symbol": "SCBHEALTH",
+          "name": "กองทุนเปิดไทยพาณิชย์ Global Healthcare",
+          "risk": 4,
+          "price": "11.4500",
+          "currency": "THB",
+          "changeAbs": "+0.0950",
+          "changePct": "+3.50%",
+          "isPick": false
+        },
+        {
+          "id": "mf-bblhealth",
+          "symbol": "BBLHEALTH",
+          "name": "กองทุนเปิดกรุงเทพ Biotech",
+          "risk": 7,
+          "price": "9.8800",
+          "currency": "THB",
+          "changeAbs": "+0.2200",
+          "changePct": "+7.20%",
+          "isPick": false
+        }
+      ]
+    }
+  ]
+}

@@ -2,12 +2,13 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { Chip, SearchInput, Tag, TabGroup } from "@sarunyu/system-one";
-import { ArrowUpLeftIcon, CaretLeftIcon, CaretRightIcon, ChartPieSliceIcon } from "@phosphor-icons/react";
+import { ArrowUpLeftIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { FixedIncomeTab } from "./FixedIncomeTab";
 import { FixedIncomeDetail } from "./FixedIncomeDetail";
 import { FixedIncomeCompanyDetail } from "./FixedIncomeCompanyDetail";
 import type { FixedIncomeBond } from "./fixed-income-data";
 import { GlobalBondTab } from "./GlobalBondTab";
+import { MutualFundTab } from "./MutualFundTab";
 import { GlobalBondDetail } from "./GlobalBondDetail";
 import { GlobalBondAllPage } from "./GlobalBondAllPage";
 import { getIssuerIdForBondRow, type GlobalBondIssuerId } from "./global-bond-data";
@@ -787,16 +788,7 @@ export function ProductCatalogTab({
               </div>
             )}
 
-            {activeProductTab === "mutual-fund" && (
-              <div
-                className="flex flex-col items-center justify-center gap-3 w-full text-center px-4"
-                style={{ backgroundColor: "white", paddingTop: 96, paddingBottom: 96 }}
-              >
-                <ChartPieSliceIcon size={40} className="text-muted-foreground/40" weight="duotone" />
-                <p className="type-subtitle-1 font-semibold text-[var(--text-default-secondary)]">Mutual Fund</p>
-                <p className="type-body-2 text-[var(--text-default-tertiary)] max-w-xs">กองทุนรวมจะแสดงที่นี่เร็วๆ นี้</p>
-              </div>
-            )}
+            {activeProductTab === "mutual-fund" && <MutualFundTab />}
           </>
         )}
       </FadeIn>

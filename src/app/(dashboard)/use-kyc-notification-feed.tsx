@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { IdentificationCardIcon } from "@phosphor-icons/react";
-import type { NotificationGroup, NotificationItem } from "@sarunyu/system-one";
 import type { Client } from "@/types/domain";
 import { kycExpiry, kycExpiryLabelTh } from "./client/[id]/client-detail-data";
+import { zoneForDays, type ZonedNotification } from "./notification-zones";
 
 /**
  * The checkpoints a KYC expiry rings at: 30 days out, then 15, 7, 1, and the
@@ -43,26 +43,16 @@ function checkpointTone(daysLeft: number): string {
 }
 
 /**
- * The day a checkpoint fired, as a section heading — "วันนี้", "เมื่อวาน", or
- * the date itself.
- *
- * A notification feed is read newest-first, so the heading has to answer "when
- * did this arrive", not "how urgent is it". Buddhist-era short form, matching
- * `formatThaiUpdatedAt` and the DS's own example labels.
- */
-function firedDayLabel(daysAgo: number, firedAt: Date): string {
-  if (daysAgo <= 0) return "วันนี้";
-  if (daysAgo === 1) return "เมื่อวาน";
-  return firedAt.toLocaleDateString("th-TH", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-/**
  * The header bell's KYC rows — one per client whose KYC has lapsed or is close
- * enough to have rung a checkpoint, grouped by the day the checkpoint fired.
+ * enough to have rung a checkpoint, tagged with the zone its *expiry* falls in.
+ *
+ * Placed by deadline, not by the day the checkpoint fired. The feed used to do
+ * the latter, on the reasoning that a notification list is read newest-first
+ * and the heading should answer "when did this arrive". That holds for news;
+ * "KYC จะหมดอายุในอีก 1 วัน" is a deadline, and the thing an RM decides from is
+ * how long is left — so it now shares one axis with the reminder feed, which
+ * also lets the two merge into a single ordered list instead of being
+ * concatenated. See `./notification-zones`.
  *
  * Countdowns come from {@link kycExpiry}, which derives them from `nextReview`,
  * rather than from `getKycDueClients`, which reads the record's stored
@@ -80,18 +70,20 @@ export function useKycNotificationFeed(clients: Client[]) {
     // to carry a client id — so this is the side table the click reads.
     const targets = new Map<string, string>();
 
-    const rows: { daysAgo: number; daysLeft: number; item: NotificationItem }[] = [];
+    const rows: ZonedNotification[] = [];
     for (const client of clients) {
       const expiry = kycExpiry(client.id);
       if (!expiry || expiry.daysLeft === null) continue;
       const checkpoint = lastCheckpointCrossed(expiry.daysLeft);
       if (checkpoint === null) continue; // hasn't rung its first checkpoint yet
 
-      // The checkpoint fired when the countdown hit it, so that's `checkpoint`
-      // days before expiry — however long ago that now is.
-      const daysAgo = checkpoint - expiry.daysLeft;
-      const firedAt = new Date();
-      firedAt.setDate(firedAt.getDate() - daysAgo);
+      // Two gates, not one. `lastCheckpointCrossed` decides whether this expiry
+      // has started ringing at all (30 days out); `zoneForDays` decides where in
+      // the bell it sits. An expiry 25 days out has rung, but its zone is `null`
+      // — beyond the 15-day horizon the panel shows — so it waits rather than
+      // needing a sixth heading of its own.
+      const zone = zoneForDays(expiry.daysLeft);
+      if (!zone) continue;
 
       // The checkpoint is part of the id, not just the client: the bell
       // remembers which rows have been seen, and an id that stayed
@@ -100,7 +92,7 @@ export function useKycNotificationFeed(clients: Client[]) {
       // checkpoint makes each crossing its own notification.
       const id = `kyc-${client.id}-d${checkpoint}`;
       rows.push({
-        daysAgo,
+        zone,
         daysLeft: expiry.daysLeft,
         item: {
           id,
@@ -112,7 +104,11 @@ export function useKycNotificationFeed(clients: Client[]) {
           // reads as "when this arrived" rather than "when KYC lapses". The
           // date itself is on the KYC tab the row opens.
           description: kycExpiryLabelTh(client.id) ?? "",
-          time: firedDayLabel(daysAgo, firedAt),
+          // Left blank on purpose. The reminder feed puts the exact day here
+          // for the bell's "กำลังจะถึง" screen to print, but a KYC row's
+          // `description` already ends in "อีก N วัน" — printing a day beside
+          // it would say the same thing twice in two formats.
+          time: "",
           // `unread` is left to the bell, which is what knows whether this row
           // has been seen — from here every row looks equally new.
           icon: (
@@ -131,26 +127,11 @@ export function useKycNotificationFeed(clients: Client[]) {
       targets.set(id, client.id);
     }
 
-    // Newest checkpoint first, and within a day the closest expiry leads.
-    rows.sort((a, b) => a.daysAgo - b.daysAgo || a.daysLeft - b.daysLeft);
-
-    // One group per day, in that same order. The installed DS build only uses
-    // `NotificationGroup.label` as a React key and never paints it (checked its
-    // compiled source), which is why the label is also carried in each row's
-    // `time`. Grouping it properly anyway means the headings appear for free if
-    // that ever lands, and `time` is the right slot for it regardless.
-    const groups: NotificationGroup[] = [];
-    for (const { item } of rows) {
-      const label = item.time;
-      const last = groups[groups.length - 1];
-      if (last?.label === label) last.items.push(item);
-      else groups.push({ label, items: [item] });
-    }
-
-    // No badge count here: the bell counts the rows the user hasn't seen yet,
-    // which is a question only it can answer.
+    // No grouping and no badge count here — the shell groups the merged list
+    // once, and the bell counts the rows the user hasn't seen, which is a
+    // question only it can answer.
     return {
-      kycNotificationGroups: groups,
+      kycNotificationRows: rows,
       kycNotificationTargets: targets,
     };
   }, [clients]);

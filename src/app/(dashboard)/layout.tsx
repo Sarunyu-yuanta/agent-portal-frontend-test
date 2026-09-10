@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   NavHeaderIconButton,
@@ -10,13 +10,24 @@ import {
 import { ListIcon } from "@phosphor-icons/react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import {
+  isDue,
+  ZONE_LABEL_TH,
+  ZONE_ORDER,
+  type NotificationZone,
+} from "./notification-zones";
 import { FadeIn } from "@/components/ui/fade-in";
 import { NavStateMemory } from "@/components/layout/NavStateMemory";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { HeaderSlotProvider, useHeaderSlot } from "./header-slot-context";
 import { PrivacyProvider } from "@/contexts/privacy-context";
 import { NotesProvider, useNotes } from "@/contexts/notes-context";
-import { KYC_ALERTS_ENABLED, NOTES_ENABLED, REMINDERS_ENABLED } from "@/lib/feature-flags";
+import {
+  CALENDAR_ENABLED,
+  KYC_ALERTS_ENABLED,
+  NOTES_ENABLED,
+  REMINDERS_ENABLED,
+} from "@/lib/feature-flags";
 import { useClients } from "@/hooks/use-api";
 import { ResponsiveBreadcrumb } from "@/components/layout/ResponsiveBreadcrumb";
 import { FloatingNoteButton } from "./notes/FloatingNoteButton";
@@ -66,20 +77,47 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   // this modal doesn't already know whose page you're on.
   const { open: openReminder, modals: reminderModals } = useDayItemModals({ clients });
 
-  const { notificationGroups, notificationTargets } =
+  const { notificationRows, notificationTargets } =
     useNotificationFeed(notes, clients);
-  const { kycNotificationGroups, kycNotificationTargets } =
+  const { kycNotificationRows, kycNotificationTargets } =
     useKycNotificationFeed(clients);
 
-  // Both feeds run unconditionally — they're memoised derivations, and gating
-  // the hook calls themselves on a flag isn't allowed. The flags pick what
-  // reaches the bell. Reminders lead when they're in phase: they're dated to a
-  // specific day, where a KYC expiry is a window. No badge total here — the
-  // bell counts the rows the user hasn't seen, whichever feed raised them.
-  const bellGroups = [
-    ...(REMINDERS_ENABLED ? notificationGroups : []),
-    ...(KYC_ALERTS_ENABLED ? kycNotificationGroups : []),
-  ];
+  /**
+   * The two feeds merged into one list and grouped once, rather than
+   * concatenated.
+   *
+   * Both run unconditionally — they're memoised derivations, and gating the
+   * hook calls themselves on a flag isn't allowed; the flags pick what reaches
+   * the bell. What they produce is now on a shared axis (`notification-zones`),
+   * so a KYC expiring today and a reminder due today land in the same group
+   * instead of under two headings in two languages, one of them below "Next 2
+   * weeks".
+   *
+   * Split into what is already due and what is still ahead: the bell shows the
+   * first on open and puts the second behind a single row, so a queue of
+   * upcoming items can't push today's below the fold.
+   */
+  const [dueGroups, upcomingGroups] = useMemo(() => {
+    const rows = [
+      ...(REMINDERS_ENABLED ? notificationRows : []),
+      ...(KYC_ALERTS_ENABLED ? kycNotificationRows : []),
+    ];
+    const build = (zones: NotificationZone[]) =>
+      zones
+        .map((zone) => ({
+          label: ZONE_LABEL_TH[zone],
+          items: rows
+            .filter((r) => r.zone === zone)
+            // Within a zone the closest deadline leads.
+            .sort((a, b) => a.daysLeft - b.daysLeft)
+            .map((r) => r.item),
+        }))
+        .filter((g) => g.items.length > 0);
+    return [
+      build(ZONE_ORDER.filter(isDue)),
+      build(ZONE_ORDER.filter((z) => !isDue(z))),
+    ];
+  }, [notificationRows, kycNotificationRows]);
 
   const handleNotificationClick = (notifItem: NotificationItem) => {
     // A KYC row's only useful destination is that client's own KYC tab, which
@@ -167,11 +205,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   today, reminders alongside them once that flag flips. It only
                   disappears if every feed is off, rather than sitting there
                   permanently empty. */}
-              {bellGroups.length > 0 && (
+              {(dueGroups.length > 0 || upcomingGroups.length > 0) && (
                 <NotificationBell
-                  groups={bellGroups}
-                  emptyText={REMINDERS_ENABLED ? "No reminders" : "ไม่มีการแจ้งเตือน"}
+                  dueGroups={dueGroups}
+                  upcomingGroups={upcomingGroups}
+                  emptyText="ไม่มีการแจ้งเตือน"
                   onItemClick={handleNotificationClick}
+                  // Only offered while the Calendar is in phase — otherwise the
+                  // link would lead to a route that redirects straight back.
+                  onOpenCalendar={
+                    CALENDAR_ENABLED ? () => router.push("/calendar") : undefined
+                  }
                 />
               )}
 
