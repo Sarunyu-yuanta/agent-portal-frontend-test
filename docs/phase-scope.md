@@ -78,6 +78,15 @@ written around a fixed number of things:
 - **`data/call-log-data.ts` and `CallLogTable`** — same reasoning. The table is
   still imported by `page.tsx` for a tab branch that can no longer be reached,
   which is what keeps it compiling against the rest of the page.
+- **"Last Contact"** — out of scope for this phase, so the line is not rendered
+  in the profile identity bar (the KYC countdown sits there instead). Two pieces
+  survive it and have **no callers at all**, which makes them look like dead
+  code to any automated sweep: the `lastContact` field in `data/clients.json`,
+  and `lastContactFromCallLogs()` in `client/[id]/client-detail-data.ts`.
+  Keep both. `lastContact` also stays a display string (`"2 days ago"`,
+  `"Today"`) rather than a timestamp like the other client fields — nothing
+  reads it, so converting it now would be unverifiable, and fixed dates would
+  quietly rot into "8 months ago" before the phase that shows them lands.
 - **Route metadata** for `/notes` and `/calendar` — `page-chrome.ts`,
   `page-breadcrumbs.ts`, `lib/nav-memory.ts`. These describe routes that now
   redirect, so they have no effect; leaving them means re-enabling is one

@@ -2,7 +2,7 @@
 
 import { Avatar } from "@sarunyu/system-one";
 import { UsersIcon, CaretRightIcon } from "@phosphor-icons/react";
-import { getInitials } from "@/lib/client-utils";
+import { getInitials, formatAumThb } from "@/lib/client-utils";
 import { useSlideOver, SlideOverPanel } from "@/components/ui/slide-over";
 import { ClientDetailPanel } from "./ClientDetailPanel";
 import { NINE_BOX_HEAT_STYLES, type NineBoxCellInfo } from "./NineBoxTab";
@@ -60,7 +60,7 @@ export function NineBoxCellDrawer({
                   <p className="type-caption text-muted-foreground">{c.tier} · {c.id}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="type-caption font-semibold text-foreground">{c.aum}</p>
+                  <p className="type-caption font-semibold text-foreground">{formatAumThb(c.aum)}</p>
                   <p className="type-caption text-muted-foreground">AI {c.aiScore}</p>
                 </div>
                 <CaretRightIcon size={20} className="text-[var(--text-default-tertiary)] shrink-0" />

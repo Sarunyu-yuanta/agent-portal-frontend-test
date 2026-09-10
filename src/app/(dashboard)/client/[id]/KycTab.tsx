@@ -1,5 +1,6 @@
 "use client";
 
+import { formatAumThb } from "@/lib/client-utils";
 import {
   CurrencyCircleDollarIcon,
   IdentificationCardIcon,
@@ -55,7 +56,7 @@ export function KycTab({
             actually carry the urgency anyway. */}
         <div className="grid grid-cols-2 divide-x divide-y divide-blue-100 bg-blue-50">
           {[
-            { icon: <CurrencyCircleDollarIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Total AUM", value: client.aum, sub: null, valueClass: "text-foreground" },
+            { icon: <CurrencyCircleDollarIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Total AUM", value: formatAumThb(client.aum), sub: null, valueClass: "text-foreground" },
             { icon: <IdentificationCardIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Client ID", value: client.id, sub: null, valueClass: "text-foreground" },
             { icon: <CalendarCheckIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Account Opened", value: profile.relationshipSince, sub: null, valueClass: "text-foreground" },
             { icon: <ShieldCheckIcon size={20} weight="fill" className="text-[var(--text-brand-primary)]" />, label: "Risk Profile", value: profile.riskProfile, sub: null, valueClass: "text-foreground" },

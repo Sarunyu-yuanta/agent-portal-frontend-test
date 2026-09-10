@@ -6,7 +6,7 @@
 
 import { Avatar } from "@sarunyu/system-one";
 import { maskName } from "@/lib/mask-name";
-import { getInitials, parseAumToThb, formatThbAmount, LIABILITIES_MULTIPLIER } from "@/lib/client-utils";
+import { getInitials, formatThbAmount, formatPlYtdPct, LIABILITIES_MULTIPLIER } from "@/lib/client-utils";
 import { getClientSliceAmount } from "./client-hub-data";
 import type { ColumnId, SortKey } from "./types";
 import type { Client } from "@/types/domain";
@@ -79,7 +79,7 @@ export const CUSTOMER_COLUMNS: CustomerColumn[] = [
     label: "AUM (THB)",
     width: 150,
     sortKey: "aum",
-    render: (client) => money(parseAumToThb(client.aum)),
+    render: (client) => money(client.aum),
   },
   sliceColumn("thaiStock", "thaiStock", "หุ้นไทย (บาท)", "หุ้นไทย", 150),
   sliceColumn("foreignStock", "foreignStock", "หุ้นต่างประเทศ (บาท)", "หุ้นต่างประเทศ", 170),
@@ -94,7 +94,7 @@ export const CUSTOMER_COLUMNS: CustomerColumn[] = [
     width: 140,
     sortKey: "cashIdle",
     headerClassName: NOWRAP,
-    render: (client) => money(parseAumToThb(client.aum) * (client.cashIdlePct / 100)),
+    render: (client) => money(client.aum * (client.cashIdlePct / 100)),
   },
   {
     id: "plYtd",
@@ -103,8 +103,8 @@ export const CUSTOMER_COLUMNS: CustomerColumn[] = [
     sortKey: "plYtd",
     headerClassName: NOWRAP,
     render: (client) => (
-      <p className={`text-[14px] font-semibold leading-tight ${client.plPositive ? "text-success" : "text-destructive"}`}>
-        {client.plYtd}
+      <p className={`text-[14px] font-semibold leading-tight ${client.plYtdPct >= 0 ? "text-success" : "text-destructive"}`}>
+        {formatPlYtdPct(client.plYtdPct)}
       </p>
     ),
   },
@@ -114,7 +114,7 @@ export const CUSTOMER_COLUMNS: CustomerColumn[] = [
     width: 140,
     sortKey: "liabilities",
     headerClassName: NOWRAP,
-    render: (client) => money(parseAumToThb(client.aum) * LIABILITIES_MULTIPLIER),
+    render: (client) => money(client.aum * LIABILITIES_MULTIPLIER),
   },
   // Nine Box column is parked for now. To bring it back, restore this entry and
   // re-import NineBoxCellPill from "./NineBoxTab":

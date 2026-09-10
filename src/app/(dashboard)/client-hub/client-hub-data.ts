@@ -15,7 +15,6 @@ import { mockClientDetails, mockKYCData } from "@/lib/mock-data";
 import { ALLOCATION_SLICES } from "@/components/AssetSummarySection";
 import {
   LIABILITIES_MULTIPLIER,
-  parseAumToThb,
   displayAssetLabel,
 } from "@/lib/client-utils";
 import { getNineBoxCell } from "./NineBoxTab";
@@ -37,7 +36,7 @@ function slicesFor(client: Client) {
  */
 export function getClientSliceAmount(client: Client, label: string): number {
   const pct = slicesFor(client).find((s) => s.label === label)?.percent ?? 0;
-  return parseAumToThb(client.aum) * (pct / 100);
+  return client.aum * (pct / 100);
 }
 
 /** Sortable value for a client column. Strings sort lexically, numbers numerically. */
@@ -45,7 +44,7 @@ export function getSortValue(client: Client, key: SortKey): number | string {
   switch (key) {
     case "id": return client.id;
     case "name": return client.name;
-    case "aum": return parseAumToThb(client.aum);
+    case "aum": return client.aum;
     case "thaiStock": return getClientSliceAmount(client, "หุ้นไทย");
     case "foreignStock": return getClientSliceAmount(client, "หุ้นต่างประเทศ");
     case "derivatives": return getClientSliceAmount(client, "อนุพันธ์");
@@ -53,9 +52,9 @@ export function getSortValue(client: Client, key: SortKey): number | string {
     case "bond": return getClientSliceAmount(client, "ตราสารหนี้");
     case "foreignBond": return getClientSliceAmount(client, "ตราสารหนี้ต่างประเทศ");
     case "structuredBond": return getClientSliceAmount(client, "หุ้นกู้ที่มีอนุพันธ์แฝง");
-    case "plYtd": { const m = client.plYtd.match(/([+-]?[\d.]+)/); return m ? parseFloat(m[1]) : 0; }
-    case "liabilities": return parseAumToThb(client.aum) * LIABILITIES_MULTIPLIER;
-    case "cashIdle": return parseAumToThb(client.aum) * (client.cashIdlePct / 100);
+    case "plYtd": return client.plYtdPct;
+    case "liabilities": return client.aum * LIABILITIES_MULTIPLIER;
+    case "cashIdle": return client.aum * (client.cashIdlePct / 100);
     case "nineBox": return getNineBoxCell(client).heat;
     default: return 0;
   }
@@ -87,7 +86,7 @@ export function getProductSortValue(
 export function buildProductRows(clients: Client[]): ProductRow[] {
   const map = new Map<string, { statusIcon: string; holders: ProductHolder[] }>();
   for (const client of clients) {
-    const aumThb = parseAumToThb(client.aum);
+    const aumThb = client.aum;
     for (const slice of slicesFor(client)) {
       if (slice.percent <= 0) continue;
       if (!map.has(slice.label)) map.set(slice.label, { statusIcon: slice.statusIcon, holders: [] });
@@ -117,7 +116,7 @@ export function getClientTotals(clients: Client[]): { totalAum: number; totalCas
   let totalAum = 0;
   let totalCash = 0;
   for (const c of clients) {
-    const aum = parseAumToThb(c.aum);
+    const aum = c.aum;
     totalAum += aum;
     totalCash += aum * (c.cashIdlePct / 100);
   }
@@ -163,7 +162,7 @@ export function splitKycByExpiry(due: KycDueEntry[]): { expired: KycDueEntry[]; 
 
 /** Clients sorted by AUM, largest first. */
 export function getTopClientsByAum(clients: Client[]): Client[] {
-  return [...clients].sort((a, b) => parseAumToThb(b.aum) - parseAumToThb(a.aum));
+  return [...clients].sort((a, b) => b.aum - a.aum);
 }
 
 /**
@@ -182,7 +181,7 @@ export function getClientsByCash(clients: Client[]): { client: Client; cashThb: 
   return clients
     .map((client) => ({
       client,
-      cashThb: parseAumToThb(client.aum) * (client.cashIdlePct / 100),
+      cashThb: client.aum * (client.cashIdlePct / 100),
     }))
     .filter((entry) => entry.cashThb > 0)
     .sort((a, b) => b.cashThb - a.cashThb);

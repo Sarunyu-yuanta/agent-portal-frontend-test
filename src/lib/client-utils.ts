@@ -12,21 +12,38 @@ export function displayAssetLabel(label: string): string {
 }
 
 export type ClientSummaryInput = {
-  aum: string;
+  /** Raw THB. */
+  aum: number;
   cashIdlePct: number;
-  plYtd: string;
-  plPositive: boolean;
+  /** Signed percent, e.g. `12.4` or `-1.5`. */
+  plYtdPct: number;
 };
 
-export function parseAumToThb(aum: string): number {
-  const match = aum.match(/([\d.]+)/);
-  if (!match) return 0;
-  return parseFloat(match[1]) * 1_000_000;
+/**
+ * A client's AUM as the headline figure: 450_000_000 → "฿ 450M",
+ * 1_200_000_000 → "฿ 1.2B".
+ *
+ * Billions get one decimal (trailing ".0" dropped), millions are shown whole —
+ * which is the format this app has always displayed.
+ *
+ * Takes raw THB rather than a pre-formatted string on purpose. This used to be
+ * stored formatted in `clients.json`, which meant every total, sort and
+ * percentage had to parse it back to a number first (13 call sites), through a
+ * parser that assumed millions and so read "฿ 1.2B" as 1.2 *million* — a
+ * thousandfold error waiting for the first client above ฿1,000M. Numbers in the
+ * data, formatting at the edge, keeps that impossible.
+ */
+export function formatAumThb(thb: number): string {
+  const millions = thb / 1_000_000;
+  if (Math.abs(millions) >= 1000) {
+    return `฿ ${(millions / 1000).toFixed(1).replace(/\.0$/, "")}B`;
+  }
+  return `฿ ${Number(millions.toFixed(1))}M`;
 }
 
-export function parsePlYtdPct(plYtd: string): number {
-  const match = plYtd.match(/([+-]?[\d.]+)/);
-  return match ? Math.abs(parseFloat(match[1])) : 0;
+/** Signed YTD P&L, e.g. `12.4` → "+12.4%", `-1.5` → "-1.5%". */
+export function formatPlYtdPct(pct: number): string {
+  return `${pct >= 0 ? "+" : ""}${pct}%`;
 }
 
 /**
@@ -68,12 +85,12 @@ export function formatThaiUpdatedAt(now: Date): { date: string; time: string } {
 
 export function buildHeroSummaryFromClient(client: ClientSummaryInput): AssetHeroSummary {
   const updatedAt = formatThaiUpdatedAt(new Date());
-  const aumThb = parseAumToThb(client.aum);
+  const aumThb = client.aum;
   const cash = aumThb * (client.cashIdlePct / 100);
   const lineAvailable = aumThb * LINE_AVAILABLE_RATIO;
-  const pct = parsePlYtdPct(client.plYtd);
-  const sign = client.plPositive ? 1 : -1;
-  const plChange = aumThb * (pct / 100) * sign;
+  // `plYtdPct` carries its own sign, so this is the old
+  // `abs(pct) * (plPositive ? 1 : -1)` written directly.
+  const plChange = aumThb * (client.plYtdPct / 100);
   const changePercent = aumThb > 0 ? (plChange / aumThb) * 100 : 0;
 
   return {
@@ -88,8 +105,7 @@ export function buildHeroSummaryFromClient(client: ClientSummaryInput): AssetHer
   };
 }
 
-export function formatLiabilitiesStr(aum: string): string {
-  const aumThb = parseAumToThb(aum);
+export function formatLiabilitiesStr(aumThb: number): string {
   return formatThbAmount(aumThb * LIABILITIES_MULTIPLIER);
 }
 

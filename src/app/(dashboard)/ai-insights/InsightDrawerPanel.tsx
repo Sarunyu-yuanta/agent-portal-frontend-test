@@ -13,7 +13,7 @@ import {
 import { mockClientDetails, mockClients } from "@/lib/mock-data";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
-import { getInitialsFromWords } from "@/lib/client-utils";
+import { getInitialsFromWords, formatAumThb, formatPlYtdPct } from "@/lib/client-utils";
 import { CATEGORY_CONFIG, confidenceColor, type Insight } from "./insight-config";
 
 export function InsightDrawerPanel({ insight }: { insight: Insight }) {
@@ -71,9 +71,9 @@ export function InsightDrawerPanel({ insight }: { insight: Insight }) {
         {client && (
           <div className="grid grid-cols-2 gap-2">
             {[
-              { label: "Total AUM",   value: client.aum,                sub: null,                                           accent: null },
+              { label: "Total AUM",   value: formatAumThb(client.aum),                sub: null,                                           accent: null },
               { label: "Cash Idle",   value: `${client.cashIdlePct}%`,  sub: client.cashIdlePct > 20 ? "Above 10% target" : null, accent: client.cashIdlePct > 20 ? "text-warning" : "text-success" },
-              { label: "YTD P&L",    value: client.plYtd,               sub: null,                                           accent: client.plPositive ? "text-success" : "text-destructive" },
+              { label: "YTD P&L",    value: formatPlYtdPct(client.plYtdPct),               sub: null,                                           accent: client.plYtdPct >= 0 ? "text-success" : "text-destructive" },
               { label: "Risk Profile",value: client.riskProfile,         sub: null,                                           accent: null },
             ].map((kpi) => (
               <div key={kpi.label} className="flex flex-col justify-between gap-2 p-3 rounded-xl bg-[var(--bg-default-primary-medium)] border border-[var(--border-default)] min-h-[80px]">

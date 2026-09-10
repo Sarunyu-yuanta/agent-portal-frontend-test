@@ -16,7 +16,7 @@ import { useClientsResource } from "@/hooks/use-api";
 import { ClientProfileSkeleton } from "./ClientProfileSkeleton";
 import { usePrivacy } from "@/contexts/privacy-context";
 import { maskName } from "@/lib/mask-name";
-import { getInitials } from "@/lib/client-utils";
+import { getInitials, formatAumThb, formatPlYtdPct } from "@/lib/client-utils";
 import { setQueryState } from "@/lib/query-state";
 import { useSetHeaderSlot } from "../../header-slot-context";
 import { usePageBreadcrumb } from "../../page-breadcrumbs";
@@ -183,11 +183,14 @@ function ClientPageInner({ id }: { id: string }) {
                   <div className="overflow-hidden min-h-0">
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="type-caption text-muted-foreground">{client.id}</span>
-                      {/* Last Contact sat here until the call log is in scope
-                          (see `CALL_LOG_ENABLED`); the KYC countdown is the
-                          thing an RM acts on. Dropped when the client has no
-                          KYC record — the pill's own outline is the separator,
-                          so the middot went with it. */}
+                      {/* Last Contact sat here. It is out of scope for this
+                          phase (see the note on `CALL_LOG_ENABLED`), not
+                          removed — `client.lastContact` is still in
+                          `clients.json` waiting for it — and the KYC countdown
+                          is the thing an RM acts on meanwhile. That countdown
+                          is itself dropped when the client has no KYC record:
+                          the pill's own outline is the separator, so the
+                          middot went with it. */}
                       {kycExpiryLabel && (
                         <span className="type-caption text-muted-foreground rounded-md bg-muted px-2 py-0.5">
                           {kycExpiryLabel}
@@ -256,18 +259,18 @@ function ClientPageInner({ id }: { id: string }) {
                   in `NotesSidebarList` documents. `md:text-[32px]!` restores
                   `type-h3`'s exact size rather than Tailwind's own `text-3xl`
                   (30px), so nothing shifts at the breakpoint. */}
-              <p className={`text-foreground transition-opacity duration-150 ${scrolled ? "type-subtitle-1" : "type-h3 text-xl! md:text-[32px]!"}`}>{client.aum}</p>
+              <p className={`text-foreground transition-opacity duration-150 ${scrolled ? "type-subtitle-1" : "type-h3 text-xl! md:text-[32px]!"}`}>{formatAumThb(client.aum)}</p>
             </div>
             <div className="w-px bg-border self-stretch -my-4 md:my-1 shrink-0" />
             <div className="flex flex-1 md:flex-none flex-col items-center text-center md:items-end md:text-right gap-1 md:pl-8">
               <p className="type-caption text-muted-foreground">YTD P&L</p>
               <div className="flex items-center gap-1.5">
-                {client.plPositive ? (
+                {client.plYtdPct >= 0 ? (
                   <ArrowUpIcon size={scrolled ? 14 : 18} className="text-success shrink-0" weight="bold" />
                 ) : (
                   <ArrowDownIcon size={scrolled ? 14 : 18} className="text-destructive shrink-0" weight="bold" />
                 )}
-                <p className={`transition-opacity duration-150 ${scrolled ? "type-subtitle-1" : "type-h3 text-xl! md:text-[32px]!"} ${client.plPositive ? "text-success" : "text-destructive"}`}>{client.plYtd}</p>
+                <p className={`transition-opacity duration-150 ${scrolled ? "type-subtitle-1" : "type-h3 text-xl! md:text-[32px]!"} ${client.plYtdPct >= 0 ? "text-success" : "text-destructive"}`}>{formatPlYtdPct(client.plYtdPct)}</p>
               </div>
             </div>
           </div>

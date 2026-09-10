@@ -11,7 +11,7 @@ import { useCountUp } from "@/hooks/use-count-up";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { usePopover } from "@/hooks/use-popover";
 import { maskName } from "@/lib/mask-name";
-import { getInitials, formatMillionThb } from "@/lib/client-utils";
+import { getInitials, formatMillionThb, formatAumThb } from "@/lib/client-utils";
 import {
   getClientTotals,
   getSegmentBreakdown,
@@ -400,7 +400,7 @@ export function ClientSummaryCards({ clients, isLoading }: { clients: Client[]; 
             rank={i + 1}
             name={name}
             sub={c.tier}
-            right={<span className="text-[12px] font-bold text-foreground shrink-0">{c.aum}</span>}
+            right={<span className="text-[12px] font-bold text-foreground shrink-0">{formatAumThb(c.aum)}</span>}
           />
         );
       })}

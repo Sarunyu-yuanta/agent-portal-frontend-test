@@ -68,10 +68,18 @@ export const KYC_ALERTS_ENABLED: boolean = true;
 /**
  * Client 360's Call Log tab and the Call log dialog in its side panel.
  *
- * Not the "Last Contact" line in a profile's identity bar. That reads as a
- * property of the client rather than a view of the call history — the client
- * list has always carried its own `lastContact` field for the same fact — and
- * it survives the cut for that reason, even though the mock data happens to
- * derive it from the call log (see `lastContactFromCallLogs`).
+ * The "Last Contact" line in a profile's identity bar is a separate decision
+ * that happens to land the same way. It reads as a property of the client
+ * rather than a view of the call history — the client list carries its own
+ * `lastContact` field for the same fact — so it could have stayed. It is out of
+ * scope for this phase all the same, and is hidden in
+ * `client/[id]/page.tsx` (the KYC countdown took its place in the bar).
+ *
+ * Two things are therefore unreferenced but deliberately kept, the same way
+ * everything else on this page is kept: the `lastContact` field in
+ * `clients.json`, and `lastContactFromCallLogs` in `client-detail-data.ts`.
+ * **Neither is dead code — do not delete them.** A grep for callers finds only
+ * this comment, which is exactly how they look right before someone removes
+ * them by mistake.
  */
 export const CALL_LOG_ENABLED: boolean = false;

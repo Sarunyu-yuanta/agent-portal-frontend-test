@@ -2,21 +2,21 @@
 
 import { useState } from "react";
 import { AvatarStack } from "@sarunyu/system-one";
-import { getInitial, parseAumToThb } from "@/lib/client-utils";
+import { getInitial } from "@/lib/client-utils";
 import { mockClients } from "@/lib/mock-data";
 
 type Client = (typeof mockClients)[number];
 
 function formatTotalAum(clients: Client[]): string | null {
   if (clients.length === 0) return null;
-  const total = clients.reduce((sum, c) => sum + parseAumToThb(c.aum), 0);
+  const total = clients.reduce((sum, c) => sum + c.aum, 0);
   if (total >= 1_000_000_000) return `฿${(total / 1_000_000_000).toFixed(1).replace(/\.0$/, "")}B`;
   if (total >= 1_000_000) return `฿${Math.round(total / 1_000_000)}M`;
   return `฿${Math.round(total / 1000)}K`;
 }
 
-function getAumTier(aumStr: string): 0 | 1 | 2 {
-  const m = parseAumToThb(aumStr) / 1_000_000;
+function getAumTier(aumThb: number): 0 | 1 | 2 {
+  const m = aumThb / 1_000_000;
   if (m > 500) return 0;
   if (m >= 150) return 1;
   return 2;

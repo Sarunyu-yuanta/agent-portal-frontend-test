@@ -8,7 +8,7 @@ Design system: `@sarunyu/system-one`
 ## สถานะ
 
 **Frontend ล้วน ยังไม่มี Backend** — ไม่มี `fetch`, ไม่มี API route, ไม่มี middleware
-และไม่อ่าน env var เลยสักตัว (ไม่ต้องตั้ง `.env`)
+และไม่อ่าน env var เลยสักตัว
 
 ข้อมูลทั้งหมด: `src/data/*.json` → `lib/mock-data.ts` → hooks → หน้าจอ
 
@@ -25,10 +25,10 @@ type Resource<T> = { data: T; isLoading: boolean };
 
 ## ต่อ API — แก้แค่ 2 ไฟล์
 
-| ไฟล์ | จำนวน hook |
-| --- | --- |
-| `src/hooks/use-catalog.ts` | 13 (Product Catalog + Insights) |
-| `src/hooks/use-api.ts` | 5 (ลูกค้า, NBA, Pipeline, Mini Kanban) |
+| ไฟล์                       | จำนวน hook                             |
+| -------------------------- | -------------------------------------- |
+| `src/hooks/use-catalog.ts` | 13 (Product Catalog + Insights)        |
+| `src/hooks/use-api.ts`     | 5 (ลูกค้า, NBA, Pipeline, Mini Kanban) |
 
 เปลี่ยน body จาก `useStatic(mock)` เป็น `useResource(label, fetcher, mock)`
 argument ตัวที่ 3 คือ fallback เวลา API ล่ม ควรใส่ไว้
@@ -37,16 +37,27 @@ target type อยู่ที่ `src/types/domain.ts`
 
 ## ⚠️ ต้องรู้ก่อนออกแบบ API
 
-**JSON เก็บเป็นข้อความสำเร็จรูป ไม่ใช่ค่าดิบ** — ต้องมีชั้นแปลงคั่นระหว่าง API กับ UI
+**API จะส่ง shape แบบไหนมาก็ได้** — mock ในโปรเจกต์เป็นแค่ตัวอย่างว่าอยากได้ข้อมูลอะไร
+ไม่ใช่ข้อกำหนดว่า response ต้องหน้าตาแบบนี้
+
+จุดที่รับความต่างคือ **`fetcher`** ที่ส่งเข้า `useResource` — จะ `snake_case`, ซ้อนหลายชั้น,
+ชื่อ field ไม่ตรง, หน่วยต่างกัน ก็เขียน map เข้า type ใน `types/domain.ts` ในฟังก์ชันเดียว
+**หน้าจอไม่ต้องแก้เลย**
+
+ตัวเลขใน `clients.json` เป็นค่าดิบ ไม่ใช่ข้อความจัดรูปแล้ว — จัดรูปตอน render:
 
 ```
-aum         = "฿ 450M"       ไม่ใช่ 450
-plYtd       = "+12.4%"       ไม่ใช่ 12.4
-lastContact = "2 days ago"   ไม่ใช่ ISO date
+aum       = 450000000   (THB)          → formatAumThb()   → "฿ 450M"
+plYtdPct  = 12.4        (percent)      → formatPlYtdPct() → "+12.4%"
 ```
 
-ชั้นแปลงเคยมีในโปรเจกต์ก่อนถูกลบ ดูของเดิมเป็นตัวอย่างได้:
-`git show d2c4623:src/lib/api.ts` และ `git show d2c4623:src/types/api.ts`
+ยกเว้น `lastContact` ที่ยังเก็บเป็นข้อความ (`"2 days ago"`) เพราะ **ยังไม่มีใครอ่าน** —
+UI ที่แสดงมันไม่อยู่ในเฟสนี้ ถ้าเฟสหน้าเปิดใช้แล้ว API ส่ง ISO date มา ให้แปลงใน fetcher
+ตัวอย่าง `formatLastContact` อยู่ใน `git show d2c4623:src/lib/api.ts`
+
+> ⚠️ `lastContact` ใน `clients.json` และ `lastContactFromCallLogs()` ใน
+> `client-detail-data.ts` **ไม่มีใครเรียกเลย แต่ห้ามลบ** — ถูกซ่อนไว้เพราะไม่อยู่ในเฟสนี้
+> (ดู `phase-scope.md`) เครื่องมือหา dead code จะชี้ว่าลบได้ ซึ่งผิด
 
 **ข้อมูลบางชุดเป็นของ generate ไม่ใช่ data model** ต้อง model ใหม่ก่อนทำ endpoint
 
@@ -66,12 +77,12 @@ lastContact = "2 days ago"   ไม่ใช่ ISO date
 
 `src/lib/feature-flags.ts` — โค้ดยังอยู่ครบ เปลี่ยน `false` เป็น `true` ได้เลย
 
-| Flag | สถานะ |
-| --- | --- |
-| `NOTES_ENABLED` | ปิด |
-| `CALENDAR_ENABLED` | ปิด |
-| `REMINDERS_ENABLED` | ปิด |
-| `CALL_LOG_ENABLED` | ปิด |
+| Flag                 | สถานะ    |
+| -------------------- | -------- |
+| `NOTES_ENABLED`      | ปิด      |
+| `CALENDAR_ENABLED`   | ปิด      |
+| `REMINDERS_ENABLED`  | ปิด      |
+| `CALL_LOG_ENABLED`   | ปิด      |
 | `KYC_ALERTS_ENABLED` | **เปิด** |
 
 Notes / Calendar / Reminders พึ่งพากัน ควรเปิดพร้อมกันทั้งชุด
@@ -95,8 +106,8 @@ filter อื่นรีเซ็ตทุก refresh โดยตั้งใ�
 
 ## เอกสารอื่น
 
-| ไฟล์ | เนื้อหา |
-| --- | --- |
+| ไฟล์                                               | เนื้อหา                                          |
+| -------------------------------------------------- | ------------------------------------------------ |
 | [`mock-data-inventory.md`](mock-data-inventory.md) | รายการข้อมูลทุกชุด — **ใช้อ้างอิงตอนออกแบบ API** |
-| [`phase-scope.md`](phase-scope.md) | ขอบเขตแต่ละเฟส และอะไรถูกตัดออก |
-| [`mock-json/`](mock-json/) | ข้อมูล mock แบบ JSON ล้วน |
+| [`phase-scope.md`](phase-scope.md)                 | ขอบเขตแต่ละเฟส และอะไรถูกตัดออก                  |
+| [`mock-json/`](mock-json/)                         | ข้อมูล mock แบบ JSON ล้วน                        |
