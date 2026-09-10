@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IC Portal
 
-## Getting Started
+Portal สำหรับ IC / RM ของ Yuanta — ข้อมูลลูกค้า, พอร์ตการลงทุน, และแคตตาล็อกผลิตภัณฑ์
 
-First, run the development server:
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4
+
+## เริ่มใช้งาน
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+เปิด http://localhost:3000 — **ไม่ต้องตั้งค่า `.env` หรืออะไรเพิ่ม**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| คำสั่ง | |
+| --- | --- |
+| `npm run dev` | dev server |
+| `npm run build` | build production |
+| `npm run lint` | ESLint |
+| `npx tsc --noEmit` | ตรวจ TypeScript |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## สถานะ
 
-## Learn More
+**เป็น Frontend ล้วน ยังไม่มี Backend** — ข้อมูลทั้งหมดเป็นไฟล์ JSON ใน `src/data`
+ไม่มีการเรียก API, ไม่มี API route, ไม่อ่าน environment variable
 
-To learn more about Next.js, take a look at the following resources:
+โครงสร้างเตรียมไว้ให้ต่อ API ได้โดยไม่ต้องแก้หน้าจอ — ทุกหน้าอ่านข้อมูลผ่าน hook ที่คืน
+`{ data, isLoading }` และมี Skeleton ผูกกับ `isLoading` ไว้แล้ว
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📄 อ่านก่อนเริ่มงาน
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| เอกสาร | |
+| --- | --- |
+| **[docs/handover.md](docs/handover.md)** | **เริ่มที่นี่** — สถานะ, วิธีต่อ API, ข้อควรระวัง |
+| [docs/mock-data-inventory.md](docs/mock-data-inventory.md) | รายการข้อมูลทุกชุด — ใช้อ้างอิงตอนออกแบบ API |
+| [docs/phase-scope.md](docs/phase-scope.md) | ขอบเขตแต่ละเฟส และของที่ถูกซ่อนไว้ (**อย่าลบ**) |
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> ⚠️ มีโค้ดบางส่วนที่ไม่มีใครเรียกแต่ **ห้ามลบ** — ถูกซ่อนไว้เพราะไม่อยู่ในเฟสนี้
+> รายละเอียดใน `docs/phase-scope.md`

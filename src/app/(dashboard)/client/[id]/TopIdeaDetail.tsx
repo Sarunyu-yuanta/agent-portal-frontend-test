@@ -27,11 +27,11 @@ import { TopIdeaDetailSkeleton } from "./ProductDetailSkeletons";
 
 const ASSETS = {
   detailWave: "/products/top-idea/top-idea-detail-wave.svg",
-  detailEnergy: "/products/top-idea/top-idea-energy.png",
+  detailEnergy: "/products/top-idea/top-idea-energy.webp",
   heroLightning: "/products/top-idea/top-idea-hero-lightning.svg",
   wall1: "/products/top-idea/top-idea-wall-img.svg",
-  effect: "/products/top-idea/top-idea-effect.png",
-  graphic: "/products/top-idea/top-idea-graphic.png",
+  effect: "/products/top-idea/top-idea-effect.webp",
+  graphic: "/products/top-idea/top-idea-graphic.webp",
 };
 
 const IND_CLOUDS = [

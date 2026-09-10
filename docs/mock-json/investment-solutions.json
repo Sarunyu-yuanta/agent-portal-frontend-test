@@ -5,7 +5,7 @@
     "desc": "ความเสี่ยงต่ำ ลงทุนอย่างมั่นคง",
     "couponRange": "12%-15%",
     "tenor": "12 เดือน",
-    "heroImage": "/products/investment-solution/invest-secure-income.png",
+    "heroImage": "/products/investment-solution/invest-secure-income.webp",
     "showCoupon": false
   },
   {
@@ -14,7 +14,7 @@
     "desc": "ความเสี่ยงปานกลาง ผลตอบแทนคุ้มค่า",
     "couponRange": "25%-30%",
     "tenor": "9 เดือน",
-    "heroImage": "/products/investment-solution/invest-balanced-growth.png",
+    "heroImage": "/products/investment-solution/invest-balanced-growth.webp",
     "showCoupon": false
   },
   {
@@ -23,7 +23,7 @@
     "desc": "ความเสี่ยงสูง ผลตอบแทนสูงสุด",
     "couponRange": "35%-40%",
     "tenor": "6 เดือน",
-    "heroImage": "/products/investment-solution/invest-high-conviction.png",
+    "heroImage": "/products/investment-solution/invest-high-conviction.webp",
     "showCoupon": true
   }
 ]

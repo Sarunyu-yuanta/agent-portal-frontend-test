@@ -25,7 +25,7 @@
       "currency": "USD",
       "creditRating": "Credit Rating : S&P = AA+ | Moody's = Aaa | Fitch = AAA",
       "updatedAt": "10 September 2025 - 09.00",
-      "heroImage": "/products/global-bond/global-bond-apple-hero.png",
+      "heroImage": "/products/global-bond/global-bond-apple-hero.webp",
       "couponRateRange": "1.4–4.7%",
       "maturityRange": "2026–2041",
       "estimatedYield": "2.0–4.7%",
@@ -209,7 +209,7 @@
       "ticker": "MSFT",
       "estimatedYield": "3.2–4.1%",
       "maturityRange": "2027–2032",
-      "logoSrc": "/products/global-bond/global-bond-card-msft.png",
+      "logoSrc": "/products/global-bond/global-bond-card-msft.webp",
       "logoVariant": "image"
     },
     {
@@ -218,7 +218,7 @@
       "ticker": "AMZN",
       "estimatedYield": "3.2–4.1%",
       "maturityRange": "2027–2032",
-      "logoSrc": "/products/global-bond/global-bond-card-amzn.png",
+      "logoSrc": "/products/global-bond/global-bond-card-amzn.webp",
       "logoVariant": "image"
     }
   ],

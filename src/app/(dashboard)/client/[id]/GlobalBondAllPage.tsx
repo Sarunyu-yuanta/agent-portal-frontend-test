@@ -166,7 +166,7 @@ export function GlobalBondAllPage({ onBack }: { onBack: () => void }) {
             priority
             sizes="(max-width: 1280px) 100vw, 1280px"
             className="max-w-none object-cover pointer-events-none rounded-xl"
-            src="/products/global-bond/global-bond-all-hero.png"
+            src="/products/global-bond/global-bond-all-hero.webp"
           />
           <div className="relative z-[1] flex w-full flex-col gap-4 md:gap-6">
             {/* Mobile banner — stacked: title → subtitle → filter button */}

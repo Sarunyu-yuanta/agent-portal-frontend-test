@@ -10,11 +10,11 @@ import { TOP_IDEA_THEMES, type TopIdeaSector } from "./top-idea-data";
 
 const ASSETS = {
   vector: "/products/top-idea/top-idea-wave.svg",
-  energy1: "/products/top-idea/top-idea-energy.png",
+  energy1: "/products/top-idea/top-idea-energy.webp",
   wall1: "/products/top-idea/top-idea-wall-img.svg",
-  industrials1: "/products/top-idea/top-idea-industrials.png",
-  effect: "/products/top-idea/top-idea-effect.png",
-  graphic: "/products/top-idea/top-idea-graphic.png",
+  industrials1: "/products/top-idea/top-idea-industrials.webp",
+  effect: "/products/top-idea/top-idea-effect.webp",
+  graphic: "/products/top-idea/top-idea-graphic.webp",
 };
 
 const IND_CLOUDS = [

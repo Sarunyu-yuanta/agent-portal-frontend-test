@@ -121,7 +121,7 @@ export function GlobalBondDetailHero({
   onYieldChange: (id: YieldFilter) => void;
   onMaturityChange: (id: MaturityFilter) => void;
 }) {
-  const heroImage = issuer.heroImage ?? "/products/global-bond/global-bond-apple-hero.png";
+  const heroImage = issuer.heroImage ?? "/products/global-bond/global-bond-apple-hero.webp";
   return (
     <div className="relative flex flex-col gap-6 px-4 py-6 md:p-8 rounded-xl overflow-hidden">
       <Image
