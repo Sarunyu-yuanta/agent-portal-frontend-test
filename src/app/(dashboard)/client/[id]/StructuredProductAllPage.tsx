@@ -82,7 +82,7 @@ export function StructuredProductAllPage({
             priority
             sizes="(max-width: 1280px) 100vw, 1280px"
             className="max-w-none object-cover pointer-events-none rounded-xl"
-            src="/structured-products-all-banner-bg.png"
+            src="/products/structured-product/structured-products-all-banner-bg.png"
           />
           <div className="relative z-[1] flex max-w-[220px] flex-col gap-2 md:max-w-none">
             <p className="text-2xl font-bold leading-9 text-[#101828] lg:text-[32px] lg:leading-[48px] lg:text-[rgba(0,0,0,0.85)]">

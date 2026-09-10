@@ -768,7 +768,7 @@ export function ProductCatalogTab({
                 />
                 <InvestmentSolutionSection
                   onInvestmentSolutionSelect={nav.onInvestmentSolutionSelect}
-                  bgImage="/thai-structure-bg.jpg"
+                  bgImage="/products/structured-product/thai-structure-bg.jpg"
                 />
                 <TopPickSection onProductSelect={nav.onProductSelect} />
 

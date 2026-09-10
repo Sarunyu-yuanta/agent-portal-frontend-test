@@ -282,9 +282,9 @@ function BondTable({
 }
 
 const ASSET_TAG_ICONS = {
-  ticker: "/fixed-income-tag-newspaper.svg",
-  offering: "/fixed-income-tag-users.svg",
-  minSubscription: "/fixed-income-tag-money.svg",
+  ticker: "/products/fixed-income/fixed-income-tag-newspaper.svg",
+  offering: "/products/fixed-income/fixed-income-tag-users.svg",
+  minSubscription: "/products/fixed-income/fixed-income-tag-money.svg",
 } as const;
 
 function AssetTag({ iconSrc, label }: { iconSrc: string; label: string }) {
@@ -391,7 +391,7 @@ export function FixedIncomeCompanyDetail({
         <div className="relative flex flex-col gap-6 p-8 rounded-xl overflow-hidden">
           <Image
             alt=""
-            src="/fixed-income-company-hero.png"
+            src="/products/fixed-income/fixed-income-company-hero.png"
             fill
             priority
             sizes="(max-width: 1280px) 100vw, 1280px"

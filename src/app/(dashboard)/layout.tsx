@@ -131,7 +131,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-2.5 xl:hidden shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size icon, no responsive sizes needed */}
                 <img
-                  src="/logo-ic-portal-blue.svg"
+                  src="/brand/logo-ic-portal-blue.svg"
                   alt="Yuanta"
                   className="w-auto h-8 shrink-0"
                 />

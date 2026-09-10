@@ -29,7 +29,7 @@ export function AuthPendingScreen({ label = "กำลังเข้าสู�
           doesn't run edge to edge. */}
       {/* eslint-disable-next-line @next/next/no-img-element -- fixed-ratio brand lockup, no responsive sources needed */}
       <img
-        src="/logo-ic-portal-white.svg"
+        src="/brand/logo-ic-portal-white.svg"
         alt=""
         width={423}
         height={109}

@@ -236,7 +236,7 @@ export function AppSidebar({
           className={`${ICON_ZONE} transition-opacity duration-300 ease-in-out ${collapsed ? "opacity-100" : "opacity-0 w-0"}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- tiny fixed-size icon, no responsive sizes needed */}
-          <img src="/yuanta-icon-logo.svg" alt="Yuanta" className="w-auto h-7.5" />
+          <img src="/brand/yuanta-icon-logo.svg" alt="Yuanta" className="w-auto h-7.5" />
         </div>
         <div
           className={`overflow-hidden transition-all duration-300 ease-in-out ${collapsed ? "max-w-0 opacity-0" : "max-w-[200px] opacity-100"
@@ -244,7 +244,7 @@ export function AppSidebar({
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- small fixed-size wordmark, no responsive sizes needed */}
           <img
-            src="/logo-ic-portal-white.svg"
+            src="/brand/logo-ic-portal-white.svg"
             alt="Yuanta IC Portal"
             className="w-auto h-8"
           />

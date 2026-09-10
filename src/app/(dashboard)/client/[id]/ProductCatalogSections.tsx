@@ -22,10 +22,10 @@ import {
   InvestmentCard,
 } from "./ProductCatalogInvestmentCard";
 
-const IMG_SECURE_INCOME = "/invest-secure-income.png";
-const IMG_BALANCED_GROWTH = "/invest-balanced-growth.png";
-const IMG_HIGH_CONVICTION = "/invest-high-conviction.png";
-const IMG_RECOMMEND_BG = "/investment-solution-bg.jpg";
+const IMG_SECURE_INCOME = "/products/investment-solution/invest-secure-income.png";
+const IMG_BALANCED_GROWTH = "/products/investment-solution/invest-balanced-growth.png";
+const IMG_HIGH_CONVICTION = "/products/investment-solution/invest-high-conviction.png";
+const IMG_RECOMMEND_BG = "/products/investment-solution/investment-solution-bg.jpg";
 
 type DragHandlers = {
   ref: RefObject<HTMLDivElement | null>;

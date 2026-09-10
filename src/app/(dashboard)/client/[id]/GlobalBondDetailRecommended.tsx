@@ -111,7 +111,7 @@ export function GlobalBondDetailRecommended({
         {/* eslint-disable-next-line @next/next/no-img-element -- 20px SVG icon; the image optimizer rejects SVG */}
         <img
           alt=""
-          src="/global-bond-sparkle.svg"
+          src="/products/global-bond/global-bond-sparkle.svg"
           className="size-5 shrink-0"
         />
         <h3 className="text-sm font-semibold leading-[22px] text-[rgba(0,0,0,0.85)] md:text-xl md:font-bold md:leading-7 md:tracking-[-0.5px]">

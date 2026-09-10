@@ -78,7 +78,7 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <Input
-          placeholder="รหัสลูกค้า / เบอร์โทรศัพท์ / อีเมล"
+          placeholder="รหัสพนักงาน"
           value={identifier}
           onChange={setIdentifier}
           required
@@ -98,7 +98,11 @@ export default function LoginPage() {
                 aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                {showPassword ? <EyeSlashIcon size={20} /> : <EyeIcon size={20} />}
+                {showPassword ? (
+                  <EyeSlashIcon size={20} />
+                ) : (
+                  <EyeIcon size={20} />
+                )}
               </button>
             }
           />

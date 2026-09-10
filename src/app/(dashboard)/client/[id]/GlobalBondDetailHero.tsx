@@ -11,9 +11,9 @@ const HERO_GRADIENT =
   "linear-gradient(90deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.85) 60.096%, rgba(255,255,255,0.72) 84.135%, rgba(255,255,255,0.6) 100%)";
 
 const ASSET_TAG_ICONS = {
-  ticker: "/fixed-income-tag-newspaper.svg",
-  currency: "/global-bond-tag-currency.svg",
-  rating: "/global-bond-tag-shield.svg",
+  ticker: "/products/fixed-income/fixed-income-tag-newspaper.svg",
+  currency: "/products/global-bond/global-bond-tag-currency.svg",
+  rating: "/products/global-bond/global-bond-tag-shield.svg",
 } as const;
 
 export const YIELD_FILTERS: { id: YieldFilter; label: string }[] = [
@@ -121,7 +121,7 @@ export function GlobalBondDetailHero({
   onYieldChange: (id: YieldFilter) => void;
   onMaturityChange: (id: MaturityFilter) => void;
 }) {
-  const heroImage = issuer.heroImage ?? "/global-bond-apple-hero.png";
+  const heroImage = issuer.heroImage ?? "/products/global-bond/global-bond-apple-hero.png";
   return (
     <div className="relative flex flex-col gap-6 px-4 py-6 md:p-8 rounded-xl overflow-hidden">
       <Image

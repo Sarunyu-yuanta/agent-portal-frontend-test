@@ -34,7 +34,7 @@ function parseTickers(underlying: string): string[] {
 
 function YuantaLogoMark() {
   // eslint-disable-next-line @next/next/no-img-element -- SVG wordmark; the image optimizer rejects SVG
-  return <img src="/yuanta-logo.svg" alt="Yuanta Securities" className="h-10 w-auto shrink-0" />;
+  return <img src="/brand/yuanta-logo.svg" alt="Yuanta Securities" className="h-10 w-auto shrink-0" />;
 }
 
 function FooterIconCircle({ color, children }: { color: string; children: React.ReactNode }) {
@@ -81,7 +81,7 @@ function FCNCard({ product }: { product: StructuredProduct }) {
           <div className="flex flex-col gap-2">
             {tickers.map((ticker, i) => {
               const info = TICKER_INFO[ticker];
-              const logoSrc = product.logos[i] ?? "/logo-placeholder.svg";
+              const logoSrc = product.logos[i] ?? "/bond-logos/logo-placeholder.svg";
               const name = product.underlyingNames?.[i] ?? info?.name ?? ticker;
               const sector = product.underlyingSectors?.[i] ?? info?.sector ?? "";
               return (
@@ -89,7 +89,7 @@ function FCNCard({ product }: { product: StructuredProduct }) {
                   <div className="relative shrink-0 size-9 rounded-lg overflow-hidden" style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element -- placeholder fallback reassigns `currentTarget.src`, which `next/image` controls; also rendered into a jsPDF snapshot */}
                     <img alt={name} className="absolute inset-0 size-full object-cover" src={logoSrc}
-                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/logo-placeholder.svg"; }} />
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/bond-logos/logo-placeholder.svg"; }} />
                   </div>
                   <div className="flex flex-1 min-w-0 flex-col gap-0.5">
                     <p className="font-semibold text-[#101828] text-xs leading-4 truncate">{name}</p>

@@ -9,7 +9,7 @@ export default function NotFound() {
       {/* Logo */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/logo-ic-portal-blue.svg"
+        src="/brand/logo-ic-portal-blue.svg"
         alt="Yuanta"
         className="w-auto h-9 opacity-70"
       />
